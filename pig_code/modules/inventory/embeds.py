@@ -11,7 +11,7 @@ def inventory_item_selected(inter, item_id, lang) -> disnake.Embed:
         title=locales['inventory_item_selected']['title'][lang].format(item=Inventory.get_item_name(item_id, lang)),
         description=locales['inventory_item_selected']['desc'][lang].format(
             amount=Inventory.get_item_amount(inter.author.id, item_id),
-            type=locales['words'][Inventory.get_item_type(item_id)][lang],
+            type=Inventory.get_item_type(item_id, lang),
             cost=Inventory.get_item_cost(item_id)
         ),
         prefix=Func.generate_prefix(Inventory.get_item_emoji(item_id)),

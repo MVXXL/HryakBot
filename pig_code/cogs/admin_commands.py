@@ -61,6 +61,21 @@ class AdminCommands(commands.Cog):
                                                                          footer=f'ID: {user.id}',
                                                                          footer_url=Func.generate_footer_url('user_avatar', user)))
 
+    @user.sub_command(guild_ids=config.ADMIN_GUILDS, description='Remove premium from user')
+    async def add_item(self, inter, user: disnake.User = commands.Param(description='User or user\'s ID'),
+                        item: str = commands.Param(description='Item ID'),
+                        amount: int = commands.Param(description='Amount of item', default=1)):
+        await BotUtils.pre_command_check(inter)
+        User.register_user_if_not_exists(user.id)
+        if item not in items:
+            await BotUtils.send_callback(inter, 'Item not exist')
+        else:
+            Inventory.add_item(user.id, item, amount)
+            await BotUtils.send_callback(inter, embed=BotUtils.generate_embed(title=f'User ***{user}*** got {item} x{amount}',
+                                                                             color=utils_config.main_color,
+                                                                             footer=f'ID: {user.id}',
+                                                                         footer_url=Func.generate_footer_url('user_avatar', user)))
+
     @dev.sub_command_group()
     async def server(self, inter):
         pass

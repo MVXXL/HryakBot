@@ -13,30 +13,32 @@ from .. import errors
 async def inventory(inter, client):
     await BotUtils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
-    item_fields = []
-    options = []
-    for item in User.get_inventory(inter.author.id):
-        item_label_without_prefix = f'{Inventory.get_item_name(item, lang)} x{Inventory.get_item_amount(inter.author.id, item)}'
-        item_fields.append(
-            {'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item))}{item_label_without_prefix}',
-             'value': f'__{locales["words"]["description"][lang]}:__ *{Inventory.get_item_description(item, lang)}*\n'
-                      f'__{locales["words"]["cost_per_item"][lang]}:__ `{Inventory.get_item_cost(item)}` 🪙',
-             'inline': False})
-        options.append(
-            {'label': item_label_without_prefix,
-             'value': f'{item}',
-             'emoji': Inventory.get_item_emoji(item),
-             'description': Inventory.get_item_description(item, lang)
-             }
-        )
-    embeds = BotUtils.generate_embeds_list_from_fields(item_fields, description='' if item_fields else
-    locales['inventory']['inventory_empty_desc'][lang],
-                                                       title=f"{Func.generate_prefix('📦')}{locales['inventory']['inventory_title'][lang]}")
-    components = BotUtils.generate_select_components_for_pages(options, 'inventory_item_select',
-                                                               locales['inventory']['select_item_placeholder'][
-                                                                   lang])
-    await BotUtils.pagination(client, inter, lang, embeds=embeds, components=components if options else None,
-                              hide_button=False)
+    await BotUtils.inventory_embed(client, inter, lang)
+    # item_fields = []
+    # options = []
+    # for item in User.get_inventory(inter.author.id):
+    #     if items[item]['type'].split(':')[0] not in ['skin']:
+    #         item_label_without_prefix = f'{Inventory.get_item_name(item, lang)} x{Inventory.get_item_amount(inter.author.id, item)}'
+    #         item_fields.append(
+    #             {'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item))}{item_label_without_prefix}',
+    #              'value': f'{locales["words"]["description"][lang]}: *{Inventory.get_item_description(item, lang)}*\n'
+    #                       f'{locales["words"]["type"][lang]}: `{Inventory.get_item_cost(item)}` 🪙',
+    #              'inline': False})
+    #         options.append(
+    #             {'label': item_label_without_prefix,
+    #              'value': f'{item}',
+    #              'emoji': Inventory.get_item_emoji(item),
+    #              'description': Inventory.get_item_description(item, lang)
+    #              }
+    #         )
+    # embeds = BotUtils.generate_embeds_list_from_fields(item_fields, description='' if item_fields else
+    # locales['inventory']['inventory_empty_desc'][lang],
+    #                                                    title=f"{Func.generate_prefix('📦')}{locales['inventory']['inventory_title'][lang]}")
+    # components = BotUtils.generate_select_components_for_pages(options, 'inventory_item_select',
+    #                                                            locales['inventory']['select_item_placeholder'][
+    #                                                                lang])
+    # await BotUtils.pagination(client, inter, lang, embeds=embeds, components=components if options else None,
+    #                           hide_button=False)
 
 
 async def inventory_item_selected(inter, item_id, message: disnake.Message = None):

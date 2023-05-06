@@ -1,6 +1,20 @@
 from . import config
 
-default_pig = {'name': 'Hryak', 'weight': 1, 'last_feed': None}
+default_pig = {'name': 'Hryak',
+               'weight': 1,
+               'last_feed': None,
+               'genetic': {
+                   'body': 'default',
+                   'eyes': 'white',
+                   'pupils': 'black',
+               },
+               'skins': {
+                   'body': None,
+                   'eyes': None,
+                   'pupils': None,
+                   'hat': None,
+                   'glasses': None
+               }}
 pig_feed_cooldown = 4 * 60 ** 2 if not config.TEST else 10  # seconds
 premium_pig_feed_cooldown = 2 * 60 ** 2 if not config.TEST else 5  # seconds
 
@@ -8,7 +22,7 @@ premium_pig_feed_cooldown = 2 * 60 ** 2 if not config.TEST else 5  # seconds
 start_text = '**I am alive!**'
 
 # embed colors
-main_color = 0xffbe4f
+main_color = 0xc7604c
 error_color = 0xe32d2d
 warn_color = 0xe0bb36
 success_color = 0x2fc256

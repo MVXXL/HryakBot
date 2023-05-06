@@ -1,5 +1,5 @@
 import mysql.connector
-from ...core import config
+from ...core import *
 
 
 class Connection:

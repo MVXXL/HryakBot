@@ -3,6 +3,7 @@ import json
 import mysql.connector
 
 from .connection import Connection
+from ...core import *
 from ...core.config import users_schema
 
 class User:

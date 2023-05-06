@@ -2,7 +2,7 @@ import random
 
 import mysql.connector
 
-from .user import *
+from .user import User
 from .connection import Connection
 from ...core.config import users_schema
 

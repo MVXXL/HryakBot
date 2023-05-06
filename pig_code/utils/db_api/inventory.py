@@ -4,10 +4,10 @@ import json
 import mysql.connector
 
 from .connection import Connection
-from .user import *
-from .tech import *
+from .user import User
+from .tech import Tech
 from ..functions import *
-from ...core import utils_config
+from ...core import *
 from ...core.config import users_schema
 
 
@@ -78,8 +78,19 @@ class Inventory:
         return items[item_id]['components']
 
     @staticmethod
-    def get_item_type(item_id):
+    def get_item_type(item_id, lang: str = None):
+        if lang is not None:
+            return locales['item_types'][items[item_id]['type']][lang]
         return items[item_id]['type']
+
+    @staticmethod
+    def get_item_main_type(item_id, lang: str = None):
+        return Inventory.get_item_type(item_id).split(':')[0]
+
+    @staticmethod
+    def get_item_skin_type(item_id):
+        skin_type = Inventory.get_item_type(item_id).split(":")[1]
+        return skin_type
 
     @staticmethod
     def get_item_image_url(item_id):

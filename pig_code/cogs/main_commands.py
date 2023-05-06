@@ -35,6 +35,10 @@ class MainCommands(commands.Cog):
     async def inventory(self, inter):
         await modules.inventory.callbacks.inventory(inter, self.client)
 
+    @commands.slash_command(description=Localized(data=locales['wardrobe']['description']))
+    async def wardrobe(self, inter):
+        await modules.wardrobe.callbacks.wardrobe(inter, self.client)
+
     # @commands.slash_command(description=Localized(data=locales['about']['description']))
     # async def about(self, inter):
     #     lang = await Func.pre_command(inter, data.servers_data, data.black_list)

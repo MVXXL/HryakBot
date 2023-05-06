@@ -21,6 +21,7 @@ def pig_feed(inter, lang, weight_changed: float, pooped_poop: int) -> disnake.Em
                     f"*{locales['feed']['total_pig_weight'][lang].format(weight=Pig.get_weight(inter.author.id, 0))}*",
         prefix=Func.generate_prefix('🐷'),
         footer=Func.generate_footer(inter),
+        thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
         footer_url=Func.generate_footer_url('user_avatar', inter.author),
     )
     return embed

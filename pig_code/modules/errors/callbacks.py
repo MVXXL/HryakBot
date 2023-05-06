@@ -9,7 +9,8 @@ from . import embeds
 from . import components
 
 
-async def error(error, lang, inter):
+async def error(error, inter):
+    lang = User.get_language(inter.author.id)
     text_error = str(type(error)).split('.')[-1].split('\'')[0]
     sec_footer_part = text_error
     footer_text = f'{inter.author} ・ {sec_footer_part}'

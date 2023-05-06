@@ -4,10 +4,10 @@ import json
 import mysql.connector
 
 from .connection import Connection
-from .user import *
-from .tech import *
-from ..functions import *
-from ...core import utils_config
+from .user import User
+from .tech import Tech
+from ..functions import Func
+from ...core import *
 from ...core.config import users_schema
 
 
@@ -28,6 +28,12 @@ class Pig:
                 if key not in pigs[pig_id]:
                     pigs[pig_id][key] = utils_config.default_pig[key]
             pigs[pig_id]['weight'] = round(pigs[pig_id]['weight'], 1)
+            for key in utils_config.default_pig['skins']:
+                if key not in pigs[pig_id]['skins']:
+                    pigs[pig_id]['skins'][key] = utils_config.default_pig['skins'][key]
+            for key in utils_config.default_pig['genetic']:
+                if key not in pigs[pig_id]['genetic']:
+                    pigs[pig_id]['genetic'][key] = utils_config.default_pig['genetic'][key]
         Pig.replace_pigs(user_id, fixed_pigs)
 
     @staticmethod
@@ -75,6 +81,32 @@ class Pig:
     def get_name(user_id, pig_id):
         pigs = User.get_pigs(user_id)
         return pigs[pig_id]['name']
+
+    @staticmethod
+    def get_genetic(user_id, pig_id, key):
+        pigs = User.get_pigs(user_id)
+        if key == 'all':
+            return pigs[pig_id]['genetic']
+        return pigs[pig_id]['genetic'][key]
+
+    @staticmethod
+    def set_skin(user_id, pig_id, skin):
+        pigs = User.get_pigs(user_id)
+        pigs[pig_id]['skins'][items[skin]['type'].split(':')[1]] = skin
+        Pig.replace_pigs(user_id, pigs)
+
+    @staticmethod
+    def remove_skin(user_id, pig_id, skin_type):
+        pigs = User.get_pigs(user_id)
+        pigs[pig_id]['skins'][skin_type] = None
+        Pig.replace_pigs(user_id, pigs)
+
+    @staticmethod
+    def get_skin(user_id, pig_id, key):
+        pigs = User.get_pigs(user_id)
+        if key == 'all':
+            return pigs[pig_id]['skins']
+        return pigs[pig_id]['skins'][key]
 
     @staticmethod
     def set_last_feed(user_id, pig_id, timestamp):

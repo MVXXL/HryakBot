@@ -1,10 +1,15 @@
 import asyncio
 import datetime
+import random
 
 import discord_webhook
 import disnake
 from disnake import Localized
 from disnake.ext import commands
+import PIL
+import io
+from PIL import Image
+import functools
 
 from ..core import config
 from ..core import utils_config
@@ -21,7 +26,6 @@ class Func:
         for i, key in enumerate(my_dict.keys()):
             new_dict[str(i)] = my_dict[key]
         return new_dict
-
 
     # @staticmethod
     # def send_start_message(client, webhook_url):
@@ -200,6 +204,7 @@ class Func:
         except:
             command_text, options = ctx.data.name, ctx.data.options
         return command_text, options
+
     #
     # @staticmethod
     # def generate_ephemeral_arg(default_value='true'):
@@ -388,6 +393,79 @@ class Func:
     def get_list_dim(lst):
         return len(Func._dim(lst))
 
+    @staticmethod
+    def list_startswith(lst: list[str], prefix: str) -> bool:
+        for i in lst:
+            if i.startswith(prefix):
+                return True
+        return False
+
+    @staticmethod
+    def list_startswith_list(lst: list[str], prefix_list: str) -> bool:
+        for prefix in prefix_list:
+            if Func.list_startswith(lst, prefix):
+                return True
+        return False
+
+    @staticmethod
+    def get_items_by_type(items_dict, include_only: str = None, not_include: str = None):
+        result = {}
+        for item_name, item_data in items_dict.items():
+            item_type = items[item_name]['type']
+            if include_only is not None:
+                if include_only in item_type or item_type == include_only:
+                    result[item_name] = item_data
+            elif not_include is not None:
+                if not_include not in item_type and not item_type == not_include:
+                    result[item_name] = item_data
+        return result
+
+    @staticmethod
+    def get_items_by_types(items_dict, include_only: list = None, not_include: list = None):
+        result = items_dict
+        if include_only is not None:
+            for i in include_only:
+                result = Func.get_items_by_type(result, i)
+        if not_include is not None:
+            for i in not_include:
+                result = Func.get_items_by_type(result, not_include=i)
+        return result
+
+    @staticmethod
+    @functools.lru_cache()
+    def build_pig(skins: tuple, genetic: tuple, output_filename: str = None):
+        skins = dict(skins)
+        genetic = dict(genetic)
+        not_draw = []
+        print(skins.values())
+        for item in skins.values():
+            if item is not None and item in items and 'not_draw' in items[item]:
+                not_draw += items[item]['not_draw']
+        if output_filename is None:
+            output_filename = random.randrange(10000000)
+        skins_path = 'bin/pig_skins'
+        for i, key in enumerate(['body', 'eyes', 'pupils', 'glasses', 'nose', 'hat']):
+            if key in not_draw:
+                continue
+            folder_of_skin = key
+            if key == 'nose':
+                folder_of_skin = 'nose'
+                key = 'body'
+            part = skins[key]
+            if skins[key] is None and key in genetic:
+                part = genetic[key]
+            elif skins[key] is None and key not in genetic:
+                continue
+            part_path = f'{skins_path}/{folder_of_skin}/{part}.png'
+            if i == 0:
+                built_pig_img = Image.open(part_path)
+            else:
+                img_to_paste = Image.open(part_path)
+                built_pig_img.paste(img_to_paste, (0, 0), img_to_paste)
+        output_path = f'bin/pigs/{output_filename}.png'
+        built_pig_img.save(output_path)
+        return output_path
+
     # @staticmethod
     # def is_2d_list(lst):
     #     if isinstance(lst, list) and len(lst) > 0:
@@ -505,5 +583,3 @@ class Func:
     #     embed.set_footer(text=f'Guild ID: {guild.id} | Owner ID: {guild.owner_id}')
     #     await Func.send_webhook_embed(config.guild_join_webhook, embed,
     #                                   username=str(client.user), avatar_url=client.user.avatar.url)
-
-

@@ -1,15 +1,9 @@
 import asyncio
 import datetime
+import typing
+from typing import Literal
 
-import discord_webhook
-import disnake
-from disnake import Localized
-from disnake.ext import commands
-
-from ..core import config
-from ..core import utils_config
-from ..core.bot_locale import locales
-from ..core.errors import *
+from ..core import *
 from .functions import *
 from .db_api import *
 
@@ -116,6 +110,7 @@ class BotUtils:
                        prefix: str = None,
                        image_url: str = None,
                        thumbnail_url: str = None,
+                       thumbnail_file: str = None,
                        footer: str = None,
                        footer_url: str = None,
                        fields: list = None,
@@ -135,7 +130,9 @@ class BotUtils:
         if image_url is not None:
             embed.set_image(image_url)
         if thumbnail_url is not None:
-            embed.set_thumbnail(thumbnail_url)
+            embed.set_thumbnail(url=thumbnail_url)
+        elif thumbnail_file is not None:
+            embed.set_thumbnail(file=disnake.File(fp=thumbnail_file))
         if footer is not None:
             embed.set_footer(text=footer, icon_url=footer_url)
         for field in fields:
@@ -241,6 +238,78 @@ class BotUtils:
             custom_id='hide',
         )
         return hide_button
+
+    @staticmethod
+    def generate_user_pig(user_id):
+        return Func.build_pig(tuple(Pig.get_skin(user_id, 0, 'all').items()), tuple(Pig.get_genetic(user_id, 0, 'all').items()))
+
+    @staticmethod
+    async def inventory_embed(client, inter, lang,
+                              include_only: list = None,
+                              not_include: list = None,
+                              inventory_type: Literal['inventory', 'wardrobe'] = 'inventory'):
+        print(inventory_type)
+        if not_include is None:
+            not_include = []
+        if include_only is None:
+            include_only = []
+        item_fields = []
+        options = []
+        if inventory_type == 'wardrobe':
+            include_only = ['skin']
+        if inventory_type == 'inventory':
+            not_include = ['skin']
+        items = User.get_inventory(inter.author.id)
+        items = Func.get_items_by_types(items, include_only, not_include)
+        for item in items:
+            field_value = ''
+            if inventory_type == 'inventory':
+                field_value = f'{locales["words"]["description"][lang]}: *{Inventory.get_item_description(item, lang)}*\n' \
+                              f'{locales["words"]["type"][lang]}: `{Inventory.get_item_cost(item)}` 🪙'
+            elif inventory_type == 'wardrobe':
+                field_value = f'{locales["words"]["description"][lang]}: *{Inventory.get_item_description(item, lang)}*\n' \
+                              f'{locales["words"]["type"][lang]}: `{Inventory.get_item_type(item, lang)}`'
+            item_label_without_prefix = f'{Inventory.get_item_name(item, lang)} x{Inventory.get_item_amount(inter.author.id, item)}'
+            item_fields.append(
+                {'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item))}{item_label_without_prefix}',
+                 'value': field_value,
+                 'inline': False})
+            options.append(
+                {'label': item_label_without_prefix,
+                 'value': f'{item}',
+                 'emoji': Inventory.get_item_emoji(item),
+                 'description': Inventory.get_item_description(item, lang)
+                 }
+            )
+        inventory_empty_desc = ''
+        placeholder = ''
+        custom_components_id = ''
+        title = ''
+        if inventory_type == 'inventory':
+            inventory_empty_desc = locales['inventory']['inventory_empty_desc'][lang]
+            placeholder = locales['inventory']['select_item_placeholder'][
+                lang]
+            custom_components_id = 'inventory_item_select'
+            title = f"{Func.generate_prefix('📦')}{locales['inventory']['inventory_title'][lang]}"
+        elif inventory_type == 'wardrobe':
+            inventory_empty_desc = locales['wardrobe']['wardrobe_empty_desc'][lang]
+            placeholder = locales['wardrobe']['select_item_placeholder'][
+                                                                       lang]
+            custom_components_id = 'wardrobe_item_select'
+            title = f"{Func.generate_prefix('📦')}{locales['wardrobe']['wardrobe_title'][lang]}"
+        embeds = BotUtils.generate_embeds_list_from_fields(item_fields,
+                                                           description='' if item_fields else inventory_empty_desc,
+                                                           title=title)
+        components = BotUtils.generate_select_components_for_pages(options, custom_components_id, placeholder)
+        await BotUtils.pagination(client, inter, lang, embeds=embeds, components=components if options else None,
+                                  hide_button=False)
+
+    # @staticmethod
+    # def raise_error_if_no_item(user_id, item_id):
+    #     if Inventory.get_item_amount(interaction.author.id, item_id) == 0:
+    #         await modules.errors.callbacks.no_item(interaction)
+    #     else:
+    #         await modules.inventory.callbacks.inventory_item_used(interaction, item_id)
 
 
 
