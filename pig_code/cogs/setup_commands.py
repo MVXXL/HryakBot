@@ -2,6 +2,7 @@ from ..core import *
 from ..utils import *
 from .. import modules
 
+
 class SetupCommands(commands.Cog):
     def __init__(self, client):
         self.client = client

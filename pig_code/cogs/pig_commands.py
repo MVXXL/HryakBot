@@ -13,14 +13,18 @@ class PigCommands(commands.Cog):
     async def pig(self, inter):
         pass
 
-    @pig.sub_command(description=Localized(data=locales['feed']['description']))
+    @commands.slash_command(description=Localized(data=locales['feed']['description']))
     async def feed(self, inter):
         await modules.pig.callbacks.pig_feed(inter)
 
+    @commands.slash_command(description=Localized(data=locales['meat']['description']))
+    async def meat(self, inter):
+        await modules.pig.callbacks.meat(inter)
+
     @pig.sub_command(description=Localized(data=locales['rename']['description']))
     async def rename(self, inter, name: str = commands.Param(
-                         name=Localized(data=locales['rename']['name_var_name']),
-                         description=Localized(data=locales['rename']['name_var_desc']))):
+        name=Localized(data=locales['rename']['name_var_name']),
+        description=Localized(data=locales['rename']['name_var_desc']))):
         await modules.pig.callbacks.pig_rename(inter, name)
 
 

@@ -14,7 +14,6 @@ class PigBot:
         self.pig_bot = commands.InteractionBot(intents=intents, max_messages=10000, strict_localization=True,
                                                test_guilds=config.TEST_GUILDS if config.TEST else None)
 
-
     def load_cogs(self):
         cogs_path = 'pig_code/cogs'
         for file in os.listdir(cogs_path):

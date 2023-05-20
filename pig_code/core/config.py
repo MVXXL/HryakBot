@@ -15,7 +15,7 @@ def get_env(key, value_type=None):
 
 TOKEN = get_env('TOKEN')
 TEST_TOKEN = get_env('TEST_TOKEN')
-VERSION = '0.1'
+VERSION = '1.0'
 TEST = True
 ADMIN_GUILDS = get_env('TEST_ADMIN_GUILDS', list) if TEST else get_env('ADMIN_GUILDS', list)
 TEST_GUILDS = get_env('TEST_GUILDS', list)
@@ -35,5 +35,6 @@ mysql_info = {
 }
 
 users_schema = 'users' if not TEST else 'test_users'
+shop_schema = 'shop' if not TEST else 'test_shop'
 
 TOKEN = TOKEN if not TEST else TEST_TOKEN

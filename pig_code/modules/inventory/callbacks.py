@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import random
+from typing import Literal
 
 from ...core import *
 from ...utils import *
@@ -10,35 +11,74 @@ from . import components
 from .. import errors
 
 
-async def inventory(inter, client):
+
+
+async def inventory(inter):
     await BotUtils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
-    await BotUtils.inventory_embed(client, inter, lang)
-    # item_fields = []
-    # options = []
-    # for item in User.get_inventory(inter.author.id):
-    #     if items[item]['type'].split(':')[0] not in ['skin']:
-    #         item_label_without_prefix = f'{Inventory.get_item_name(item, lang)} x{Inventory.get_item_amount(inter.author.id, item)}'
-    #         item_fields.append(
-    #             {'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item))}{item_label_without_prefix}',
-    #              'value': f'{locales["words"]["description"][lang]}: *{Inventory.get_item_description(item, lang)}*\n'
-    #                       f'{locales["words"]["type"][lang]}: `{Inventory.get_item_cost(item)}` 🪙',
-    #              'inline': False})
-    #         options.append(
-    #             {'label': item_label_without_prefix,
-    #              'value': f'{item}',
-    #              'emoji': Inventory.get_item_emoji(item),
-    #              'description': Inventory.get_item_description(item, lang)
-    #              }
-    #         )
-    # embeds = BotUtils.generate_embeds_list_from_fields(item_fields, description='' if item_fields else
-    # locales['inventory']['inventory_empty_desc'][lang],
-    #                                                    title=f"{Func.generate_prefix('📦')}{locales['inventory']['inventory_title'][lang]}")
-    # components = BotUtils.generate_select_components_for_pages(options, 'inventory_item_select',
-    #                                                            locales['inventory']['select_item_placeholder'][
-    #                                                                lang])
-    # await BotUtils.pagination(client, inter, lang, embeds=embeds, components=components if options else None,
-    #                           hide_button=False)
+    await inventory_embed(inter, lang)
+
+
+async def inventory_embed(inter, lang, message: disnake.Message = None,
+                          include_only: list = None,
+                          not_include: list = None,
+                          inventory_type: Literal['inventory', 'wardrobe'] = 'inventory'):
+    if not_include is None:
+        not_include = []
+    if include_only is None:
+        include_only = []
+    item_fields = []
+    options = []
+    if inventory_type == 'wardrobe':
+        include_only = ['skin']
+    if inventory_type == 'inventory':
+        not_include = ['skin']
+    inventory_items = User.get_inventory(inter.author.id)
+    inventory_items = Func.get_items_by_types(inventory_items, include_only, not_include)
+    inventory_items = dict(sorted(inventory_items.items(), key=lambda x: items[x[0]]['type']))
+    for item in inventory_items:
+        field_value = f'{locales["words"]["rarity"][lang]}: {Inventory.get_item_rarity(item, lang)}'
+        if inventory_type == 'inventory':
+            field_value += f'\n{locales["words"]["cost_per_item"][lang]}: {Inventory.get_item_cost(item)} 🪙'
+        elif inventory_type == 'wardrobe':
+            field_value += f'\n{locales["words"]["type"][lang]}: {Inventory.get_item_type(item, lang)}'
+        item_label_without_prefix = f'{Inventory.get_item_name(item, lang)} x{Inventory.get_item_amount(inter.author.id, item)}'
+        item_fields.append(
+            {'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item), backticks=True)}{item_label_without_prefix}',
+             'value': f'```{field_value}```',
+             'inline': False})
+        options.append(
+            {'label': item_label_without_prefix,
+             'value': f'{item}',
+             'emoji': Inventory.get_item_emoji(item),
+             'description': Inventory.get_item_description(item, lang)
+             }
+        )
+    inventory_empty_desc = ''
+    custom_components_id = ''
+    title = ''
+    if inventory_type == 'inventory':
+        inventory_empty_desc = locales['inventory']['inventory_empty_desc'][lang]
+        custom_components_id = 'inventory_item_select'
+        title = f"{Func.generate_prefix('📦')}{locales['inventory']['inventory_title'][lang]}"
+    elif inventory_type == 'wardrobe':
+        inventory_empty_desc = locales['wardrobe']['wardrobe_empty_desc'][lang]
+        custom_components_id = 'wardrobe_item_select'
+        title = f"{Func.generate_prefix('📦')}{locales['wardrobe']['wardrobe_title'][lang]}"
+    page_embeds = BotUtils.generate_embeds_list_from_fields(item_fields,
+                                                            description='' if item_fields else inventory_empty_desc,
+                                                            title=title)
+    page_components = BotUtils.generate_select_components_for_pages(options, custom_components_id,
+                                                                    locales['inventory']['select_item_placeholder'][
+                                                                        lang])
+    embed_thumbnail_file = None
+    if inventory_type == 'wardrobe':
+        embed_thumbnail_file = BotUtils.generate_user_pig(inter.author.id)
+    elif inventory_type == 'inventory':
+        embed_thumbnail_file = 'bin/images/inventory_thumbnail.png'
+    await BotUtils.pagination(inter if message is None else message, lang, embeds=page_embeds,
+                              components=page_components if options else None,
+                              hide_button=False, embed_thumbnail_file=embed_thumbnail_file)
 
 
 async def inventory_item_selected(inter, item_id, message: disnake.Message = None):
@@ -54,17 +94,28 @@ async def inventory_item_sold(inter, item_id, amount):
         amount = Inventory.get_item_amount(inter.author.id, item_id)
     Inventory.remove_item(inter.author.id, item_id, amount)
     money_received = Inventory.get_item_cost(item_id) * amount
+    Stats.add_money_earned(inter.author.id, money_received)
+    Stats.add_items_sold(inter.author.id, item_id, amount)
     User.add_money(inter.author.id, money_received)
     await BotUtils.send_callback(inter, ephemeral=True,
                                  embed=embeds.inventory_item_sold(inter, item_id, amount, money_received, lang))
-    await inventory_item_selected(inter, item_id, inter.message)
+    if Inventory.get_item_amount(inter.author.id, item_id) == 0:
+        await inventory_embed(inter, lang, inter.message)
+    else:
+        await inventory_item_selected(inter, item_id, inter.message)
 
 
 async def inventory_item_used(inter, item_id):
+    lang = User.get_language(inter.author.id)
     Inventory.remove_item(inter.author.id, item_id, 1)
+    Stats.add_items_used(inter.author.id, item_id)
     await inventory_item_selected(inter, item_id, inter.message)
     match item_id:
-        case 'poop': await random.choice([item_used.poop.callbacks.ate_and_poisoned])(inter)
+        case 'poop': await random.choice([item_used.poop.callbacks.ate_and_poisoned])(inter, lang)
+    match item_id:
+        case 'laxative': await item_used.laxative.callbacks.laxative_used(inter, lang)
+    if Inventory.get_item_amount(inter.author.id, item_id) == 0:
+        await inventory_embed(inter, lang, inter.message)
 
 
 class SellItemModal(disnake.ui.Modal):
@@ -75,7 +126,8 @@ class SellItemModal(disnake.ui.Modal):
         components = [
             disnake.ui.TextInput(
                 label=locales['inventory_item_sell_modal']['label'][lang],
-                placeholder=locales['inventory_item_sell_modal']['placeholder'][lang].format(max_amount=Inventory.get_item_amount(inter.author.id, item_id)),
+                placeholder=locales['inventory_item_sell_modal']['placeholder'][lang].format(
+                    max_amount=Inventory.get_item_amount(inter.author.id, item_id)),
                 custom_id="amount",
                 style=disnake.TextInputStyle.short,
                 max_length=10,

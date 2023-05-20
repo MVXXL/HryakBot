@@ -325,13 +325,15 @@ class Func:
                 return i
 
     @staticmethod
-    def generate_footer(inter, first_part: str = 'user', second_part: str = 'com_name'):
+    def generate_footer(inter, first_part: str = 'user', second_part: str = 'com_name', user: disnake.User = None):
         separator = ' ・ '
+        if user is None:
+            user = inter.author
         if second_part == 'com_name':
             second_part, options = Func.get_command_name_and_options(inter)
             second_part = f'/{second_part}'
         if first_part == 'user':
-            first_part = inter.author
+            first_part = user
         if not first_part or not second_part:
             separator = ''
         footer = f'{first_part}{separator}{second_part}'
@@ -349,7 +351,24 @@ class Func:
         return footer_url
 
     @staticmethod
-    def generate_prefix(prefix: str = 'scd', sep: str = '・'):
+    def generate_shop_daily_items():
+        daily_items = Func.get_items_by_key(items, 'method_of_obtaining', 'shop:daily')
+        new_daily_items = []
+        for key in utils_config.daily_shop_items_number.keys():
+            if key == 'other':
+                new_daily_items += Func.select_random_items(
+                    Func.get_items_by_types(daily_items,
+                                            not_include=Func.remove_keys(utils_config.daily_shop_items_number.copy(), [key])),
+                    utils_config.daily_shop_items_number[key])
+            else:
+                new_daily_items += Func.select_random_items_by_key('type', f'skin:{key}',
+                                                                   utils_config.daily_shop_items_number[key],
+                                                                   items_dict=daily_items)
+            daily_items = Func.remove_keys(daily_items, new_daily_items)
+        return new_daily_items
+
+    @staticmethod
+    def generate_prefix(prefix: str = 'scd', sep: str = '・', backticks: bool = False):
         if prefix is None:
             return ''
         prefix_emoji = prefix
@@ -359,8 +378,31 @@ class Func:
             prefix_emoji = '❌'
         elif prefix == 'warn':
             prefix_emoji = '⚠️'
-        prefix = f'{prefix_emoji}{sep}'
+        if not backticks:
+            prefix = f'{prefix_emoji}{sep}'
+        else:
+            prefix = f'`{prefix_emoji}`{sep}'
         return prefix
+
+    @staticmethod
+    def translate_permissions(perms, lang):
+        missing_perms = []
+        for perm in perms:
+            if perm in locales['permissions']:
+                missing_perms.append(locales['permissions'][perm][lang])
+            else:
+                missing_perms.append(perm.replace('_', ' ').capitalize())
+        return missing_perms
+
+    @staticmethod
+    def numerate_list_as_text(elements_list: list, bold_number: bool = True) -> str:
+        text = ''
+        for i, j in enumerate(elements_list):
+            if bold_number:
+                text += f'**{i + 1}.** {j.capitalize()}\n'
+            else:
+                text += f'{i + 1}. {j.capitalize()}\n'
+        return text
 
     @staticmethod
     def convert_hours_to_seconds(hours):
@@ -408,10 +450,38 @@ class Func:
         return False
 
     @staticmethod
-    def get_items_by_type(items_dict, include_only: str = None, not_include: str = None):
+    def select_random_items_by_key(key: str, value: str, num: int, items_dict: dict = None):
+        if items_dict is None:
+            items_dict = items
+        result = Func.get_items_by_key(items_dict, key, value)
+        return Func.select_random_items(result, num)
+
+    @staticmethod
+    def select_random_items(items_dict, num: int):
+        result = list(items_dict)
+        if num >= len(result):
+            return result
+        return random.sample(sorted(result), num)
+
+
+    @staticmethod
+    def remove_keys(dict1: dict, keys: list):
+        for key in keys:
+            if key in dict1:
+                del dict1[key]
+        return dict1
+
+    @staticmethod
+    def get_current_timestamp():
+        return round(datetime.datetime.now().timestamp())
+
+    @staticmethod
+    def get_items_by_key(items_dict, key, include_only: str = None, not_include: str = None):
         result = {}
         for item_name, item_data in items_dict.items():
-            item_type = items[item_name]['type']
+            if key not in items[item_name]:
+                continue
+            item_type = items[item_name][key]
             if include_only is not None:
                 if include_only in item_type or item_type == include_only:
                     result[item_name] = item_data
@@ -420,15 +490,19 @@ class Func:
                     result[item_name] = item_data
         return result
 
+    # @staticmethod
+    # def get_items_by_type(items_dict, include_only: str = None, not_include: str = None):
+    #     return Func.get_items_by_key(items_dict, 'type', include_only, not_include)
+
     @staticmethod
-    def get_items_by_types(items_dict, include_only: list = None, not_include: list = None):
+    def get_items_by_types(items_dict, include_only = None, not_include = None):
         result = items_dict
         if include_only is not None:
             for i in include_only:
-                result = Func.get_items_by_type(result, i)
+                result = Func.get_items_by_key(result, 'type', include_only=i)
         if not_include is not None:
             for i in not_include:
-                result = Func.get_items_by_type(result, not_include=i)
+                result = Func.get_items_by_key(result, 'type', not_include=i)
         return result
 
     @staticmethod
@@ -437,14 +511,13 @@ class Func:
         skins = dict(skins)
         genetic = dict(genetic)
         not_draw = []
-        print(skins.values())
         for item in skins.values():
             if item is not None and item in items and 'not_draw' in items[item]:
                 not_draw += items[item]['not_draw']
         if output_filename is None:
             output_filename = random.randrange(10000000)
         skins_path = 'bin/pig_skins'
-        for i, key in enumerate(['body', 'eyes', 'pupils', 'glasses', 'nose', 'hat']):
+        for i, key in enumerate(['body', 'tattoo', 'eyes', 'pupils', 'glasses', 'nose', 'hat', 'tie']):
             if key in not_draw:
                 continue
             folder_of_skin = key

@@ -8,7 +8,7 @@ from ...utils import *
 
 def wardrobe_item_selected(inter, item_id, lang) -> disnake.Embed:
     skin_type = Inventory.get_item_skin_type(item_id)
-    preview_options = utils_config.default_pig['skins']
+    preview_options = utils_config.default_pig['skins'].copy()
     preview_options[skin_type] = item_id
     embed = BotUtils.generate_embed(
         title=locales['wardrobe_item_selected']['title'][lang].format(item=Inventory.get_item_name(item_id, lang)),
@@ -19,8 +19,9 @@ def wardrobe_item_selected(inter, item_id, lang) -> disnake.Embed:
         prefix=Func.generate_prefix(Inventory.get_item_emoji(item_id)),
         footer=Func.generate_footer(inter, second_part=item_id),
         footer_url=Func.generate_footer_url('user_avatar', inter.author),
-        thumbnail_file=Func.build_pig(tuple(preview_options.items()), tuple(utils_config.default_pig['genetic'].items())),
-        fields=[{'title': f"📋 ⟩ {locales['words']['description'][lang]}",
+        thumbnail_file=Func.build_pig(tuple(preview_options.items()),
+                                      tuple(utils_config.default_pig['genetic'].items())),
+        fields=[{'name': f"📋 ⟩ {locales['words']['description'][lang]}",
                  'value': f"*{Inventory.get_item_description(item_id, lang)}*"}]
     )
     return embed
@@ -28,17 +29,19 @@ def wardrobe_item_selected(inter, item_id, lang) -> disnake.Embed:
 
 def wardrobe_item_wear(inter, item_id, lang) -> disnake.Embed:
     skin_type = Inventory.get_item_skin_type(item_id)
-    preview_options = Pig.get_skin(inter.author.id, 0, 'all')
-    preview_options[skin_type] = Pig.get_skin(inter.author.id, 0, skin_type)
+    preview_options = Pig.get_skin(inter.author.id, 'all')
+    preview_options[skin_type] = Pig.get_skin(inter.author.id, skin_type)
     embed = BotUtils.generate_embed(
         title=locales['wardrobe_item_wear']['title'][lang].format(item=Inventory.get_item_name(item_id, lang)),
-        description=random.choice(locales['wardrobe_item_wear']['desc_list'][lang]).format(item=Inventory.get_item_name(item_id, lang)),
+        description=random.choice(locales['wardrobe_item_wear']['desc_list'][lang]).format(
+            item=Inventory.get_item_name(item_id, lang)),
         prefix=Func.generate_prefix('scd'),
         footer=Func.generate_footer(inter, second_part=item_id),
         footer_url=Func.generate_footer_url('user_avatar', inter.author),
         thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
     )
     return embed
+
 
 def wardrobe_item_remove(inter, item_id, lang) -> disnake.Embed:
     embed = BotUtils.generate_embed(
@@ -51,17 +54,19 @@ def wardrobe_item_remove(inter, item_id, lang) -> disnake.Embed:
     )
     return embed
 
+
 def wardrobe_item_preview(inter, item_id, lang) -> disnake.Embed:
     skin_type = Inventory.get_item_skin_type(item_id)
-    preview_options = Pig.get_skin(inter.author.id, 0, 'all')
+    preview_options = Pig.get_skin(inter.author.id, 'all')
     preview_options[skin_type] = item_id
     embed = BotUtils.generate_embed(
         title=locales['wardrobe_item_preview']['title'][lang].format(item=Inventory.get_item_name(item_id, lang)),
         description=locales['wardrobe_item_preview']['desc'][lang].format(item=Inventory.get_item_name(item_id, lang)),
-        prefix=Func.generate_prefix('scd'),
+        prefix=Func.generate_prefix('👁️'),
         footer=Func.generate_footer(inter, second_part=item_id),
         footer_url=Func.generate_footer_url('user_avatar', inter.author),
-        thumbnail_file=Func.build_pig(tuple(preview_options.items()), tuple(Pig.get_genetic(inter.author.id, 0, 'all').items())),
+        thumbnail_file=Func.build_pig(tuple(preview_options.items()),
+                                      tuple(Pig.get_genetic(inter.author.id, 'all').items())),
     )
     return embed
 

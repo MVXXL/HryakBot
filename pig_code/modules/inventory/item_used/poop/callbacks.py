@@ -2,16 +2,14 @@ import asyncio
 import datetime
 import random
 
-
 from .....core import *
 from .....utils import *
 from . import embeds
 from . import components
 
 
-async def ate_and_poisoned(inter):
-    lang = User.get_language(inter.author.id)
-    await BotUtils.send_callback(inter, embed=embeds.ate_and_poisoned(inter, lang),
+async def ate_and_poisoned(inter, lang):
+    await BotUtils.send_callback(inter, embed=embeds.eaten_and_poisoned(inter, lang),
                                  components=[components.pay(lang), components.run_away(lang)],
                                  ephemeral=True, edit_original_message=False)
     interaction = await inter.client.wait_for('button_click')
@@ -25,4 +23,3 @@ async def ate_and_poisoned(inter):
             await inter.edit_original_message(embed=embeds.payed_the_doctor(inter, lang), components=[])
         else:
             await inter.edit_original_message(embed=embeds.not_enough_money_for_doctor(inter, lang), components=[])
-

@@ -1,7 +1,9 @@
 import asyncio
 import datetime
+import os
 import random
-
+import sys
+import traceback
 
 from ...core import *
 from ...utils import *
@@ -13,49 +15,108 @@ async def error(error, inter):
     lang = User.get_language(inter.author.id)
     text_error = str(type(error)).split('.')[-1].split('\'')[0]
     sec_footer_part = text_error
-    footer_text = f'{inter.author} ・ {sec_footer_part}'
-    if type(error) == errors.PigFeedCooldown:
-        await BotUtils.send_callback(inter, embed=BotUtils.generate_embed(
+    footer = Func.generate_footer(inter, second_part=sec_footer_part)
+    if type(error) == PigFeedCooldown:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response( inter,
             title=locales['error_callbacks']['pig_feed_cooldown_title'][lang],
             description=locales['error_callbacks']['pig_feed_cooldown_desc'][lang].format(
-                pig=Pig.get_name(inter.author.id, 0), timestamp=Pig.get_time_of_next_feed(inter.author.id, 0)),
-            footer=footer_text,
-            footer_url=Func.generate_footer_url('user_avatar', inter.author),
-            prefix=Func.generate_prefix('🍖')
-        ))
-    elif type(error) == errors.PaginationWrongUser:
-        await BotUtils.send_callback(inter,
-                                     embed=BotUtils.generate_embed(
-                                         title=locales['pagination']['wrong_user_title'][lang],
-                                         description=locales['pagination']['wrong_user_desc'][
-                                             lang]),
+                pig=Pig.get_name(inter.author.id), timestamp=Pig.get_time_of_next_feed(inter.author.id)),
+            footer=footer, color=utils_config.main_color,
+            prefix='🍖'))
+    elif type(error) == PigMeatCooldown:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response( inter,
+            title=locales['error_callbacks']['pig_meat_cooldown_title'][lang],
+            description=locales['error_callbacks']['pig_meat_cooldown_desc'][lang].format(
+                pig=Pig.get_name(inter.author.id), timestamp=Pig.get_time_of_next_meat(inter.author.id)),
+            footer=footer, color=utils_config.main_color,
+            prefix='🥓'))
+    elif type(error) == PaginationWrongUser:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['pagination'][
+                                                                                    'wrong_user_title'][lang],
+                                                                                locales['pagination'][
+                                                                                    'wrong_user_desc'][
+                                                                                    lang], footer),
                                      edit_original_message=False,
                                      ephemeral=True)
-    elif type(error) == errors.NotUserComponentClicked:
-        await BotUtils.send_callback(inter,
-                                     embed=BotUtils.generate_embed(
-                                         title=locales['pagination']['wrong_user_title'][lang],
-                                         description=locales['pagination']['wrong_user_desc'][
-                                             lang]),
+    elif type(error) == NotUserComponentClicked:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['pagination'][
+                                                                                    'wrong_user_title'][lang],
+                                                                                locales['pagination'][
+                                                                                    'wrong_user_desc'][lang], footer),
                                      edit_original_message=False,
                                      ephemeral=True)
-        # await BotUtils.send_callback(inter, embed=BotUtils.generate_embed(
-        #     title=locales['error_callbacks']['pig_feed_cooldown_title'][lang],
-        #     description=locales['error_callbacks']['pig_feed_cooldown_desc'][lang].format(
-        #         pig=Pig.get_name(inter.author.id, 0), timestamp=Pig.get_time_of_next_feed(inter.author.id, 0)),
-        #     footer=footer_text,
-        #     footer_url=Func.generate_footer_url('user_avatar', inter.author),
-        #     prefix=Func.generate_prefix('🍖')
-        # ))
+    elif type(error) == NoMoney:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['error_callbacks'][
+                                                                                    'not_enough_money_title'][lang],
+                                                                                locales['error_callbacks'][
+                                                                                    'not_enough_money_desc'][lang], footer))
+    elif type(error) == NoItemInInventory:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['pagination'][
+                                                                                    'no_item_title'][lang],
+                                                                                locales['pagination'][
+                                                                                    'no_item_desc'][lang], footer),
+                                     edit_original_message=False,
+                                     ephemeral=True)
+    elif type(error) == commands.errors.BotMissingPermissions:
+        perms = Func.translate_permissions(error.missing_permissions, lang)
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter, locales['error_callbacks'][
+            'bot_missing_perms_title'][lang], f'```{Func.numerate_list_as_text(perms, False)}```', footer),
+                                     edit_original_message=False,
+                                     ephemeral=True)
+    elif type(error) == commands.errors.MissingPermissions:
+        perms = Func.translate_permissions(error.missing_permissions, lang)
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter, locales['error_callbacks'][
+            'bot_missing_perms_title'][lang], f'```{Func.numerate_list_as_text(perms, False)}```', footer),
+                                     edit_original_message=False,
+                                     ephemeral=True)
+    elif type(error) == commands.errors.CommandOnCooldown:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['error_callbacks'][
+                                                                                    'cooldown_title'][lang],
+                                                                                locales['error_callbacks'][
+                                                                                    'cooldown_desc'][lang].format(timestamp=round(Func.get_current_timestamp() + error.retry_after)),
+                                                                                footer, prefix='⚠️', color=utils_config.warn_color))
+    elif type(error) == UserInBlackList:
+        description = locales['error_callbacks']['user_in_black_list_desc'][lang]
+        block_reason = User.get_block_reason(inter.author.id)
+        print(type(block_reason))
+        if block_reason not in ['', None, 'None']:
+            description += f"\n```{locales['words']['reason'][lang]}: {block_reason}```"
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['error_callbacks'][
+                                                                                    'user_in_black_list_title'][lang],
+                                                                                description, footer,
+                                                                                prefix='📃'))
     else:
+        await BotUtils.send_callback(inter, embed=BotUtils.generate_embed(
+            title=f"{locales['error_callbacks']['unknown_error_title'][lang]}",
+            color=utils_config.error_color,
+            description=locales['error_callbacks']['unknown_error_desc'][lang],
+            footer=Func.generate_footer(inter, second_part='Unknown error'),
+            footer_url=Func.generate_footer_url('user_avatar', inter.author), prefix=Func.generate_prefix('💀')))
+        error_by = ''
+        if inter is not None:
+            try:
+                error_by += f'**Guild:** `{inter.guild.name}`|`[{inter.guild.id}]`\n'
+            except:
+                pass
+            error_by += f'**User:** <@{inter.user.id}>|`[{inter.user.id}]`\n'
+        description = f'{error_by}' \
+                      f'```{error}```'
+        discohook_embed = discord_webhook.DiscordEmbed(title='Debugger',
+                                                       description=description,
+                                                       color=utils_config.error_color)
+        try:
+            raise error
+        except Exception as e:
+            await BotUtils.send_webhook_embed(config.DEBUGGER_WEBHOOK, discohook_embed, username=str(inter.client.user),
+                                          avatar_url=inter.client.user.avatar.url, content='<@&1106677021691613205>',
+                                              file_content=traceback.format_exc())
         raise error
-
-    # if type(error) == commands.errors.CommandOnCooldown:
-    #     retry = locales["retry_in_s"][lang].format(round(error.retry_after,
-    #                                                      1)) if error.retry_after < 60 else f'{locales["retry"][lang]} <t:{round(datetime.datetime.now().timestamp() + error.retry_after)}:R>'
-    #     await Func.send_callback(inter, title=f"{locales['error_titles']['cooldown'][lang]}",
-    #                              description=f'*{retry}*', prefix='warn', color=config.warn_color,
-    #                              footer=footer_text, footer_url=footer_image)
     # elif type(error) == commands.errors.MissingPermissions:
     #     perms = Func.translate_permissions(error.missing_permissions, lang)
     #     await Func.send_callback(inter, title=f"{locales['error_titles']['missing_perms'][lang]}",
@@ -151,10 +212,6 @@ async def error(error, inter):
     #                              description=f'*- {locales["error_descs"]["cannot_send_dm"][lang]}*',
     #                              footer=footer_text, footer_url=footer_image, prefix='error', color=config.error_color)
     # else:
-    #     await Func.send_callback(inter, title=f"{locales['error_titles']['error'][lang]}",
-    #                              color=config.error_color,
-    #                              description=locales['unknown_error']['description'][lang],
-    #                              footer=footer_text, footer_url=footer_image, prefix='error')
     #     error_by = ''
     #     more_info = ''
     #     if inter is not None:
@@ -185,6 +242,7 @@ async def error(error, inter):
     #                                                    color=config.error_color)
     #     await Func.send_webhook_embed(config.DEBUGGER_WEBHOOK, discohook_embed, username=str(inter.client.user),
     #                                   avatar_url=inter.client.user.avatar.url)
+
 
 async def not_enough_money(inter):
     lang = User.get_language(inter.author.id)

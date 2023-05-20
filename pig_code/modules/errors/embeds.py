@@ -2,9 +2,20 @@ import asyncio
 import datetime
 import random
 
-
 from ...core import *
 from ...utils import *
+
+
+def default_error_response(inter, title, description, footer, prefix: str = '❌', color: str = utils_config.error_color) -> disnake.Embed:
+    embed = BotUtils.generate_embed(
+        title=title,
+        description=description,
+        prefix=Func.generate_prefix(prefix),
+        footer=footer,
+        footer_url=Func.generate_footer_url('user_avatar', inter.author),
+        color=color
+    )
+    return embed
 
 
 def not_enough_money(inter, lang) -> disnake.Embed:

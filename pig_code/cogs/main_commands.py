@@ -1,5 +1,6 @@
 import random
 
+import disnake
 
 from ..core import *
 from ..utils import *
@@ -27,53 +28,75 @@ class MainCommands(commands.Cog):
     #                                       Embeds.pig_rename(inter, lang)], hide_button=True)
     #     # await Callbacks.send_callback(inter, title='Hello')
 
+    @commands.slash_command(description=Localized(data=locales['help']['description']))
+    async def help(self, inter):
+        await modules.help.callbacks.help(inter)
+
     @commands.slash_command(description=Localized(data=locales['profile']['description']))
-    async def profile(self, inter):
-        await modules.other.callbacks.profile(inter)
+    async def profile(self, inter, user: disnake.User = commands.Param( default=None,
+                         name=Localized(data=locales['profile']['user_variable_name']),
+                         description=Localized(data=locales['profile']['user_variable_desc'])),):
+        await modules.other.callbacks.profile(inter, user)
+
+    @commands.slash_command(description=Localized(data=locales['stats']['description']))
+    async def stats(self, inter):
+        await modules.other.callbacks.stats(inter)
+
+    @commands.slash_command(description=Localized(data=locales['top']['description']))
+    async def top(self, inter):
+        await modules.top.callbacks.top(inter)
 
     @commands.slash_command(description=Localized(data=locales['inventory']['description']))
     async def inventory(self, inter):
-        await modules.inventory.callbacks.inventory(inter, self.client)
+        await modules.inventory.callbacks.inventory(inter)
 
     @commands.slash_command(description=Localized(data=locales['wardrobe']['description']))
     async def wardrobe(self, inter):
-        await modules.wardrobe.callbacks.wardrobe(inter, self.client)
+        await modules.wardrobe.callbacks.wardrobe(inter)
 
-    # @commands.slash_command(description=Localized(data=locales['about']['description']))
-    # async def about(self, inter):
-    #     lang = await Func.pre_command(inter, data.servers_data, data.black_list)
-    #     await Func.send_callback(inter,
-    #                              title=locales['about']['title'][lang],
-    #                              description=f"{locales['about']['text'][lang]}\n\n"
-    #                                          f"{random.choice(locales['about']['random_frases'][lang])}",
-    #                              thumbnail_url=self.client.user.avatar.url,
-    #                              footer=Func.gen_footer(inter), footer_url='user')
-    #
-    #
-    # @commands.slash_command(description=Localized(data=locales['report']['description']))
-    # async def report(self, inter,
-    #                  text: str = commands.Param(
-    #                      name=Localized(data=locales['report']['text_variable_name']),
-    #                      description=Localized(data=locales['report']['text_variable_desc'])),
-    #                  attachment: disnake.Attachment = commands.Param(
-    #                      name=Localized(data=locales['report']['attachment_variable_name']),
-    #                      description=Localized(
-    #                          data=locales['report']['attachment_variable_desc']),
-    #                      default=None)):
-    #     lang = await Func.pre_command(inter, data.servers_data, data.black_list)
-    #     Func.cooldown(inter, 1, 10, pro_rate=2)
-    #     discohook_embed = discord_webhook.DiscordEmbed(title='Bug Report', color=config.main_color,
-    #                                                    description=text)
-    #     webhook = discord_webhook.DiscordWebhook(url=config.REPORT_WEBHOOK,
-    #                                              username='Bug Report')
-    #     if attachment is not None:
-    #         discohook_embed.set_image(url=attachment.url)
-    #     discohook_embed.set_footer(text=f'ID: {inter.author.id}')
-    #     webhook.add_embed(discohook_embed)
-    #     webhook.execute()
-    #     await Func.send_callback(inter, title=locales['report']['scd'][lang], color=config.success_color,
-    #                              description=f"*{locales['report']['scd_desc'][lang]}*",
-    #                              footer=Func.gen_footer(inter), footer_url='user', prefix='scd')
+    # @commands.bot_has_permissions(administrator=True)
+    @commands.slash_command(description=Localized(data=locales['shop']['description']))
+    async def shop(self, inter):
+        # Shop.add_shop_state(Func.select_random_items_by_method_of_obtaining('shop:daily', 3))
+        # print(Shop.get_last_daily_shop())
+        await modules.shop.callbacks.shop(inter)
+
+    @commands.cooldown(2, 60)
+    @commands.slash_command(description=Localized(data=locales['transfer_money']['description']))
+    async def transfer_money(self, inter, user: disnake.User = commands.Param(
+                         name=Localized(data=locales['transfer_money']['user_variable_title']),
+                         description=Localized(data=locales['transfer_money']['user_variable_desc'])),
+                             amount: int = commands.Param(
+                         name=Localized(data=locales['transfer_money']['amount_variable_title']),
+                         description=Localized(data=locales['transfer_money']['amount_variable_desc']))):
+        # Shop.add_shop_state(Func.select_random_items_by_method_of_obtaining('shop:daily', 3))
+        # print(Shop.get_last_daily_shop())
+        await modules.other.callbacks.transfer_money(inter, user, amount)
+
+    @commands.cooldown(1, 60)
+    @commands.slash_command(description=Localized(data=locales['report']['description']))
+    async def report(self, inter,
+                     text: str = commands.Param(
+                         name=Localized(data=locales['report']['text_variable_name']),
+                         description=Localized(data=locales['report']['text_variable_desc'])),
+                     attachment: disnake.Attachment = commands.Param(
+                         name=Localized(data=locales['report']['attachment_variable_name']),
+                         description=Localized(
+                             data=locales['report']['attachment_variable_desc']),
+                         default=None)):
+        await modules.other.callbacks.report(inter, text, attachment)
+
+    @commands.cooldown(2, 20)
+    @commands.slash_command(description=Localized(data=locales['say']['description']))
+    async def say(self, inter,
+                  text: str = commands.Param(name=Localized(data=locales['say']['text_variable_name']),
+                                             description=Localized(data=locales['say']['text_variable_description'])),
+                  # user: disnake.User = commands.Param(name=Localized(data=locales['say']['user_variable_name']),
+                  #                                     description=Localized(
+                  #                                         data=locales['say']['user_variable_description']),
+                  #                                     default=None)
+                  ):
+        await modules.other.callbacks.say(inter, text)
 
 
 def setup(client):

@@ -2,7 +2,6 @@ import asyncio
 import datetime
 import random
 
-
 from ...core import *
 from ...utils import *
 
@@ -23,4 +22,10 @@ def inventory_item_selected(item_id, lang) -> list:
             custom_id=f'sell_item:{item_id}',
             # emoji='💰'
         ))
+    components.append(disnake.ui.Button(
+        style=disnake.ButtonStyle.grey,
+        label='↩️',
+        custom_id=f'back_to_inventory:inventory',
+        # emoji='💰'
+    ))
     return components

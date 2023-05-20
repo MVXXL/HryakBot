@@ -1,3 +1,4 @@
+import functools
 import json
 
 import mysql.connector
@@ -5,6 +6,8 @@ import mysql.connector
 from .connection import Connection
 from ...core import *
 from ...core.config import users_schema
+# from .stats import Stats
+
 
 class User:
 
@@ -15,10 +18,13 @@ class User:
 
     @staticmethod
     def register(user_id):
+        stats = json.dumps(utils_config.stats)
         Connection.make_request(
-            f"INSERT INTO {users_schema} (id, pigs, inventory) "
-            f"VALUES ('{user_id}', '{'[]'}', '{'{}'}')"
+            f"INSERT INTO {users_schema} (id, pig, inventory, stats) "
+            f"VALUES ('{user_id}', '{'{}'}', '{'{}'}', '{stats}')"
         )
+        # Stats.fix_stats_structure(user_id)
+
 
     @staticmethod
     def exists(user_id):
@@ -28,10 +34,35 @@ class User:
             fetch=True
         )
         return bool(result)
-        # with connection.cursor() as cursor:
-        #     cursor.execute(f"SELECT EXISTS(SELECT 1 FROM users WHERE id = {user_id})")
-        #     result = cursor.fetchone()[0]
-        #     return bool(result)
+
+    @staticmethod
+    @aiocache.cached(ttl=6000)
+    async def get_user(client, user_id):
+        user = await client.fetch_user(user_id)
+        return user
+
+    @staticmethod
+    async def get_name(client, user_id):
+        user = await User.get_user(client, user_id)
+        return user.name
+
+    @staticmethod
+    def get_users_sorted_by(column, json_key: str = None, number: int = 100000, exclude: list = None):
+        if exclude is None:
+            exclude = []
+        exclude = [str(i) for i in exclude]
+        if json_key is None:
+            result = Connection.make_request(
+                f"SELECT id FROM {users_schema} ORDER BY {column} ASC;",
+                fetch=True, commit=False, fetchall=True
+            )
+        else:
+            result = Connection.make_request(
+                f"SELECT id FROM {users_schema} ORDER BY JSON_EXTRACT({column}, '$.{json_key}') ASC;",
+                fetch=True, commit=False, fetchall=True
+            )
+        result = [i[0] for i in result if i[0] not in exclude]
+        return result[::-1][:number]
 
     @staticmethod
     def get_money(user_id):
@@ -49,11 +80,17 @@ class User:
         )
 
     @staticmethod
-    def get_pigs(user_id):
+    def set_money(user_id, amount: int):
+        Connection.make_request(
+            f"UPDATE {users_schema} SET money = {amount} WHERE id = {user_id}"
+        )
+
+    @staticmethod
+    def get_pig(user_id):
         result = Connection.make_request(
-            f"SELECT pigs FROM {users_schema} WHERE id = {user_id}",
+            f"SELECT pig FROM {users_schema} WHERE id = {user_id}",
             commit=False,
-            fetch=True
+            fetch=True,
         )
         if result is not None:
             return json.loads(result)
@@ -96,12 +133,15 @@ class User:
 
     @staticmethod
     def get_language(user_id):
-        result = Connection.make_request(
-            f"SELECT language FROM {users_schema} WHERE id = {user_id}",
-            commit=False,
-            fetch=True
-        )
-        return result
+        try:
+            result = Connection.make_request(
+                f"SELECT language FROM {users_schema} WHERE id = {user_id}",
+                commit=False,
+                fetch=True,
+            )
+            return result
+        except TypeError:
+            return 'en'
 
     @staticmethod
     def set_block(user_id, block: bool):
@@ -109,7 +149,6 @@ class User:
         Connection.make_request(
             f"UPDATE {users_schema} SET blocked = '{block}' WHERE id = {user_id}"
         )
-
 
     @staticmethod
     def is_blocked(user_id):
