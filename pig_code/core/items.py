@@ -3,14 +3,22 @@ required_options = ['id', 'type', 'cost', 'emoji']
 images_folder = 'bin/images/'
 
 lenses_description = {
-    'en': 'Lenses that change eye color',
-    'ru': 'Линзы, меняющие цвет глаз'
+    'en': 'Lenses that change pupils color',
+    'ru': 'Линзы, меняющие цвет зрачков'
+}
+eye_emotion_description = {
+    'en': 'Change the mood of your pig',
+    'ru': 'Поменяйте настроение своему хряку'
+}
+eyes_description = {
+    'en': 'Big lenses that change eye color',
+    'ru': 'Большие линзы, меняющие цвет глаз'
 }
 tattoo_description = {
     'en': 'Tattoo for your pig',
     'ru': 'Татуировка для хряка'
 }
-default_lenses_price = 50
+default_lenses_price = 80
 default_tattoo_price = 30
 
 items = {
@@ -26,27 +34,59 @@ items = {
              'rarity': '1',
              'emoji': '💩',
              'image_file': f'{images_folder}poop.png'},
+    'coins': {'name': {'en': 'Coins',
+                       'ru': 'Монеты'},
+              'desc': {
+                  'en': 'Coins for which you can buy something',
+                  'ru': 'Монеты, за которые можно что-то купить'
+              },
+              'type': 'money',
+              'emoji': '🪙'},
+    'weight': {'name': {'en': 'Weight',
+                        'ru': 'Вес'},
+               'desc': {
+                   'en': 'Pig weight in kilograms',
+                   'ru': 'Вес хряка в килограммах'
+               },
+               'type': 'weight',
+               'emoji': '🐷'},
     'lard': {'name': {'en': 'Lard',
                       'ru': 'Сало'},
              'desc': {
                  'en': 'The freshest and most natural lard you can find',
-                 'ru': 'Самое свежое и натуральное сало, которое можно найти'
+                 'ru': 'Самое свежее и натуральное сало, которое можно найти'
              },
-             'components': ['sell'],
+             'components': ['cook', 'sell'],
              'type': 'resource',
              'cost': 15,
              'rarity': '1',
              'emoji': '🥓',
+             'cooked': 'barbecue',
              'image_file': f'{images_folder}lard.png'},
+    'barbecue': {'name': {'en': 'Barbecue',
+                          'ru': 'Шашлык'},
+                 'desc': {
+                     'en': 'Delicious homemade barbecue',
+                     'ru': 'Очень вкусный шашлык, приготовленный в домашних условиях'
+                 },
+                 'components': ['sell'],
+                 'type': 'resource',
+                 'cost': 25,
+                 'rarity': '2',
+                 'emoji': '🍖',
+                 'image_file': f'{images_folder}barbecue.png'},
     'laxative': {'name': {'en': 'Laxative',
                           'ru': 'Слабительное'},
                  'desc': {
-                     'en': 'When used, a pig will give 50 % more manure',
-                     'ru': 'При использовании свинья даст на 50 % больше навоза'
+                     'en': 'When used, a pig will give 50 % more manure, '
+                           'but at the same time the pig will gain weight by 10% less',
+                     'ru': 'При использовании свинья даст на 50 % больше навоза, '
+                           'но при этом хряк будет набирать на 10% меньше веса'
                  },
                  'components': ['use', 'sell'],
                  'type': 'consumable',
                  'pooping_boost': 1.50,
+                 'weight_boost': .9,
                  'cost': 5,
                  'shop_price': 10,
                  'method_of_obtaining': 'shop:always',
@@ -55,20 +95,50 @@ items = {
                  'image_file': f'{images_folder}laxative.png',
                  },
     'knife': {'name': {'en': 'Knife',
-                          'ru': 'Нож'},
-                 'desc': {
-                     'en': 'With this knife, you can carefully take fat from a pig',
-                     'ru': 'С этим ножом вы можете акуратно снимать сало со свиньи'
-                 },
-                 'components': ['sell'],
-                 'type': 'tool',
-                 'cost': 100,
-                 'shop_price': 250,
-                 'method_of_obtaining': 'shop:always',
-                 'rarity': '3',
-                 'emoji': '🔪',
-                 'image_file': f'{images_folder}knife.png',
-                 },
+                       'ru': 'Нож'},
+              'desc': {
+                  'en': 'With this knife, you can carefully take fat from a pig',
+                  'ru': 'С этим ножом вы можете аккуратно снимать сало со свиньи'
+              },
+              'components': ['sell'],
+              'type': 'tool',
+              'cost': 100,
+              'shop_price': 250,
+              'method_of_obtaining': 'shop:always',
+              'rarity': '3',
+              'emoji': '🔪',
+              'image_file': f'{images_folder}knife.png',
+              },
+    'grill': {'name': {'en': 'Grill',
+                       'ru': 'Мангал'},
+              'desc': {
+                  'en': 'On this grill you can fry something',
+                  'ru': 'На этом мангале вы можете пожарить что-то'
+              },
+              'components': ['sell'],
+              'type': 'tool',
+              'cost': 200,
+              'shop_price': 500,
+              'method_of_obtaining': 'shop:always',
+              'rarity': '3',
+              'emoji': '🔥',
+              'image_file': f'{images_folder}mangal.png',
+              },
+
+    # pets
+    'pet_hryak_default': {'name': {'en': 'Mini Hryak',
+                                   'ru': 'Мини Хряк'},
+                          'desc': {
+                              'en': "It's a mini pig! It will give you 5% more manure!",
+                              'ru': 'Это же мини Хряк! Он будет давать вам на 5% больше навоза!'
+                          },
+                          'components': ['hide'],
+                          'type': 'pet',
+                          'pooping_boost': 1.05,
+                          'rarity': '3',
+                          'emoji': '🐷',
+                          'pregnancy_duration': 36 * 60 * 60
+                          },
 
     # hats
     'cylinder': {'name': {'en': 'Cylinder',
@@ -78,35 +148,35 @@ items = {
                      'ru': 'Очень модный цилиндр'
                  },
                  'type': 'skin:hat',
-                 'shop_price': 110,
+                 'shop_price': 140,
                  'method_of_obtaining': 'shop:daily',
                  'rarity': '3',
                  'emoji': '🎩'
                  },
     'luffy_hat': {'name': {'en': 'Luffy hat',
-                          'ru': 'Шляпа луффи'},
-                 'desc': {
-                     'en': 'Gomu gomu no',
-                     'ru': 'Gomu gomu no'
-                 },
-                 'type': 'skin:hat',
-                 'shop_price': 120,
-                 'method_of_obtaining': 'shop:daily',
-                 'rarity': '4',
-                 'emoji': '👒'
-                 },
-    'speedwagon_hat': {'name': {'en': 'Speedwagon hat',
-                           'ru': 'Шляпа спидвагона'},
+                           'ru': 'Шляпа луффи'},
                   'desc': {
-                      'en': 'Idk, didn\'t watch',
-                      'ru': 'Почувствуй себя спидвагоном'
+                      'en': 'Gomu gomu no',
+                      'ru': 'Gomu gomu no'
                   },
                   'type': 'skin:hat',
                   'shop_price': 120,
                   'method_of_obtaining': 'shop:daily',
-                  'rarity': '4',
+                  'rarity': '3',
                   'emoji': '👒'
                   },
+    'speedwagon_hat': {'name': {'en': 'Speedwagon hat',
+                                'ru': 'Шляпа спидвагона'},
+                       'desc': {
+                           'en': 'Idk, didn\'t watch',
+                           'ru': 'Почувствуй себя спидвагоном'
+                       },
+                       'type': 'skin:hat',
+                       'shop_price': 120,
+                       'method_of_obtaining': 'shop:daily',
+                       'rarity': '3',
+                       'emoji': '👒'
+                       },
     'z_cap_white': {'name': {'en': 'White Z cap',
                              'ru': 'Белая Z кепка'},
                     'desc': {
@@ -156,7 +226,7 @@ items = {
                         'ru': 'Венок из голубых цветов'
                     },
                     'type': 'skin:hat',
-                    'shop_price': 130,
+                    'shop_price': 170,
                     'method_of_obtaining': 'shop:daily',
                     'rarity': '4',
                     'emoji': '🌺'},
@@ -167,7 +237,7 @@ items = {
                         'ru': 'Венок из розовых цветов'
                     },
                     'type': 'skin:hat',
-                    'shop_price': 110,
+                    'shop_price': 140,
                     'method_of_obtaining': 'shop:daily',
                     'rarity': '3',
                     'emoji': '🌺'},
@@ -233,10 +303,98 @@ items = {
                      'ru': 'Воняет пизд..ц'
                  },
                  'type': 'skin:hat',
-                 # 'shop_price': 100,
-                 'method_of_obtaining': 'achievement',
+                 'shop_price': 100,
+                 'method_of_obtaining': 'shop:daily',
                  'rarity': '2',
                  'emoji': '💩'},
+    'pig_king_crown': {'name': {'en': 'Pig king crown',
+                                'ru': 'Корона короля свиней'},
+                       'desc': {
+                           'en': 'Only kings can wear this',
+                           'ru': 'Только короли могут носить такое'
+                       },
+                       'type': 'skin:hat',
+                       'shop_price': 200,
+                       'method_of_obtaining': 'shop:daily',
+                       'rarity': '4',
+                       'emoji': '👑'},
+    'demon_horns': {'name': {'en': 'Demon horns',
+                             'ru': 'Рога демона'},
+                    'desc': {
+                        'en': 'Bad pig, the most terrible that exists',
+                        'ru': 'Плохой хряк, самый ужасный который только существует'
+                    },
+                    'type': 'skin:hat',
+                    'shop_price': 180,
+                    'method_of_obtaining': 'shop:daily',
+                    'rarity': '4',
+                    'emoji': '👿'},
+    'nimbus': {'name': {'en': 'Nimbus',
+                        'ru': 'Нимб'},
+               'desc': {
+                   'en': 'Pigs always go to heaven',
+                   'ru': 'Хряки всегда попадают в рай'
+               },
+               'type': 'skin:hat',
+               'shop_price': 150,
+               'method_of_obtaining': 'shop:daily',
+               'rarity': '4',
+               'emoji': '😇'},
+    'clown_hat': {'name': {'en': 'Clown hair',
+                           'ru': 'Клоунский парик'},
+                  'desc': {
+                      'en': 'Especially for those who support war',
+                      'ru': 'Специально для тех, кто поддерживает коммунизм'
+                  },
+                  'type': 'skin:hat',
+                  'shop_price': 110,
+                  'method_of_obtaining': 'shop:daily',
+                  'rarity': '3',
+                  'emoji': '🤡'},
+    'robbin_good_hat': {'name': {'en': 'Robin Hood hat',
+                                 'ru': 'Шляпа Робин Гуда'},
+                        'desc': {
+                            'en': 'Steal from the poor and give to the rich',
+                            'ru': 'Воруйте у бедных и отдавайте богатым'
+                        },
+                        'type': 'skin:hat',
+                        'shop_price': 100,
+                        'method_of_obtaining': 'shop:daily',
+                        'rarity': '3',
+                        'emoji': '💸'},
+    'american_hat': {'name': {'en': 'American hat',
+                              'ru': 'Американская шляпа'},
+                     'desc': {
+                         'en': 'A hat in which you can feel freedom',
+                         'ru': 'Шляпа, в которой можно почувствовать свободу'
+                     },
+                     'type': 'skin:hat',
+                     'shop_price': 120,
+                     'method_of_obtaining': 'shop:daily',
+                     'rarity': '3',
+                     'emoji': '🌎'},
+    'pirate_hat': {'name': {'en': 'Pirate hat',
+                            'ru': 'Пиратская шляпа'},
+                   'desc': {
+                       'en': 'Rob, kill and bathe in gold. And then die at 30',
+                       'ru': 'Грабь, убивай и купайся в золоте. А потом умри в 30'
+                   },
+                   'type': 'skin:hat',
+                   'shop_price': 140,
+                   'method_of_obtaining': 'shop:daily',
+                   'rarity': '3',
+                   'emoji': '🏴‍☠️'},
+    'muzzle_of_a_tank': {'name': {'en': 'Muzzle of a tank',
+                                  'ru': 'Дуло от танка'},
+                         'desc': {
+                             'en': 'Become a war pig with this gun',
+                             'ru': 'Станьте военным свином с помощью этой пушки'
+                         },
+                         'type': 'skin:hat',
+                         'shop_price': 200,
+                         'method_of_obtaining': 'shop:daily',
+                         'rarity': '4',
+                         'emoji': '🔫'},
 
     # glasses
     'pixel_glasses': {'name': {'en': 'Pixel Glasses',
@@ -246,7 +404,7 @@ items = {
                           'ru': 'Крутые пиксельные очки'
                       },
                       'type': 'skin:glasses',
-                      'shop_price': 150,
+                      'shop_price': 240,
                       'method_of_obtaining': 'shop:daily',
                       'rarity': '4',
                       'emoji': '🕶️',
@@ -258,11 +416,33 @@ items = {
                        'ru': 'С этими очками можно не боятся солнца'
                    },
                    'type': 'skin:glasses',
-                   'shop_price': 80,
+                   'shop_price': 90,
                    'method_of_obtaining': 'shop:daily',
                    'rarity': '3',
                    'emoji': '🕶️',
                    'not_draw': ['eyes', 'pupils']},
+    'star_glasses': {'name': {'en': 'Star glasses',
+                              'ru': 'Звёздные очки'},
+                     'desc': {
+                         'en': 'Shine like a star with these glasses',
+                         'ru': 'Сияй как звезда с этими очками'
+                     },
+                     'type': 'skin:glasses',
+                     'shop_price': 130,
+                     'method_of_obtaining': 'shop:daily',
+                     'rarity': '3',
+                     'emoji': '🕶️'},
+    'fire_glasses': {'name': {'en': 'Fire glasses',
+                              'ru': 'Огненные очки'},
+                     'desc': {
+                         'en': 'Cool glasses in the form of fire',
+                         'ru': 'Крутые очки в форме огня'
+                     },
+                     'type': 'skin:glasses',
+                     'shop_price': 130,
+                     'method_of_obtaining': 'shop:daily',
+                     'rarity': '3',
+                     'emoji': '🕶️'},
     'amogus_glasses': {'name': {'en': 'Amogus face',
                                 'ru': 'Лицо амогуса'},
                        'desc': {
@@ -272,7 +452,7 @@ items = {
                        'type': 'skin:glasses',
                        'rarity': '5',
                        'emoji': '📮',
-                       'not_draw': ['eyes', 'pupils', 'nose']},
+                       'not_draw': ['eyes', 'pupils', 'nose', '_nose']},
     'rounded_glasses': {'name': {'en': 'Rounded glasses',
                                  'ru': 'Закруглённые очки'},
                         'desc': {
@@ -295,6 +475,28 @@ items = {
                       'method_of_obtaining': 'shop:daily',
                       'rarity': '3',
                       'emoji': '👓'},
+    'eye_patch': {'name': {'en': 'Eye patch',
+                           'ru': 'Повязка на глаз'},
+                  'desc': {
+                      'en': 'Cool eye patch, just like the pirates',
+                      'ru': 'Крутая повязка на глаз, прям как у пиратов'
+                  },
+                  'type': 'skin:glasses',
+                  'shop_price': 80,
+                  'method_of_obtaining': 'shop:daily',
+                  'rarity': '3',
+                  'emoji': '🏴‍☠️'},
+    'monocle': {'name': {'en': 'Monocle',
+                         'ru': 'Монокль'},
+                'desc': {
+                    'en': 'What a cultured and educated pig',
+                    'ru': 'Какой культурный и воспитанный хряк'
+                },
+                'type': 'skin:glasses',
+                'shop_price': 100,
+                'method_of_obtaining': 'shop:daily',
+                'rarity': '3',
+                'emoji': '🧐'},
 
     # ties
     'bow_tie': {'name': {'en': 'Bow tie',
@@ -304,10 +506,37 @@ items = {
                     'ru': 'С бабочкой ты будешь как настоящий джентельмэн'
                 },
                 'type': 'skin:tie',
-                'shop_price': 100,
+                'shop_price': 200,
                 'method_of_obtaining': 'shop:daily',
-                'rarity': '3',
+                'rarity': '4',
                 'emoji': '👔'},
+
+    # noses
+    'clown_nose': {'name': {'en': 'Clown nose',
+                            'ru': 'Нос клоуна'},
+                   'desc': {
+                       'en': 'With a bow tie you will be like a real gentleman',
+                       'ru': 'С бабочкой ты будешь как настоящий джентльмен'
+                   },
+                   'type': 'skin:_nose',
+                   'shop_price': 120,
+                   'method_of_obtaining': 'shop:daily',
+                   'not_draw': ['nose'],
+                   'rarity': '3',
+                   'emoji': '🔴'},
+
+    # legs
+    'tank_tracks': {'name': {'en': 'Tank tracks',
+                             'ru': 'Гусеницы от танка'},
+                    'desc': {
+                        'en': 'The very thing for traveling to the Ukr ... Well, okay, the joke is not funny',
+                        'ru': 'Самое то для путешествий в Ук... А ладно, шутка не смешная'
+                    },
+                    'type': 'skin:legs',
+                    'shop_price': 1100,
+                    'method_of_obtaining': 'shop:daily',
+                    'rarity': '5',
+                    'emoji': '🐛'},
 
     # bodies
     'gold_body': {'name': {'en': 'Gold paint',
@@ -321,7 +550,7 @@ items = {
                   'method_of_obtaining': 'premium',
                   'rarity': '4',
                   'emoji': '🎨'},
-    'dark_body': {'name': {'en': 'Chokolate paint',
+    'dark_body': {'name': {'en': 'Chocolate paint',
                            'ru': 'Шоколадная краска'},
                   'desc': {
                       'en': 'Chocolate paint for pig',
@@ -341,8 +570,40 @@ items = {
                   'type': 'skin:body',
                   # 'shop_price': 100,
                   # 'method_of_obtaining': 'premium',
-                  'rarity': '4',
+                  'rarity': '5',
                   'emoji': '🎨'},
+    'green_body': {'name': {'en': 'Green paint',
+                            'ru': 'Зелёная краска'},
+                   'desc': {
+                       'en': 'Green paint for pig',
+                       'ru': 'Зелёная краска для хряка'
+                   },
+                   'type': 'skin:body',
+                   'shop_price': 400,
+                   'method_of_obtaining': 'shop:daily',
+                   'rarity': '4',
+                   'emoji': '🎨'},
+    'camouflage_body': {'name': {'en': 'Camouflage paint',
+                                 'ru': 'Камуфляжная краска'},
+                        'desc': {
+                            'en': 'With this paint you will become almost invisible',
+                            'ru': 'С этой краской вы станете почти невидимым'
+                        },
+                        'type': 'skin:body',
+                        'shop_price': 600,
+                        'method_of_obtaining': 'shop:daily',
+                        'rarity': '4',
+                        'emoji': '🎨'},
+
+    # eyes
+    'black_eyes': {'name': {'en': 'Big black lenses',
+                            'ru': 'Большие черные линзы'},
+                   'desc': eyes_description,
+                   'type': 'skin:eyes',
+                   'shop_price': 250,
+                   'method_of_obtaining': 'shop:daily',
+                   'rarity': '4',
+                   'emoji': '👁️'},
 
     # pupils
     'blue_pupils': {'name': {'en': 'Blue lenses',
@@ -389,7 +650,7 @@ items = {
                             'ru': 'Красные линзы'},
                    'desc': lenses_description,
                    'type': 'skin:pupils',
-                   'shop_price': default_lenses_price,
+                   'shop_price': 100,
                    'method_of_obtaining': 'shop:daily',
                    'rarity': '2',
                    'emoji': '👁️'},
@@ -459,6 +720,22 @@ items = {
                              'method_of_obtaining': 'shop:daily',
                              'rarity': '2',
                              'emoji': '🐉'},
+    'target_mark': {'name': {'en': 'Target tattoo',
+                             'ru': 'Тату - мишень'},
+                    'desc': tattoo_description,
+                    'type': 'skin:tattoo',
+                    'shop_price': default_tattoo_price,
+                    'method_of_obtaining': 'shop:daily',
+                    'rarity': '2',
+                    'emoji': '🐉'},
+    'discord_mark': {'name': {'en': 'Discord tattoo',
+                              'ru': 'Тату - дискорд'},
+                     'desc': tattoo_description,
+                     'type': 'skin:tattoo',
+                     'shop_price': 60,
+                     'method_of_obtaining': 'shop:daily',
+                     'rarity': '2',
+                     'emoji': '🐉'},
     'ukraine_flag_mark': {'name': {'en': 'Ukrainian flag tattoo',
                                    'ru': 'Украинское тату'},
                           'desc': tattoo_description,
@@ -475,4 +752,38 @@ items = {
                           'method_of_obtaining': 'shop:daily',
                           'rarity': '2',
                           'emoji': '🐉'},
+    'morgenshtern_tattoo': {'name': {'en': 'Morgenshtern tatoo',
+                                     'ru': 'Тату Моргенштерна'},
+                            'desc': {
+                                'en': tattoo_description['en'],
+                                'ru': 'Татуха прям как у Моргенштерна!'
+                            },
+                            'type': 'skin:tattoo',
+                            'shop_price': 100,
+                            'method_of_obtaining': 'shop:daily',
+                            'rarity': '4',
+                            'emoji': '🐉'},
+    'face_anton_mark': {'name': {'en': 'Face of Anton',
+                                 'ru': 'Ебало антона'},
+                        'desc': tattoo_description,
+                        'type': 'skin:tattoo',
+                        'rarity': '5',
+                        'emoji': '🐉'},
+    'face_max_mark': {'name': {'en': 'Face of Maxim',
+                               'ru': 'Ебало Максима'},
+                      'desc': tattoo_description,
+                      'type': 'skin:tattoo',
+                      'rarity': '5',
+                      'emoji': '🐉'},
+
+    # eyes emotions
+    'sad': {'name': {'en': 'Sad eyes',
+                     'ru': 'Грустные глаза'},
+            'desc': eye_emotion_description,
+            'type': 'skin:eye_emotion',
+            # 'shop_price': default_lenses_price,
+            # 'method_of_obtaining': 'default',
+            'rarity': '1',
+            'emoji': '😔'},
+
 }

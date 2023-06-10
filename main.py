@@ -10,9 +10,9 @@ from pig_code.utils.db_api.tech import *
 class PigBot:
 
     def __init__(self):
-        intents = disnake.Intents.all()
-        self.pig_bot = commands.InteractionBot(intents=intents, max_messages=10000, strict_localization=True,
-                                               test_guilds=config.TEST_GUILDS if config.TEST else None)
+        intents = disnake.Intents.default()
+        intents.members = True
+        self.pig_bot = commands.InteractionBot(intents=intents, max_messages=10000, strict_localization=True)
 
     def load_cogs(self):
         cogs_path = 'pig_code/cogs'

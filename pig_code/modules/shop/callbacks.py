@@ -23,16 +23,17 @@ async def shop(inter):
         options = []
         for item in value:
             item_fields.append(
-                {'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item), backticks=True)}{Inventory.get_item_name(item, lang)}',
-                 'value': f'```{locales["words"]["price"][lang]}: {Inventory.get_item_shop_price(item)} 🪙\n'
-                          f'{locales["words"]["rarity"][lang]}: {Inventory.get_item_rarity(item, lang)}\n'
-                          f'{locales["words"]["type"][lang]}: {Inventory.get_item_type(item, lang)}```',
-                 'inline': False})
+                {
+                    'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item), backticks=True)}{Inventory.get_item_name(item, lang)}',
+                    'value': f'```{locales["words"]["price"][lang]}: {Inventory.get_item_shop_price(item)} 🪙\n'
+                             f'{locales["words"]["rarity"][lang]}: {Inventory.get_item_rarity(item, lang)}\n'
+                             f'{locales["words"]["type"][lang]}: {Inventory.get_item_type(item, lang)}```',
+                    'inline': False})
             options.append(
                 {'label': Inventory.get_item_name(item, lang),
                  'value': f'{item}',
                  'emoji': Inventory.get_item_emoji(item),
-                 'description': Inventory.get_item_description(item, lang)
+                 'description': Func.cut_text(Inventory.get_item_description(item, lang), 100)
                  }
             )
         page_embeds += BotUtils.generate_embeds_list_from_fields(item_fields,
@@ -43,7 +44,8 @@ async def shop(inter):
                                                                          locales['inventory'][
                                                                              'select_item_placeholder'][
                                                                              lang])
-    await BotUtils.pagination(inter, lang, embeds=page_embeds, components=page_components if options else None,
+    await BotUtils.pagination(inter, lang, embeds=page_embeds,
+                              components=page_components if options else None,
                               hide_button=False, embed_thumbnail_file='bin/images/shop_thumbnail.png')
 
 

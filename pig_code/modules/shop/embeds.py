@@ -17,8 +17,9 @@ def shop_item_selected(inter, item_id, lang) -> disnake.Embed:
             type=Inventory.get_item_type(item_id, lang),
         ),
         prefix=Func.generate_prefix(Inventory.get_item_emoji(item_id)),
-        footer=Func.generate_footer(inter, second_part=item_id),
+        footer=Func.generate_footer(inter),
         footer_url=Func.generate_footer_url('user_avatar', inter.author),
+        timestamp=True,
         thumbnail_file=Func.build_pig(tuple(preview_options.items()),
                                       tuple(utils_config.default_pig['genetic'].items())),
         fields=[{'name': f"📋 ⟩ {locales['words']['description'][lang]}",
@@ -32,7 +33,8 @@ def shop_item_bought(inter, item_id, lang) -> disnake.Embed:
         title=locales['shop_item_bought']['title'][lang].format(item=Inventory.get_item_name(item_id, lang)),
         description=locales['shop_item_bought']['desc'][lang],
         prefix=Func.generate_prefix('scd'),
-        footer=Func.generate_footer(inter, second_part='item_bought'),
+        timestamp=True,
+        footer=Func.generate_footer(inter),
         footer_url=Func.generate_footer_url('user_avatar', inter.author),
     )
     return embed

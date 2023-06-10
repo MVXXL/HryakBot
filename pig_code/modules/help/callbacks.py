@@ -15,4 +15,3 @@ async def help(inter):
     await BotUtils.pagination(inter, lang, embeds=[
         embeds.basic_help(inter, lang)
     ], hide_button=False)
-

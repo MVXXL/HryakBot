@@ -14,20 +14,50 @@ class UserInBlackList(CommandError):
         super().__init__(f"User {user} is in black list")
 
 
+class PlayWithYourselfDuel(CommandError):
+    pass
+
+
+class BotAsOpponentDuel(CommandError):
+    pass
+
+
+class breedWithYourself(CommandError):
+    pass
+
+
+class BotAsPartnerbreed(CommandError):
+    pass
+
+
 class PigFeedCooldown(CommandError):
     pass
+
 
 class PigMeatCooldown(CommandError):
     pass
 
+class PigbreedCooldown(CommandError):
+    pass
+
+
 class NoMoney(CommandError):
     pass
 
-class NoItemInInventory(CommandError):
+
+# class NoItemInInventory(CommandError):
+#     pass
+
+class NotAllowedToUseCommand(CommandError):
     pass
-class NoItemInIInventory(CommandError):
-    def __init__(self, item):
+
+
+class NoItemInInventory(CommandError):
+    def __init__(self, item, desc: dict = None, ephemeral: bool = False, edit_original_message: bool = True):
         self.item = item
+        self.desc = desc
+        self.ephemeral = ephemeral
+        self.edit_original_message = edit_original_message
         super().__init__(f"{item} not in inventory")
 
 
@@ -41,7 +71,6 @@ class NotUserComponentClicked(CommandError):
     def __init__(self, user):
         self.user = user
         super().__init__(f"User {user} clicked the component that doesn't belong him")
-
 
 # class ModalInputNotDigit(CommandError):
 #     def __init__(self):

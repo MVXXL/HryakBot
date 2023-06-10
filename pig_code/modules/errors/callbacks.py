@@ -17,19 +17,44 @@ async def error(error, inter):
     sec_footer_part = text_error
     footer = Func.generate_footer(inter, second_part=sec_footer_part)
     if type(error) == PigFeedCooldown:
-        await BotUtils.send_callback(inter, embed=embeds.default_error_response( inter,
-            title=locales['error_callbacks']['pig_feed_cooldown_title'][lang],
-            description=locales['error_callbacks']['pig_feed_cooldown_desc'][lang].format(
-                pig=Pig.get_name(inter.author.id), timestamp=Pig.get_time_of_next_feed(inter.author.id)),
-            footer=footer, color=utils_config.main_color,
-            prefix='🍖'))
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                title=locales['error_callbacks'][
+                                                                                    'pig_feed_cooldown_title'][lang],
+                                                                                description=locales['error_callbacks'][
+                                                                                    'pig_feed_cooldown_desc'][
+                                                                                    lang].format(
+                                                                                    pig=Pig.get_name(inter.author.id),
+                                                                                    timestamp=Pig.get_time_of_next_feed(
+                                                                                        inter.author.id)),
+                                                                                footer=footer,
+                                                                                color=utils_config.main_color,
+                                                                                prefix='🍖'))
     elif type(error) == PigMeatCooldown:
-        await BotUtils.send_callback(inter, embed=embeds.default_error_response( inter,
-            title=locales['error_callbacks']['pig_meat_cooldown_title'][lang],
-            description=locales['error_callbacks']['pig_meat_cooldown_desc'][lang].format(
-                pig=Pig.get_name(inter.author.id), timestamp=Pig.get_time_of_next_meat(inter.author.id)),
-            footer=footer, color=utils_config.main_color,
-            prefix='🥓'))
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                title=locales['error_callbacks'][
+                                                                                    'pig_meat_cooldown_title'][lang],
+                                                                                description=locales['error_callbacks'][
+                                                                                    'pig_meat_cooldown_desc'][
+                                                                                    lang].format(
+                                                                                    pig=Pig.get_name(inter.author.id),
+                                                                                    timestamp=Pig.get_time_of_next_meat(
+                                                                                        inter.author.id)),
+                                                                                footer=footer,
+                                                                                color=utils_config.main_color,
+                                                                                prefix='🥓'))
+    elif type(error) == PigbreedCooldown:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                title=locales['error_callbacks'][
+                                                                                    'pig_breed_cooldown_title'][lang],
+                                                                                description=locales['error_callbacks'][
+                                                                                    'pig_breed_cooldown_desc'][
+                                                                                    lang].format(
+                                                                                    pig=Pig.get_name(inter.author.id),
+                                                                                    timestamp=Pig.get_time_of_next_breed(
+                                                                                        inter.author.id)),
+                                                                                footer=footer,
+                                                                                color=utils_config.main_color,
+                                                                                prefix='🔞'))
     elif type(error) == PaginationWrongUser:
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
                                                                                 locales['pagination'][
@@ -52,15 +77,56 @@ async def error(error, inter):
                                                                                 locales['error_callbacks'][
                                                                                     'not_enough_money_title'][lang],
                                                                                 locales['error_callbacks'][
-                                                                                    'not_enough_money_desc'][lang], footer))
-    elif type(error) == NoItemInInventory:
+                                                                                    'not_enough_money_desc'][lang],
+                                                                                footer))
+    elif type(error) == PlayWithYourselfDuel:
+        await cant_play_with_yourself_duel(inter)
+    elif type(error) == BotAsOpponentDuel:
+        await bot_as_opponent_duel(inter)
+    elif type(error) == breedWithYourself:
+        await cant_breed_with_yourself(inter)
+    elif type(error) == BotAsPartnerbreed:
+        await bot_as_partner_breed(inter)
+    elif type(error) == NotAllowedToUseCommand:
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
-                                                                                locales['pagination'][
-                                                                                    'no_item_title'][lang],
-                                                                                locales['pagination'][
-                                                                                    'no_item_desc'][lang], footer),
-                                     edit_original_message=False,
-                                     ephemeral=True)
+                                                                                locales['error_callbacks'][
+                                                                                    'not_allowed_to_use_command_title'][
+                                                                                    lang],
+                                                                                locales['error_callbacks'][
+                                                                                    'not_allowed_to_use_command_desc'][
+                                                                                    lang],
+                                                                                footer))
+    elif type(error) == commands.errors.NotOwner:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['error_callbacks'][
+                                                                                    'not_allowed_to_use_command_title'][
+                                                                                    lang],
+                                                                                locales['error_callbacks'][
+                                                                                    'not_owner_desc'][lang],
+                                                                                footer))
+    elif type(error) == commands.errors.NSFWChannelRequired:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['error_callbacks'][
+                                                                                    'nsfw_required_title'][
+                                                                                    lang],
+                                                                                locales['error_callbacks'][
+                                                                                    'nsfw_required_desc'][lang],
+                                                                                footer))
+    elif type(error) == NoItemInInventory:
+        desc = locales['error_callbacks']['no_item_desc'][lang]
+        if error.desc is not None:
+            desc = error.desc[lang]
+        await BotUtils.send_callback(inter, ephemeral=error.ephemeral,
+                                     edit_original_message=error.edit_original_message,
+                                     embed=embeds.default_error_response(inter,
+                                                                         locales['error_callbacks'][
+                                                                             'no_item_title'][lang].format(
+                                                                             item=Inventory.get_item_name(error.item,
+                                                                                                          lang).lower()),
+                                                                         desc, Func.generate_footer(inter, 'user'),
+                                                                         timestamp=True,
+                                                                         color=utils_config.main_color,
+                                                                         prefix=Inventory.get_item_emoji(error.item)))
     elif type(error) == commands.errors.BotMissingPermissions:
         perms = Func.translate_permissions(error.missing_permissions, lang)
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter, locales['error_callbacks'][
@@ -78,12 +144,14 @@ async def error(error, inter):
                                                                                 locales['error_callbacks'][
                                                                                     'cooldown_title'][lang],
                                                                                 locales['error_callbacks'][
-                                                                                    'cooldown_desc'][lang].format(timestamp=round(Func.get_current_timestamp() + error.retry_after)),
-                                                                                footer, prefix='⚠️', color=utils_config.warn_color))
+                                                                                    'cooldown_desc'][lang].format(
+                                                                                    timestamp=round(
+                                                                                        Func.get_current_timestamp() + error.retry_after)),
+                                                                                footer, prefix='⚠️',
+                                                                                color=utils_config.warn_color))
     elif type(error) == UserInBlackList:
         description = locales['error_callbacks']['user_in_black_list_desc'][lang]
         block_reason = User.get_block_reason(inter.author.id)
-        print(type(block_reason))
         if block_reason not in ['', None, 'None']:
             description += f"\n```{locales['words']['reason'][lang]}: {block_reason}```"
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
@@ -104,7 +172,7 @@ async def error(error, inter):
                 error_by += f'**Guild:** `{inter.guild.name}`|`[{inter.guild.id}]`\n'
             except:
                 pass
-            error_by += f'**User:** <@{inter.user.id}>|`[{inter.user.id}]`\n'
+            error_by += f'**User:** {inter.user}|`[{inter.user.id}]`\n'
         description = f'{error_by}' \
                       f'```{error}```'
         discohook_embed = discord_webhook.DiscordEmbed(title='Debugger',
@@ -114,7 +182,8 @@ async def error(error, inter):
             raise error
         except Exception as e:
             await BotUtils.send_webhook_embed(config.DEBUGGER_WEBHOOK, discohook_embed, username=str(inter.client.user),
-                                          avatar_url=inter.client.user.avatar.url, content='<@&1106677021691613205>',
+                                              avatar_url=inter.client.user.avatar.url,
+                                              content='<@&1106677021691613205>',
                                               file_content=traceback.format_exc())
         raise error
     # elif type(error) == commands.errors.MissingPermissions:
@@ -242,6 +311,30 @@ async def error(error, inter):
     #                                                    color=config.error_color)
     #     await Func.send_webhook_embed(config.DEBUGGER_WEBHOOK, discohook_embed, username=str(inter.client.user),
     #                                   avatar_url=inter.client.user.avatar.url)
+
+
+async def cant_play_with_yourself_duel(inter):
+    lang = User.get_language(inter.author.id)
+    await BotUtils.send_callback(inter, embed=embeds.cant_play_with_yourself_duel(inter, lang))
+
+
+async def bot_as_opponent_duel(inter):
+    lang = User.get_language(inter.author.id)
+    await BotUtils.send_callback(inter, embed=embeds.bot_as_opponent_duel(inter, lang))
+
+async def cant_breed_with_yourself(inter):
+    lang = User.get_language(inter.author.id)
+    await BotUtils.send_callback(inter, embed=embeds.cant_breed_with_yourself(inter, lang))
+
+
+async def bot_as_partner_breed(inter):
+    lang = User.get_language(inter.author.id)
+    await BotUtils.send_callback(inter, embed=embeds.bot_as_partner_breed(inter, lang))
+
+
+# async def cant_play_with_yourself_duel(inter):
+#     lang = User.get_language(inter.author.id)
+#     await BotUtils.send_callback(inter, embed=embeds.cant_play_with_yourself_duel(inter, lang))
 
 
 async def not_enough_money(inter):

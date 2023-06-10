@@ -27,6 +27,7 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_stats(user_id):
         result = Connection.make_request(
             f"SELECT stats FROM {users_schema} WHERE id = {user_id}",
@@ -52,6 +53,7 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_pig_fed(user_id):
         stats = Stats.get_stats(user_id)
         return stats['pig_fed']
@@ -63,6 +65,7 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_money_earned(user_id):
         stats = Stats.get_stats(user_id)
         return stats['money_earned']
@@ -77,6 +80,7 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_commands_used(user_id, command):
         stats = Stats.get_stats(user_id)
         if command in stats['commands_used']:
@@ -84,6 +88,7 @@ class Stats:
         return 0
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_total_commands_used(user_id):
         stats = Stats.get_stats(user_id)
         total_commands_used = 0
@@ -101,6 +106,7 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_items_used(user_id, item):
         stats = Stats.get_stats(user_id)
         if item in stats['items_used']:
@@ -108,6 +114,7 @@ class Stats:
         return 0
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_total_items_used(user_id):
         stats = Stats.get_stats(user_id)
         total_items_used = 0
@@ -125,6 +132,7 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_items_sold(user_id, item):
         stats = Stats.get_stats(user_id)
         if item in stats['items_sold']:
@@ -132,6 +140,7 @@ class Stats:
         return 0
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_total_items_sold(user_id):
         stats = Stats.get_stats(user_id)
         total_items_sold = 0
@@ -146,7 +155,7 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_language_changed(user_id):
         stats = Stats.get_stats(user_id)
         return stats['language_changed']
-

@@ -26,6 +26,7 @@ class Shop:
     #     )
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_last_static_shop():
         result = Connection.make_request(
             f"SELECT static_shop FROM {shop_schema} ORDER BY id DESC LIMIT 1",
@@ -36,6 +37,7 @@ class Shop:
             return json.loads(result)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_last_daily_shop():
         result = Connection.make_request(
             f"SELECT daily_shop FROM {shop_schema} ORDER BY id DESC LIMIT 1",
@@ -46,6 +48,7 @@ class Shop:
             return json.loads(result)
 
     @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_last_update_timestamp():
         result = Connection.make_request(
             f"SELECT update_timestamp FROM {shop_schema} ORDER BY id DESC LIMIT 1",

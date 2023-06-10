@@ -21,11 +21,11 @@ class Connection:
         return pool.get_connection()
 
     @staticmethod
-    def make_request(query, commit: bool = True, fetch: bool = False, fetch_first: bool = True, fetchall=False):
+    def make_request(query, params: tuple = None, commit: bool = True, fetch: bool = False, fetch_first: bool = True, fetchall=False):
         connection = Connection.connect()
         try:
             with connection.cursor() as cursor:
-                cursor.execute(query)
+                cursor.execute(query, params)
                 if commit:
                     connection.commit()
                 if fetch:
@@ -38,4 +38,3 @@ class Connection:
                         return result
         finally:
             connection.close()
-

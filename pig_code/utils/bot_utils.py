@@ -4,6 +4,7 @@ import typing
 from typing import Literal
 
 import disnake
+from disnake import OptionChoice
 
 from ..core import *
 from .functions import *
@@ -25,8 +26,16 @@ class BotUtils:
             await BotUtils.choose_language_callback(inter, 'en')
             Stats.set_language_changed(inter.author.id, True)
         elif commands_used == 15:
-            # elif True:
             await BotUtils.rate_bot_callback(inter)
+        else:
+            for event_id, event_data in Events.get_events(inter.author.id).copy().items():
+                Events.remove(inter.author.id, event_id)
+                wait_for_btn = .7
+                if event_id == 'server_ad':
+                    wait_for_btn = 4
+                if event_data['expires_in'] is None or event_data['expires_in'] + event_data[
+                    'created'] > Func.get_current_timestamp():
+                    await BotUtils.event_callback(inter, event_data, wait_for_btn)
 
     @staticmethod
     async def choose_language_callback(inter, lang):
@@ -59,6 +68,37 @@ class BotUtils:
             if interaction.component.custom_id == 'select_lang':
                 User.set_language(inter.author.id, interaction.values[0])
                 break
+
+    @staticmethod
+    async def event_callback(inter, event, wait_for_btn: float = .7):
+        lang = User.get_language(inter.author.id)
+        title = event['title'] if type(event['title']) != dict else event['title'][lang]
+        description = event['description'] if type(event['description']) != dict else event['description'][lang]
+        embed = BotUtils.generate_embed(title=title,
+                                                                                    description=description,
+                                                                                    footer=Func.generate_footer(inter),
+                                                                                    timestamp=event['created'],
+                                                                                    footer_url=Func.generate_footer_url(
+                                                                                        'user_avatar', inter.author))
+        components = [
+            disnake.ui.Button(
+                custom_id='ok',
+                style=disnake.ButtonStyle.green,
+                # emoji='✅',
+                label=locales['words']['got_it_btn'][lang],
+            )]
+        message = await BotUtils.send_callback(inter, embed=embed)
+        await asyncio.sleep(wait_for_btn)
+        message = await BotUtils.send_callback(message, embed=embed, components=components)
+        while True:
+            interaction = await inter.client.wait_for('button_click',
+                                                      check=lambda interaction: message.id == interaction.message.id)
+            if not BotUtils.check_if_right_user(interaction):
+                continue
+            if interaction.component.custom_id == 'ok':
+                await interaction.response.defer()
+                break
+            break
 
     @staticmethod
     async def rate_bot_callback(inter):
@@ -104,6 +144,12 @@ class BotUtils:
                 raise PigMeatCooldown
 
     @staticmethod
+    def check_pig_breed_cooldown(user: disnake.User):
+        if Pig.get_last_breed(user.id) is not None:
+            if Func.get_current_timestamp() - Pig.get_last_breed(user.id) < utils_config.pig_breed_cooldown:
+                raise PigbreedCooldown
+
+    @staticmethod
     async def confirm_message(inter, lang, description: str = ''):
         message = await BotUtils.send_callback(inter, embed=BotUtils.generate_embed(
             title=locales['confirm_message']['title'][lang],
@@ -125,10 +171,12 @@ class BotUtils:
                 style=disnake.ButtonStyle.red
             )
         ])
+
         def check(interaction):
             if message is not None:
                 right_message = message.id == interaction.message.id
                 return right_message and BotUtils.check_if_right_user(interaction)
+
         interaction = await inter.client.wait_for('button_click', check=check)
         try:
             await interaction.response.defer(ephemeral=True)
@@ -147,7 +195,7 @@ class BotUtils:
         embed = create_embed()
         for i, field in enumerate(fields):
             embed.add_field(name=field['name'], value=field['value'], inline=field['inline'])
-            if i % 25 == 0 and i != 0:
+            if i % 24 == 0 and i != 0:
                 embeds.append(embed)
                 embed = create_embed()
         embeds.append(embed)
@@ -157,6 +205,11 @@ class BotUtils:
     def generate_select_components_for_pages(options: list, custom_id, placeholder):
         components = []
         generated_options = []
+
+        def append_components():
+            components.append([
+                disnake.ui.Select(options=generated_options, custom_id=custom_id, placeholder=placeholder)])
+
         for i, option in enumerate(options):
             generated_options.append(disnake.SelectOption(
                 label=option['label'],
@@ -165,12 +218,10 @@ class BotUtils:
                 description=option['description']
             ))
             if i % 24 == 0 and i != 0:
-                components.append(
-                    [disnake.ui.Select(options=generated_options, custom_id=custom_id, placeholder=placeholder)])
+                append_components()
                 generated_options = []
         if generated_options:
-            components.append(
-                [disnake.ui.Select(options=generated_options, custom_id=custom_id, placeholder=placeholder)])
+            append_components()
         else:
             components.append([])
         return components
@@ -180,11 +231,12 @@ class BotUtils:
                             content: str = '',
                             embed: disnake.Embed = None,
                             ephemeral: bool = False,
-                            send_to_dm: bool = False,
+                            send_to_dm: disnake.User = None,
                             edit_original_message: bool = True,
                             ctx_message: bool = False,
                             components: list = None,
                             files: list = None):
+        print(134, components)
         if components is None:
             components = []
         if files is None:
@@ -206,6 +258,7 @@ class BotUtils:
                         pass
                     try:
                         if edit_original_message:
+                            print(components, 234)
                             message = await inter.edit_original_message(content=content, embed=embed,
                                                                         components=components,
                                                                         files=files)
@@ -219,7 +272,10 @@ class BotUtils:
             except Exception as e:
                 print(e)
         else:
-            await inter.author.send(content, embed=embed, components=components, files=files)
+            try:
+                message = await send_to_dm.send(content, embed=embed, components=components, files=files)
+            except Exception as e:
+                print(e)
         return message
 
     @staticmethod
@@ -250,8 +306,10 @@ class BotUtils:
                        timestamp=None) -> disnake.Embed:
         if fields is None:
             fields = []
-        if timestamp:
+        if timestamp is True:
             timestamp = datetime.datetime.now()
+        elif timestamp is not None:
+            timestamp = datetime.datetime.fromtimestamp(timestamp)
         title = '' if title is None else title
         prefix = '' if prefix is None else prefix
         embed = disnake.Embed(
@@ -279,16 +337,23 @@ class BotUtils:
                          lang: str,
                          embeds: list,
                          components: list = None,
+                         components_for_every_page: list = None,
                          timeout: int = 1200,
                          page_label_footer: bool = True,
                          embed_thumbnail_file: str = None,
                          ctx_message: bool = False,
                          everyone_can_click: bool = False,
+                         return_if_starts_with: list = None,
                          hide_button: bool = True):
+        if return_if_starts_with is None:
+            return_if_starts_with = ['back_to_inventory']
         if components is None:
             components = [[]]
+        if components_for_every_page is None:
+            components_for_every_page = []
         pagination_components = []
         current_page = 1
+
         def set_thumbnail_file_if_not_none():
             if embed_thumbnail_file is not None:
                 embeds[current_page - 1].set_thumbnail(file=disnake.File(fp=embed_thumbnail_file))
@@ -309,12 +374,14 @@ class BotUtils:
         if hide_button:
             pagination_components.append(BotUtils.generate_hide_button())
         if components == [[]]:
-            components = [pagination_components for i in range(len(embeds))]
+            components = [pagination_components + components_for_every_page for i in range(len(embeds))]
         else:
             if Func.get_list_dim(components) == 2:
-                components = [[components[i], pagination_components] for i in range(len(components))]
+                components = [[components[i], components_for_every_page, pagination_components] for i in
+                              range(len(components))]
             else:
-                components = [[components[0], pagination_components] for _ in range(len(embeds))]
+                components = [[components[0], components_for_every_page, pagination_components] for _ in
+                              range(len(embeds))]
         components = Func.remove_empty_lists_from_list(components)
         if not components:
             components = [[]]
@@ -325,6 +392,8 @@ class BotUtils:
                     text=Func.generate_footer(inter, second_part=second_footer_part),
                     icon_url=Func.generate_footer_url('user_avatar', inter.author))
         set_thumbnail_file_if_not_none()
+        print(123, components[0])
+        # components[0][0] = [disnake.ui.Select(placeholder='Hello', options=[disnake.SelectOption(label='hello', value='s')])]
         message = await BotUtils.send_callback(inter, embed=embeds[current_page - 1],
                                                components=components[0],
                                                ctx_message=ctx_message, ephemeral=False)
@@ -354,9 +423,11 @@ class BotUtils:
                                                  ephemeral=True)
                     continue
             except asyncio.exceptions.TimeoutError as e:
-                set_thumbnail_file_if_not_none()
-                await BotUtils.send_callback(message, embed=embeds[current_page - 1],
-                                             components=[BotUtils.generate_hide_button()])
+                try:
+                    set_thumbnail_file_if_not_none()
+                    await message.edit(components=[BotUtils.generate_hide_button()])
+                except:
+                    pass
                 return
             except AttributeError:
                 return
@@ -379,6 +450,8 @@ class BotUtils:
                                              components=components[current_page - 1])
             elif interaction.component.custom_id == 'hide':
                 return
+            elif Func.startswith_list(interaction.component.custom_id, return_if_starts_with):
+                return
 
     @staticmethod
     def generate_hide_button():
@@ -394,9 +467,30 @@ class BotUtils:
         return interaction.message.interaction.user.id == interaction.author.id
 
     @staticmethod
-    def generate_user_pig(user_id):
+    def generate_user_pig(user_id, eye_emotion: str = None):
         return Func.build_pig(tuple(Pig.get_skin(user_id, 'all').items()),
-                              tuple(Pig.get_genetic(user_id, 'all').items()))
+                              tuple(Pig.get_genetic(user_id, 'all').items()),
+                              eye_emotion=eye_emotion)
+
+    @staticmethod
+    def filter_users(client, users, is_on_server: int):
+        result = []
+        guild = client.get_guild(is_on_server)
+        for user_id in users:
+            if is_on_server:
+                if guild.get_member(int(user_id)) is not None:
+                    result.append(user_id)
+        return result
+
+    @staticmethod
+    def bool_command_choice():
+        choices = [
+            # alternatively:
+            # OptionChoice(Localized("Cat", key="OPTION_CAT"), "Cat")
+            OptionChoice(Localized('True', data=locales['words']['true_yes_command']), 'True'),
+            OptionChoice(Localized('False', data=locales['words']['false_no_command']), 'False')
+        ]
+        return choices
 
     # @staticmethod
     # def raise_error_if_no_item(user_id, item_id):

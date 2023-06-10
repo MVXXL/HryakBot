@@ -49,6 +49,7 @@ class MySQLPool:
             database=config.mysql_info['database'],
             charset='utf8'
         ))
+
     def get_connection(self):
         # print(self.pools)
         for i in range(len(self.pools)):
@@ -63,5 +64,6 @@ class MySQLPool:
                     return self.pools[i].get_connection()
                 except:
                     continue
+
 
 pool = MySQLPool()

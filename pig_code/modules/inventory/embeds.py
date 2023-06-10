@@ -14,7 +14,6 @@ def inventory_item_selected(inter, item_id, lang,
     footer = Func.generate_footer(inter, second_part=item_id)
     footer_url = Func.generate_footer_url('user_avatar', inter.author)
     prefix = Func.generate_prefix(Inventory.get_item_emoji(item_id))
-    rarity = Inventory.get_item_rarity(item_id, lang)
     embed_color = utils_config.rarity_colors[Inventory.get_item_rarity(item_id)]
     description = ''
     thumbnail_url = None
@@ -51,6 +50,7 @@ def inventory_item_selected(inter, item_id, lang,
         prefix=prefix,
         footer=footer,
         footer_url=footer_url,
+        # timestamp=True,
         color=embed_color,
         thumbnail_url=thumbnail_url,
         thumbnail_file=thumbnail_file,
@@ -63,8 +63,21 @@ def inventory_item_sold(inter, item_id, amount, money_received, lang) -> disnake
     embed = BotUtils.generate_embed(
         title=locales['inventory_item_sold']['title'][lang].format(item=Inventory.get_item_name(item_id, lang)),
         description=f"- {locales['inventory_item_sold']['desc'][lang].format(item=Inventory.get_item_name(item_id, lang), amount=amount, money=money_received)}",
+        timestamp=True,
         prefix=Func.generate_prefix('scd'),
-        footer=Func.generate_footer(inter, second_part='item_sold'),
+        footer=Func.generate_footer(inter),
+        footer_url=Func.generate_footer_url('user_avatar', inter.author),
+    )
+    return embed
+
+
+def inventory_item_cooked(inter, item_id, amount, lang) -> disnake.Embed:
+    embed = BotUtils.generate_embed(
+        title=locales['inventory_item_cooked']['title'][lang].format(item=Inventory.get_item_name(item_id, lang)),
+        description=f"- {locales['inventory_item_cooked']['desc'][lang].format(item=Inventory.get_item_name(item_id, lang), amount=amount)}",
+        timestamp=True,
+        prefix=Func.generate_prefix('scd'),
+        footer=Func.generate_footer(inter),
         footer_url=Func.generate_footer_url('user_avatar', inter.author),
     )
     return embed

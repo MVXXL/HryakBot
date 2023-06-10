@@ -6,3 +6,4 @@ from . import wardrobe
 from . import shop
 from . import help
 from . import top
+from . import duel

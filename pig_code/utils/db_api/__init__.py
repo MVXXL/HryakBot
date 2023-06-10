@@ -4,4 +4,7 @@ from .inventory import Inventory
 from .user import User
 from .pig import Pig
 from .shop import Shop
+from .promocode import PromoCode
+from .events import Events
 from .stats import Stats
+from .guild import Guild

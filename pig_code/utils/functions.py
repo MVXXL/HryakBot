@@ -1,14 +1,18 @@
 import asyncio
 import datetime
+import json
+import os
 import random
 
 import discord_webhook
 import disnake
+import requests
+from cachetools import cached, TTLCache
 from disnake import Localized
 from disnake.ext import commands
 import PIL
 import io
-from PIL import Image
+from PIL import Image, ImageDraw
 import functools
 
 from ..core import config
@@ -26,6 +30,53 @@ class Func:
         for i, key in enumerate(my_dict.keys()):
             new_dict[str(i)] = my_dict[key]
         return new_dict
+
+    @staticmethod
+    def random_choice_with_probability(dictionary):
+        total_probability = sum(dictionary.values())
+        random_number = random.uniform(0, total_probability)
+        cumulative_probability = 0
+
+        for key, probability in dictionary.items():
+            cumulative_probability += probability
+            if random_number <= cumulative_probability:
+                return key
+
+    @staticmethod
+    def calculate_probabilities(dictionary, round_to: int = 2):
+        total = sum(dictionary.values())
+        probabilities = {}
+
+        for key, value in dictionary.items():
+            probability = (value / total) * 100
+            probabilities[key] = round(probability, round_to)
+
+        return probabilities
+
+    @staticmethod
+    def add_log(log_type, **kwargs):
+        current_time = datetime.datetime.now()
+        log_entry = {
+            'timestamp': str(current_time),
+            'type': str(log_type),
+        }
+        for k, v in kwargs.items():
+            if type(v) in [str, int, float, bool, list, dict, set]:
+                log_entry[k] = v
+        log_file_path = config.LOGS_PATH
+        if os.path.exists(log_file_path):
+            with open(log_file_path, "r") as log_file:
+                try:
+                    log_data = json.load(log_file)
+                except json.decoder.JSONDecodeError:
+                    log_data = []
+
+            log_data.append(log_entry)
+        else:
+            log_data = [log_entry]
+
+        with open(log_file_path, "w") as log_file:
+            json.dump(log_data, log_file, indent=4, ensure_ascii=False)
 
     # @staticmethod
     # def send_start_message(client, webhook_url):
@@ -214,9 +265,10 @@ class Func:
     #                       data=locales['ephemeral_var']['description']),
     #                   choices=['✅ True', '❌ False'], default=default_value)
     #
-    # @staticmethod
-    # def str_to_bool(target):
-    #     return True if target.lower() in ['✅ true', 'true', '✅', 'yes', 'да', 'так'] else False
+    @staticmethod
+    def str_to_bool(target):
+        return True if target.lower() in ['✅ true', 'true', '✅', 'yes', 'да', 'так'] else False
+
     #
     # @staticmethod
     # def translate_permissions(perms, lang):
@@ -325,7 +377,7 @@ class Func:
                 return i
 
     @staticmethod
-    def generate_footer(inter, first_part: str = 'user', second_part: str = 'com_name', user: disnake.User = None):
+    def generate_footer(inter, first_part: str = 'user', second_part: str = '', user: disnake.User = None):
         separator = ' ・ '
         if user is None:
             user = inter.author
@@ -358,7 +410,8 @@ class Func:
             if key == 'other':
                 new_daily_items += Func.select_random_items(
                     Func.get_items_by_types(daily_items,
-                                            not_include=Func.remove_keys(utils_config.daily_shop_items_number.copy(), [key])),
+                                            not_include=Func.remove_keys(utils_config.daily_shop_items_number.copy(),
+                                                                         [key])),
                     utils_config.daily_shop_items_number[key])
             else:
                 new_daily_items += Func.select_random_items_by_key('type', f'skin:{key}',
@@ -436,6 +489,13 @@ class Func:
         return len(Func._dim(lst))
 
     @staticmethod
+    def startswith_list(string, lst: list[str]) -> bool:
+        for i in lst:
+            if string.startswith(i):
+                return True
+        return False
+
+    @staticmethod
     def list_startswith(lst: list[str], prefix: str) -> bool:
         for i in lst:
             if i.startswith(prefix):
@@ -463,7 +523,6 @@ class Func:
             return result
         return random.sample(sorted(result), num)
 
-
     @staticmethod
     def remove_keys(dict1: dict, keys: list):
         for key in keys:
@@ -476,7 +535,8 @@ class Func:
         return round(datetime.datetime.now().timestamp())
 
     @staticmethod
-    def get_items_by_key(items_dict, key, include_only: str = None, not_include: str = None):
+    def get_items_by_key(items_dict, key, include_only: str = None, not_include: str = None,
+                         one_element_if_key_is_list: bool = True):
         result = {}
         for item_name, item_data in items_dict.items():
             if key not in items[item_name]:
@@ -495,7 +555,7 @@ class Func:
     #     return Func.get_items_by_key(items_dict, 'type', include_only, not_include)
 
     @staticmethod
-    def get_items_by_types(items_dict, include_only = None, not_include = None):
+    def get_items_by_types(items_dict, include_only: list = None, not_include: list = None):
         result = items_dict
         if include_only is not None:
             for i in include_only:
@@ -506,10 +566,12 @@ class Func:
         return result
 
     @staticmethod
-    @functools.lru_cache()
-    def build_pig(skins: tuple, genetic: tuple, output_filename: str = None):
+    @cached(TTLCache(maxsize=1000, ttl=60))
+    def build_pig(skins: tuple, genetic: tuple, output_filename: str = None, output_path: str = None,
+                  eye_emotion: str = None):
         skins = dict(skins)
         genetic = dict(genetic)
+        eye_emotion = skins['eye_emotion'] if eye_emotion is None else eye_emotion
         not_draw = []
         for item in skins.values():
             if item is not None and item in items and 'not_draw' in items[item]:
@@ -517,7 +579,7 @@ class Func:
         if output_filename is None:
             output_filename = random.randrange(10000000)
         skins_path = 'bin/pig_skins'
-        for i, key in enumerate(['body', 'tattoo', 'eyes', 'pupils', 'glasses', 'nose', 'hat', 'tie']):
+        for i, key in enumerate(['body', 'tattoo', 'eyes', 'pupils', 'glasses', 'nose', '_nose', 'hat', 'legs', 'tie']):
             if key in not_draw:
                 continue
             folder_of_skin = key
@@ -534,8 +596,21 @@ class Func:
                 built_pig_img = Image.open(part_path)
             else:
                 img_to_paste = Image.open(part_path)
+                if key == 'eyes':
+                    if eye_emotion in utils_config.emotions_erase_cords:
+                        draw = ImageDraw.Draw(img_to_paste)
+                        for cords in utils_config.emotions_erase_cords[eye_emotion]:
+                            if len(cords) == 3:
+                                x1 = cords[0] - cords[2]
+                                y1 = cords[1] - cords[2]
+                                x2 = cords[0] + cords[2]
+                                y2 = cords[1] + cords[2]
+                                draw.ellipse([(x1, y1), (x2, y2)], fill=img_to_paste.getpixel((0, 0)))
+                            else:
+                                draw.polygon(cords, fill=img_to_paste.getpixel((0, 0)))
                 built_pig_img.paste(img_to_paste, (0, 0), img_to_paste)
-        output_path = f'bin/pigs/{output_filename}.png'
+        if output_path is None:
+            output_path = f'bin/pigs/{output_filename}.png'
         built_pig_img.save(output_path)
         return output_path
 
@@ -552,6 +627,20 @@ class Func:
     #             return isinstance(lst[0][0], list)
     #     return False
     #
+
+    @staticmethod
+    def send_data_to_sdc(servers, shards: int = 1):
+        requests.post('https://api.server-discord.com/v2/bots/1102273144733049003/stats',
+                      headers={'Authorization': f'SDC {config.SDC_TOKEN}'},
+                      json={'servers': servers,
+                            'shards': shards
+                            })
+    @staticmethod
+    def send_data_to_boticord(servers):
+        requests.post('https://api.boticord.top/v2/stats',
+                      headers={'Authorization': f'Bot {config.BOTICORD_TOKEN}'},
+                      json={'servers': servers})
+
     @staticmethod
     def remove_empty_lists_from_list(lst):
         new_lst = []
@@ -569,6 +658,16 @@ class Func:
                         if j:
                             new_lst[lst.index(i)].append(j)
         return new_lst
+
+    @staticmethod
+    def cut_text(text, chars, dots: bool = True):
+        if len(text) > chars + 2:
+            if dots:
+                text = text[:chars - 3] + '...'
+            else:
+                text = text[:chars]
+        return text
+
 
     #
     # @staticmethod
