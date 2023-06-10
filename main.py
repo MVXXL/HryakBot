@@ -24,4 +24,5 @@ class PigBot:
 pig_bot = PigBot()
 pig_bot.load_cogs()
 
+
 pig_bot.pig_bot.run(config.TOKEN)
