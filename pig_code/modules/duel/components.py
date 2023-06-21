@@ -10,12 +10,12 @@ def invite_components(lang) -> list:
     components = [
         disnake.ui.Button(
             style=disnake.ButtonStyle.green,
-            label=locales['duel']['accept_btn'][lang],
+            label=locales['words']['accept'][lang],
             custom_id=f'in:accept',
         ),
         disnake.ui.Button(
             style=disnake.ButtonStyle.red,
-            label=locales['duel']['reject_btn'][lang],
+            label=locales['words']['reject'][lang],
             custom_id=f'in:reject',
         )
     ]

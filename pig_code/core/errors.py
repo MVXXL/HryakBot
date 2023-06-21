@@ -22,11 +22,11 @@ class BotAsOpponentDuel(CommandError):
     pass
 
 
-class breedWithYourself(CommandError):
+class BreedWithYourself(CommandError):
     pass
 
 
-class BotAsPartnerbreed(CommandError):
+class BotAsPartnerBreed(CommandError):
     pass
 
 
@@ -37,7 +37,14 @@ class PigFeedCooldown(CommandError):
 class PigMeatCooldown(CommandError):
     pass
 
-class PigbreedCooldown(CommandError):
+
+class PigBreedCooldown(CommandError):
+    def __init__(self, user=None):
+        self.user = user
+        super().__init__(f"User {user} breed cd")
+
+
+class LanguageNotSupported(CommandError):
     pass
 
 

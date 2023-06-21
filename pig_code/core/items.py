@@ -18,6 +18,10 @@ tattoo_description = {
     'en': 'Tattoo for your pig',
     'ru': 'Татуировка для хряка'
 }
+piercing_description = {
+    'en': 'Pig piercing',
+    'ru': 'Пирсинг для хряка'
+}
 default_lenses_price = 80
 default_tattoo_price = 30
 
@@ -89,6 +93,7 @@ items = {
                  'weight_boost': .9,
                  'cost': 5,
                  'shop_price': 10,
+                 'cooldown': {5: 45 * 3600},
                  'method_of_obtaining': 'shop:always',
                  'rarity': '2',
                  'emoji': '💊',
@@ -124,6 +129,72 @@ items = {
               'emoji': '🔥',
               'image_file': f'{images_folder}mangal.png',
               },
+
+    # cases
+
+    'common_case': {'name': {'en': 'Common case',
+                       'ru': 'Обычный кейс'},
+              'desc': {
+                  'en': 'Regular case that can be opened',
+                  'ru': 'Обычный кейс, который можно открыть'
+              },
+              'components': ['use'],
+              'type': 'case',
+              'cost': 50,
+              'shop_price': 120,
+              'cooldown': {2: 22 * 3600},
+              'method_of_obtaining': 'shop:cases',
+              'rarity': '3',
+              'emoji': '🎁',
+              'image_file': f'{images_folder}common_case.png',
+              },
+    'rare_case': {'name': {'en': 'Rare case',
+                             'ru': 'Редкий кейс'},
+                    'desc': {
+                        'en': 'Rare case that can be opened',
+                        'ru': 'Редкий кейс, который можно открыть'
+                    },
+                    'components': ['use'],
+                    'type': 'case',
+                    'cost': 100,
+                  'cooldown': {1: 22 * 3600},
+                  'shop_price': 210,
+                    'method_of_obtaining': 'shop:cases',
+                    'rarity': '4',
+                    'emoji': '🎁',
+                    'image_file': f'{images_folder}common_case.png',
+                    },
+    'epic_case': {'name': {'en': 'Epic case',
+                             'ru': 'Эпический кейс'},
+                    'desc': {
+                        'en': 'Epic case that can be opened',
+                        'ru': 'Эпический кейс, который можно открыть'
+                    },
+                    'components': [],
+                    'type': 'case',
+                    'cost': 200,
+                    'shop_price': 400,
+                    # 'method_of_obtaining': 'shop:cases',
+                    'rarity': '5',
+                    'emoji': '🎁',
+                    'image_file': f'{images_folder}common_case.png',
+                    },
+    # 'hat_case': {'name': {'en': 'Hat case',
+    #                          'ru': 'Шляпочный кейс'},
+    #                 'desc': {
+    #                     'en': 'Regular case that can be opened',
+    #                     'ru': 'Обычный кейс, который можно открыть'
+    #                 },
+    #                 'components': ['use'],
+    #                 'type': 'case',
+    #                 'cost': 50,
+    #                 'shop_price': 120,
+    #                 'cooldown': {2: 22 * 3600},
+    #                 'method_of_obtaining': 'shop:cases',
+    #                 'rarity': '3',
+    #                 'emoji': '🎁',
+    #                 'image_file': f'{images_folder}common_case.png',
+    #                 },
 
     # pets
     'pet_hryak_default': {'name': {'en': 'Mini Hryak',
@@ -305,7 +376,7 @@ items = {
                  'type': 'skin:hat',
                  'shop_price': 100,
                  'method_of_obtaining': 'shop:daily',
-                 'rarity': '2',
+                 'rarity': '3',
                  'emoji': '💩'},
     'pig_king_crown': {'name': {'en': 'Pig king crown',
                                 'ru': 'Корона короля свиней'},
@@ -450,7 +521,9 @@ items = {
                            'ru': 'Почувствуй себя настоящим амогусом'
                        },
                        'type': 'skin:glasses',
-                       'rarity': '5',
+                       'shop_price': 3000,
+                       # 'method_of_obtaining': 'shop:daily',
+                       'rarity': '6',
                        'emoji': '📮',
                        'not_draw': ['eyes', 'pupils', 'nose', '_nose']},
     'rounded_glasses': {'name': {'en': 'Rounded glasses',
@@ -515,8 +588,8 @@ items = {
     'clown_nose': {'name': {'en': 'Clown nose',
                             'ru': 'Нос клоуна'},
                    'desc': {
-                       'en': 'With a bow tie you will be like a real gentleman',
-                       'ru': 'С бабочкой ты будешь как настоящий джентльмен'
+                       'en': 'Great for you if you feel like a clown',
+                       'ru': 'Отлично подойдёт вам, если вы чувствуете себя клоуном'
                    },
                    'type': 'skin:_nose',
                    'shop_price': 120,
@@ -534,8 +607,8 @@ items = {
                     },
                     'type': 'skin:legs',
                     'shop_price': 1100,
-                    'method_of_obtaining': 'shop:daily',
-                    'rarity': '5',
+                    # 'method_of_obtaining': 'shop:daily',
+                    'rarity': '6',
                     'emoji': '🐛'},
 
     # bodies
@@ -548,7 +621,7 @@ items = {
                   'type': 'skin:body',
                   # 'shop_price': 100,
                   'method_of_obtaining': 'premium',
-                  'rarity': '4',
+                  'rarity': '6',
                   'emoji': '🎨'},
     'dark_body': {'name': {'en': 'Chocolate paint',
                            'ru': 'Шоколадная краска'},
@@ -581,7 +654,18 @@ items = {
                    'type': 'skin:body',
                    'shop_price': 400,
                    'method_of_obtaining': 'shop:daily',
-                   'rarity': '4',
+                   'rarity': '5',
+                   'emoji': '🎨'},
+    'spider_body': {'name': {'en': 'Spider paint',
+                            'ru': 'Паучья краска'},
+                   'desc': {
+                       'en': 'A pig spider lives in one of the universes',
+                       'ru': 'В одной из вселенных проживает хряк-паук'
+                   },
+                   'type': 'skin:body',
+                   'shop_price': 700,
+                   'method_of_obtaining': 'shop:daily',
+                   'rarity': '5',
                    'emoji': '🎨'},
     'camouflage_body': {'name': {'en': 'Camouflage paint',
                                  'ru': 'Камуфляжная краска'},
@@ -592,8 +676,58 @@ items = {
                         'type': 'skin:body',
                         'shop_price': 600,
                         'method_of_obtaining': 'shop:daily',
-                        'rarity': '4',
+                        'rarity': '5',
                         'emoji': '🎨'},
+
+    # suits
+    'space_suit': {'name': {'en': 'Space suit',
+                                 'ru': 'Скафандр'},
+                        'desc': {
+                            'en': 'Almost ready to fly into space',
+                            'ru': 'К полёту в космос почти готов'
+                        },
+                        'type': 'skin:suit',
+                        'shop_price': 800,
+                        'method_of_obtaining': 'shop:daily',
+                        'rarity': '5',
+                   'not_draw': ['piercing_ear', 'glasses'],
+                        'emoji': '🚀'},
+
+    # piercings
+    'gold_ear_piercing': {'name': {'en': 'Gold piercing (Ear)',
+                            'ru': 'Золотой пирсинг (Ухо)'},
+                   'desc': piercing_description,
+                   'type': 'skin:piercing_ear',
+                   'shop_price': 140,
+                   'method_of_obtaining': 'shop:daily',
+                   'rarity': '3',
+                   'emoji': '💍'},
+    'silver_ear_piercing': {'name': {'en': 'Silver piercing (Ear)',
+                                   'ru': 'Серебряный пирсинг (Ухо)'},
+                          'desc': piercing_description,
+                          'type': 'skin:piercing_ear',
+                          'shop_price': 140,
+                          'method_of_obtaining': 'shop:daily',
+                          'rarity': '3',
+                          'emoji': '💍'},
+
+    'gold_nose_piercing': {'name': {'en': 'Gold piercing (Nose)',
+                                   'ru': 'Золотой пирсинг (Нос)'},
+                          'desc': piercing_description,
+                          'type': 'skin:piercing_nose',
+                          'shop_price': 140,
+                          'method_of_obtaining': 'shop:daily',
+                          'rarity': '3',
+                          'emoji': '💍'},
+
+    'silver_nose_piercing': {'name': {'en': 'Silver piercing (Nose)',
+                                   'ru': 'Серебряный пирсинг (Нос)'},
+                          'desc': piercing_description,
+                          'type': 'skin:piercing_nose',
+                          'shop_price': 140,
+                          'method_of_obtaining': 'shop:daily',
+                          'rarity': '3',
+                          'emoji': '💍'},
 
     # eyes
     'black_eyes': {'name': {'en': 'Big black lenses',
@@ -736,6 +870,14 @@ items = {
                      'method_of_obtaining': 'shop:daily',
                      'rarity': '2',
                      'emoji': '🐉'},
+    'spider_mark': {'name': {'en': 'Spider tattoo',
+                              'ru': 'Паук - дискорд'},
+                     'desc': tattoo_description,
+                     'type': 'skin:tattoo',
+                     'shop_price': 50,
+                     'method_of_obtaining': 'shop:daily',
+                     'rarity': '2',
+                     'emoji': '🐉'},
     'ukraine_flag_mark': {'name': {'en': 'Ukrainian flag tattoo',
                                    'ru': 'Украинское тату'},
                           'desc': tattoo_description,
@@ -767,13 +909,13 @@ items = {
                                  'ru': 'Ебало антона'},
                         'desc': tattoo_description,
                         'type': 'skin:tattoo',
-                        'rarity': '5',
+                        'rarity': '6',
                         'emoji': '🐉'},
     'face_max_mark': {'name': {'en': 'Face of Maxim',
                                'ru': 'Ебало Максима'},
                       'desc': tattoo_description,
                       'type': 'skin:tattoo',
-                      'rarity': '5',
+                      'rarity': '6',
                       'emoji': '🐉'},
 
     # eyes emotions

@@ -18,7 +18,6 @@ class AdminCommands(commands.Cog):
         if sec:
             Connection.make_request(f"UPDATE {config.users_schema} SET events = '{'{}'}'")
         for user_id in Tech.get_all_users():
-            print(user_id)
             # if User.get_language(user_id) == 'ru':
             if True:
                 Events.add(user_id, title='Хочешь получить буст?',

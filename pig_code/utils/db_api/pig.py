@@ -74,7 +74,7 @@ class Pig:
         Pig.update_pig(user_id, pig)
 
     @staticmethod
-    def remove_buff(user_id, buff, amount):
+    def remove_buff(user_id, buff, amount: int = 1):
         pig = User.get_pig(user_id)
         if buff in pig['buffs']:
             pig['buffs'][buff] -= amount
@@ -151,27 +151,47 @@ class Pig:
     @staticmethod
     def _set_last_action(user_id, timestamp, action):
         pig = User.get_pig(user_id)
-        pig[action] = timestamp
+        pig[f'{action}_history'].append(timestamp)
         Pig.update_pig(user_id, pig)
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def _get_last_action(user_id, action):
         pig = User.get_pig(user_id)
-        return pig[action]
+        last_action = None
+        if len(pig[f'{action}_history']) > 0:
+            last_action = pig[f'{action}_history'][-1]
+        return last_action
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def _get_action_history(user_id, action):
+        pig = User.get_pig(user_id)
+        return pig[f'{action}_history']
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def _get_time_to_next_action(user_id, action):
         last_action = Pig._get_last_action(user_id, action)
-        cooldown = 100000
+        cooldown = 1000000
         match action:
-            case 'last_feed':
+            case 'feed':
                 cooldown = utils_config.pig_feed_cooldown
-            case 'last_meat':
+            case 'meat':
                 cooldown = utils_config.pig_meat_cooldown
-            case 'last_breed':
+            case 'breed':
                 cooldown = utils_config.pig_breed_cooldown
+        # primal_cooldown = cooldown
+        cont = True
+        while cont:
+            for i in range(
+                    Func.check_consecutive_timestamps(Pig._get_action_history(user_id, action)[-30:], 5, cooldown * 1.5,
+                                                      cooldown)):
+                cooldown += cooldown // 2
+            if Func.check_consecutive_timestamps(Pig._get_action_history(user_id, action)[-30:], 5, cooldown * 1.5,
+                                                 cooldown) == 0 or \
+                    cooldown > 12 * 3600:
+                cont = False
         if last_action is None:
             return -1
         next_action = last_action + cooldown - Func.get_current_timestamp()
@@ -186,60 +206,75 @@ class Pig:
 
     @staticmethod
     def set_last_feed(user_id, timestamp):
-        Pig._set_last_action(user_id, timestamp, 'last_feed')
+        Pig._set_last_action(user_id, timestamp, 'feed')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_last_feed(user_id):
-        return Pig._get_last_action(user_id, 'last_feed')
+        return Pig._get_last_action(user_id, 'feed')
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_feed_history(user_id):
+        return Pig._get_action_history(user_id, 'feed')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_time_to_next_feed(user_id):
-        return Pig._get_time_to_next_action(user_id, 'last_feed')
+        return Pig._get_time_to_next_action(user_id, 'feed')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_time_of_next_feed(user_id):
-        return Pig._get_time_of_next_action(user_id, 'last_feed')
+        return Pig._get_time_of_next_action(user_id, 'feed')
 
     @staticmethod
     def set_last_meat(user_id, timestamp):
-        Pig._set_last_action(user_id, timestamp, 'last_meat')
+        Pig._set_last_action(user_id, timestamp, 'meat')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_last_meat(user_id):
-        return Pig._get_last_action(user_id, 'last_meat')
+        return Pig._get_last_action(user_id, 'meat')
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_meat_history(user_id):
+        return Pig._get_action_history(user_id, 'meat')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_time_to_next_meat(user_id):
-        return Pig._get_time_to_next_action(user_id, 'last_meat')
+        return Pig._get_time_to_next_action(user_id, 'meat')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_time_of_next_meat(user_id):
-        return Pig._get_time_of_next_action(user_id, 'last_meat')
+        return Pig._get_time_of_next_action(user_id, 'meat')
 
     @staticmethod
     def set_last_breed(user_id, timestamp):
-        Pig._set_last_action(user_id, timestamp, 'last_breed')
+        Pig._set_last_action(user_id, timestamp, 'breed')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_last_breed(user_id):
-        return Pig._get_last_action(user_id, 'last_breed')
+        return Pig._get_last_action(user_id, 'breed')
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_breed_history(user_id):
+        return Pig._get_action_history(user_id, 'breed')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_time_to_next_breed(user_id):
-        return Pig._get_time_to_next_action(user_id, 'last_breed')
+        return Pig._get_time_to_next_action(user_id, 'breed')
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_time_of_next_breed(user_id):
-        return Pig._get_time_of_next_action(user_id, 'last_breed')
+        return Pig._get_time_of_next_action(user_id, 'breed')
 
     @staticmethod
     def add_weight(user_id, weight: float):
@@ -265,6 +300,30 @@ class Pig:
         pig['pregnant_by'] = pregnant_by_id
         pig['pregnancy_duration'] = items[pregnant_with_id]['pregnancy_duration']
         Pig.update_pig(user_id, pig)
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def pregnant_by(user_id):
+        pig = User.get_pig(user_id)
+        return pig['pregnant_by']
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def pregnant_time(user_id):
+        pig = User.get_pig(user_id)
+        return pig['pregnant_time']
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def pregnant_with(user_id):
+        pig = User.get_pig(user_id)
+        return pig['pregnant_with']
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def pregnancy_duration(user_id):
+        pig = User.get_pig(user_id)
+        return pig['pregnancy_duration']
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))

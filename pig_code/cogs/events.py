@@ -147,6 +147,9 @@ class Events(commands.Cog):
                 include_only = action_object
             await modules.inventory.callbacks.inventory_embed(interaction, include_only=[include_only],
                                                               inventory_type='wardrobe')
+        elif interaction.component.custom_id.split(':')[0] == 'shop_category_choose':
+            action_object = interaction.values[0]
+            await modules.shop.callbacks.shop(interaction, category=action_object)
         elif interaction.component.custom_id == 'hide':
             await interaction.message.delete()
 
@@ -198,6 +201,11 @@ class Events(commands.Cog):
                      guild_name=str(guild),
                      guild_id=guild.id,
                      members=guild.member_count)
+        if User.get_money(guild.owner_id) < 80 and \
+            len(Func.get_items_by_key(User.get_inventory(guild.owner_id), 'type', 'skin')) < 1 and \
+                len(Func.get_items_by_key(User.get_inventory(guild.owner_id), 'type', 'case')) < 1:
+            Inventory.add_item(guild.id, 'common_case', 1)
+
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: disnake.Guild):

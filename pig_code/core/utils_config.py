@@ -3,9 +3,9 @@ from .imports import *
 
 default_pig = {'name': 'Hryak',
                'weight': 1,
-               'last_feed': None,
-               'last_meat': None,
-               'last_breed': None,
+               'feed_history': [],
+               'meat_history': [],
+               'breed_history': [],
                'pregnant_time': None,
                'pregnant_with': None,
                'pregnant_by': None,
@@ -28,9 +28,12 @@ default_pig = {'name': 'Hryak',
                    'tie': None,
                    'legs': None,
                    '_nose': None,
-                   'eye_emotion': None
+                   'eye_emotion': None,
+                   'suit': None,
+                   'piercing_nose': None,
+'piercing_ear': None
                }}
-pig_feed_cooldown = 4 * 60 ** 2 if not config.TEST else 10  # seconds
+pig_feed_cooldown = 4 * 60 ** 2 if not config.TEST else 5  # seconds
 premium_pig_feed_cooldown = 2 * 60 ** 2 if not config.TEST else 5  # seconds
 
 pig_meat_cooldown = 40 * 60 ** 2 if not config.TEST else 10  # seconds
@@ -97,6 +100,7 @@ common_rarity_color = 0x858784
 uncommon_rarity_color = 0x45ff4b
 rare_rarity_color = 0x4d9aff
 epic_rarity_color = 0xc14dff
+mythical_rarity_color = 0xff3d33
 legendary_rarity_color = 0xffee54
 
 rarity_colors = {
@@ -104,7 +108,8 @@ rarity_colors = {
     '2': uncommon_rarity_color,
     '3': rare_rarity_color,
     '4': epic_rarity_color,
-    '5': legendary_rarity_color,
+    '5': mythical_rarity_color,
+    '6': legendary_rarity_color,
 }
 
 pig_names = [

@@ -9,9 +9,12 @@ from ...utils import *
 def inventory_item_selected(item_id, lang) -> list:
     components = []
     if 'use' in Inventory.get_item_components(item_id):
+        label = locales['words']['use'][lang]
+        if Inventory.get_item_type(item_id) == 'case':
+            label = locales['words']['open'][lang]
         components.append(disnake.ui.Button(
             style=disnake.ButtonStyle.primary,
-            label=locales['words']['use'][lang],
+            label=label,
             custom_id=f'use_item:{item_id}',
             # emoji='✋',
         ))
@@ -47,7 +50,6 @@ def skins_category_choose_components(user_id, lang) -> list:
     types = set()
     for item_id in inventory:
         types.add(Inventory.get_item_type(item_id))
-    print(types)
     generated_options.append(disnake.SelectOption(
         label=locales['words']['all_skins'][lang],
         value='skin:all',
@@ -65,3 +67,4 @@ def skins_category_choose_components(user_id, lang) -> list:
         components.append(disnake.ui.Select(options=generated_options, custom_id='wardrobe_category_choose',
                                             placeholder=locales['inventory']['select_category_placeholder'][lang]))
     return components
+

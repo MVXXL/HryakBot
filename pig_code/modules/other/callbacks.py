@@ -48,7 +48,6 @@ async def promocode(inter, code):
     if PromoCode.used_times(code) >= PromoCode.max_uses(code):
         await BotUtils.send_callback(inter, embed=embeds.promocode_used_too_many_times(inter, lang))
         return
-    print(PromoCode.created(code) + PromoCode.expires_in(code), Func.get_current_timestamp())
     if PromoCode.created(code) + PromoCode.expires_in(code) < Func.get_current_timestamp() and PromoCode.expires_in(
             code) != -1:
         await BotUtils.send_callback(inter, embed=embeds.promocode_expired(inter, lang))
@@ -83,11 +82,11 @@ async def transfer_money(inter, user, amount):
     commission = round(pigs_weight_dif * .35)
     if commission < 5:
         commission = 5
-    if commission > 65:
-        commission = 65
+    if commission > 50:
+        commission = 50
     amount = abs(amount)
-    amount_with_commission = round(amount * ((100 - commission) / 100))
-    if amount > User.get_money(inter.author.id):
+    amount_with_commission = round(amount + amount * (commission / 100))
+    if amount_with_commission > User.get_money(inter.author.id):
         raise NoMoney
     confirmation = await BotUtils.confirm_message(inter, lang,
                                                   description=locales['transfer_money']['confirm_description'][
@@ -97,13 +96,16 @@ async def transfer_money(inter, user, amount):
     if not confirmation:
         await BotUtils.send_callback(inter, embed=embeds.cancel_sending_money(inter, lang))
         return
-    User.add_money(user.id, amount_with_commission)
-    User.add_money(inter.author.id, -amount)
-    Events.add(user.id, title=locales['transfer_money']['event_title'],
-               description=locales['transfer_money']['event_desc'], expires_in=60 * 60 * 24,
-               description_format={'user': inter.author.display_name, 'money': amount_with_commission},
-               event_id='money_transfer')
-    await BotUtils.send_callback(inter, embed=embeds.transfer_money(inter, lang, user, amount_with_commission))
+    User.add_money(user.id, amount)
+    User.add_money(inter.author.id, -amount_with_commission)
+    dm_message = await BotUtils.send_callback(inter, send_to_dm=user,
+                                              embed=embeds.transfer_dm_notification(inter, lang, amount))
+    if dm_message is None:
+        Events.add(user.id, title=locales['transfer_money']['event_title'],
+                   description=locales['transfer_money']['event_desc'], expires_in=100 * 3600,
+                   description_format={'user': inter.author.display_name, 'money': amount},
+                   event_id='money_transfer')
+    await BotUtils.send_callback(inter, embed=embeds.transfer_money(inter, lang, user, amount))
 
 
 async def report(inter, text, attachment):

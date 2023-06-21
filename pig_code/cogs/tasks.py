@@ -12,6 +12,7 @@ class Tasks(commands.Cog):
         self.daily_shop_update.start()
         if not config.TEST:
             self.monitorings_data_update.start()
+            self.create_logs_copy.start()
 
     @tasks.loop(seconds=60)
     async def daily_shop_update(self):
@@ -28,6 +29,13 @@ class Tasks(commands.Cog):
         Func.send_data_to_sdc(servers)
         Func.send_data_to_boticord(servers)
 
+    @tasks.loop(seconds=24 * 3600)
+    async def create_logs_copy(self):
+        try:
+            with open(config.RESERVE_LOGS_FOLDER_PATH + f'/logs_copy_{Func.get_current_timestamp()}.json', 'w') as f:
+                f.write(open(config.LOGS_PATH, 'r').read())
+        except:
+            pass
 
 def setup(client):
     client.add_cog(Tasks(client))

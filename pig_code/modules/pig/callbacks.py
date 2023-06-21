@@ -27,10 +27,11 @@ async def pig_feed(inter):
             weight_add *= 1.05
     pig_weight = Pig.get_weight(inter.author.id)
     pooped_poop = random.uniform(5 + round(pig_weight * .05), 20 + round(pig_weight * .15))
-    print(Pig.get_buffs(inter.author.id))
     for item_buff, number in Pig.get_buffs(inter.author.id).items():
         if number > 0:
             buffs = Inventory.get_item_buffs(item_buff)
+            if item_buff in ['laxative']:
+                Pig.remove_buff(inter.author.id, item_buff)
             pooped_poop *= buffs['pooping_boost']
             weight_add *= buffs['weight_boost']
     pooped_poop = round(pooped_poop)
@@ -54,33 +55,6 @@ async def meat(inter):
     Pig.set_last_meat(inter.author.id, Func.get_current_timestamp())
     await BotUtils.send_callback(inter, embed=embeds.pig_meat(inter, lang, bacon_add, weight_lost))
 
-
-async def breed(inter, partner):
-    await BotUtils.pre_command_check(inter)
-    BotUtils.check_pig_breed_cooldown(inter.author)
-    lang = User.get_language(inter.author.id)
-    min_weight_to_breed = 50
-    if partner == inter.author:
-        raise breedWithYourself
-    if partner.bot is True:
-        raise BotAsPartnerbreed
-    if Pig.get_weight(inter.author.id) < min_weight_to_breed:
-        await BotUtils.send_callback(inter, embed=embeds.pig_is_too_small_for_breed(inter, lang, inter.author, min_weight_to_breed))
-        return
-    if Pig.get_weight(partner.id) < min_weight_to_breed:
-        await BotUtils.send_callback(inter, embed=embeds.pig_is_too_small_for_breed(inter, lang, partner, min_weight_to_breed))
-        return
-    mini_pig_chances = {'fail': 50,
-                        # 'pet_hryak_default': (Pig.get_weight(inter.author.id) + Pig.get_weight(partner.id)) / 1.5
-                        }
-    mini_pig = Func.random_choice_with_probability(mini_pig_chances)
-    Pig.set_last_breed(inter.author.id, Func.get_current_timestamp())
-    Pig.set_last_breed(partner.id, Func.get_current_timestamp())
-    if mini_pig == 'fail':
-        await BotUtils.send_callback(inter, embed=embeds.pig_breed_fail(inter, lang, partner))
-    else:
-        Pig.make_pregnant(partner.id, partner.id, mini_pig)
-        await BotUtils.send_callback(inter, embed=embeds.pig_breed_ok(inter, lang, partner, mini_pig))
 
 
 async def pig_rename(inter, name):

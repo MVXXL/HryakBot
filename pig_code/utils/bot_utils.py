@@ -16,7 +16,10 @@ class BotUtils:
     @staticmethod
     async def pre_command_check(inter, ephemeral=False, defer=True, language_check: bool = True):
         if defer:
-            await inter.response.defer(ephemeral=ephemeral)
+            try:
+                await inter.response.defer(ephemeral=ephemeral)
+            except:
+                pass
         User.register_user_if_not_exists(inter.author.id)
         Pig.create_pig_if_no_pig(inter.author.id)
         if User.is_blocked(inter.author.id):
@@ -134,20 +137,20 @@ class BotUtils:
     @staticmethod
     def check_pig_feed_cooldown(user: disnake.User):
         if Pig.get_last_feed(user.id) is not None:
-            if Func.get_current_timestamp() - Pig.get_last_feed(user.id) < utils_config.pig_feed_cooldown:
+            if Func.get_current_timestamp() < Pig.get_time_of_next_feed(user.id):
                 raise PigFeedCooldown
 
     @staticmethod
     def check_pig_meat_cooldown(user: disnake.User):
         if Pig.get_last_meat(user.id) is not None:
-            if Func.get_current_timestamp() - Pig.get_last_meat(user.id) < utils_config.pig_meat_cooldown:
+            if Func.get_current_timestamp() < Pig.get_time_of_next_meat(user.id):
                 raise PigMeatCooldown
 
     @staticmethod
     def check_pig_breed_cooldown(user: disnake.User):
         if Pig.get_last_breed(user.id) is not None:
-            if Func.get_current_timestamp() - Pig.get_last_breed(user.id) < utils_config.pig_breed_cooldown:
-                raise PigbreedCooldown
+            if Func.get_current_timestamp() < Pig.get_time_of_next_breed(user.id):
+                raise PigBreedCooldown(user)
 
     @staticmethod
     async def confirm_message(inter, lang, description: str = ''):
@@ -189,20 +192,20 @@ class BotUtils:
 
     @staticmethod
     def generate_embeds_list_from_fields(fields: list, title: str = '', description: str = '',
-                                         color=utils_config.main_color):
+                                         color=utils_config.main_color, fields_for_one: int = 24):
         embeds = []
         create_embed = lambda: BotUtils.generate_embed(title=title, color=color, description=description)
         embed = create_embed()
         for i, field in enumerate(fields):
             embed.add_field(name=field['name'], value=field['value'], inline=field['inline'])
-            if i % 24 == 0 and i != 0:
+            if i % fields_for_one == 0 and i != 0:
                 embeds.append(embed)
                 embed = create_embed()
         embeds.append(embed)
         return embeds
 
     @staticmethod
-    def generate_select_components_for_pages(options: list, custom_id, placeholder):
+    def generate_select_components_for_pages(options: list, custom_id, placeholder, fields_for_one: int = 24):
         components = []
         generated_options = []
 
@@ -217,7 +220,7 @@ class BotUtils:
                 emoji=option['emoji'],
                 description=option['description']
             ))
-            if i % 24 == 0 and i != 0:
+            if i % fields_for_one == 0 and i != 0:
                 append_components()
                 generated_options = []
         if generated_options:
@@ -236,7 +239,6 @@ class BotUtils:
                             ctx_message: bool = False,
                             components: list = None,
                             files: list = None):
-        print(134, components)
         if components is None:
             components = []
         if files is None:
@@ -258,7 +260,6 @@ class BotUtils:
                         pass
                     try:
                         if edit_original_message:
-                            print(components, 234)
                             message = await inter.edit_original_message(content=content, embed=embed,
                                                                         components=components,
                                                                         files=files)
@@ -270,21 +271,39 @@ class BotUtils:
                         message = await inter.response.send_message(content, embed=embed, ephemeral=ephemeral,
                                                                     components=components, files=files)
             except Exception as e:
+                # raise e
                 print(e)
         else:
             try:
                 message = await send_to_dm.send(content, embed=embed, components=components, files=files)
             except Exception as e:
+                # raise e
                 print(e)
         return message
 
     @staticmethod
-    async def send_webhook_embed(url: str, embed, content: str = None, username=None, avatar_url=None,
+    def get_items_in_str_list(items_to_convert: dict, lang):
+        return '\n'.join(
+            [f'{Func.generate_prefix(Inventory.get_item_emoji(k))}{Inventory.get_item_name(k, lang)} x{v}' for k, v in
+             items_to_convert.items()])
+
+    @staticmethod
+    def get_rarest_item(items_):
+        rarest = 1
+        for item_id in items_:
+            rarity = Inventory.get_item_rarity(item_id)
+            if int(rarity) > rarest:
+                rarest = int(rarity)
+        return rarest
+
+    @staticmethod
+    async def send_webhook_embed(url: str, embed = None, content: str = None, username=None, avatar_url=None,
                                  file_content=None):
         webhook = discord_webhook.DiscordWebhook(content=content, url=url, username=username, avatar_url=avatar_url)
         if file_content is not None:
             webhook.add_file(filename='Bug.txt', file=file_content)
-        webhook.add_embed(embed)
+        if embed is not None:
+            webhook.add_embed(embed)
         while True:
             webhook_ex = webhook.execute()
             if webhook_ex.status_code == 200:
@@ -392,7 +411,6 @@ class BotUtils:
                     text=Func.generate_footer(inter, second_part=second_footer_part),
                     icon_url=Func.generate_footer_url('user_avatar', inter.author))
         set_thumbnail_file_if_not_none()
-        print(123, components[0])
         # components[0][0] = [disnake.ui.Select(placeholder='Hello', options=[disnake.SelectOption(label='hello', value='s')])]
         message = await BotUtils.send_callback(inter, embed=embeds[current_page - 1],
                                                components=components[0],
@@ -406,7 +424,7 @@ class BotUtils:
         while True:
 
             try:
-                interaction = await inter.client.wait_for('button_click', check=check, timeout=timeout)
+                interaction = await inter.client.wait_for('interaction', check=check, timeout=timeout)
                 if not everyone_can_click and not inter.author.id == interaction.author.id:
                     await BotUtils.send_callback(interaction,
                                                  embed=BotUtils.generate_embed(
@@ -431,6 +449,8 @@ class BotUtils:
                 return
             except AttributeError:
                 return
+            if type(interaction) != disnake.interactions.message.MessageInteraction:
+                continue
             if interaction.component.custom_id in ['next', 'previous', 'hide']:
                 try:
                     await interaction.response.defer(ephemeral=True)
@@ -481,6 +501,11 @@ class BotUtils:
                 if guild.get_member(int(user_id)) is not None:
                     result.append(user_id)
         return result
+
+    @staticmethod
+    def raise_if_language_not_supported(user_id, lang: str = 'en'):
+        if User.get_language(user_id) == lang:
+            raise LanguageNotSupported
 
     @staticmethod
     def bool_command_choice():

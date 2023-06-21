@@ -28,13 +28,22 @@ def profile(inter, lang, user: disnake.User = None) -> disnake.Embed:
 
 
 def promo_code_used(inter, lang, prise) -> disnake.Embed:
-    items_received = '\n'.join(
-        [f'{Func.generate_prefix(Inventory.get_item_emoji(k))}{Inventory.get_item_name(k, lang)} x{v}' for k, v in
-         prise.items()])
+    items_received = BotUtils.get_items_in_str_list(prise, lang)
     embed = BotUtils.generate_embed(title=locales["promo_code"]["promo_code_used_title"][lang],
                                     description=f'## {locales["promo_code"]["you_got_desc"][lang]}\n'
                                                 f'```{items_received}```',
                                     prefix=Func.generate_prefix('🐷'),
+                                    footer=Func.generate_footer(inter),
+                                    timestamp=True,
+                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    return embed
+
+
+def transfer_dm_notification(inter, lang, amount) -> disnake.Embed:
+    embed = BotUtils.generate_embed(title=locales['transfer_money']['event_title'][lang],
+                                    description=locales['transfer_money']['event_desc'][lang].format(
+                                        user=inter.author.display_name, money=amount),
+                                    prefix=Func.generate_prefix('💸'),
                                     footer=Func.generate_footer(inter),
                                     timestamp=True,
                                     footer_url=Func.generate_footer_url('user_avatar', inter.author))

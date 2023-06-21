@@ -1,9 +1,11 @@
+import datetime
 import functools
 import json
 
 import mysql.connector
 
 from .connection import Connection
+from ..functions import Func
 from ...core import *
 from ...core.config import users_schema
 
@@ -22,8 +24,8 @@ class User:
     def register(user_id):
         stats = json.dumps(utils_config.stats)
         Connection.make_request(
-            f"INSERT INTO {users_schema} (id, pig, inventory, stats, events) "
-            f"VALUES ('{user_id}', '{'{}'}', '{'{}'}', '{stats}', '{'{}'}')"
+            f"INSERT INTO {users_schema} (id, pig, inventory, stats, events, buy_history) "
+            f"VALUES ('{user_id}', '{'{}'}', '{'{}'}', '{stats}', '{'{}'}', '[]')"
         )
         # Stats.fix_stats_structure(user_id)
 
@@ -197,3 +199,50 @@ class User:
             fetch=True
         )
         return bool(result)
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_buy_history(user_id):
+        result = Connection.make_request(
+            f"SELECT buy_history FROM {users_schema} WHERE id = {user_id}",
+            commit=False,
+            fetch=True,
+        )
+        if result is not None:
+            return json.loads(result)
+        else:
+            return {}
+
+    @staticmethod
+    def set_buy_history(user_id, new_history):
+        new_history = json.dumps(new_history, ensure_ascii=False)
+        Connection.make_request(
+            f"UPDATE {users_schema} SET buy_history = '{new_history}' WHERE id = {user_id}"
+        )
+
+    @staticmethod
+    def append_buy_history(user_id, item_id):
+        buy_history = User.get_buy_history(user_id)
+        buy_history.append({item_id: Func.get_current_timestamp()})
+        User.set_buy_history(user_id, buy_history)
+
+    @staticmethod
+    def get_recent_bought_items(user_id, seconds):
+        current_time = datetime.datetime.now()
+        recent_items = []
+        for item in User.get_buy_history(user_id):
+            for key, value in item.items():
+                timestamp = datetime.datetime.fromtimestamp(value)
+                time_diff = current_time - timestamp
+                if time_diff.total_seconds() < seconds:
+                    recent_items.append({key: value})
+        return recent_items
+
+    @staticmethod
+    def get_count_of_recent_bought_items(user_id, seconds, items_):
+        count = 0
+        recent_items = User.get_recent_bought_items(user_id, seconds)
+        for item in recent_items:
+            if list(item.keys())[0] in items_:
+                count += 1
+        return count

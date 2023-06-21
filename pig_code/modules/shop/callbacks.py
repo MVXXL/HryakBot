@@ -11,41 +11,44 @@ from ..inventory.callbacks import inventory_embed
 from ..inventory.embeds import inventory_item_selected
 
 
-async def shop(inter):
+async def shop(inter, message=None, category: str = 'static_shop'):
     await BotUtils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
     page_embeds = []
     page_components = []
+    shop_items = {'static_shop': Shop.get_last_static_shop,
+                  'daily_shop': Shop.get_last_daily_shop,
+                  'case_shop': Shop.get_last_case_shop
+                  }[category]()
+    item_fields = []
     options = []
-    for category, value in {'static_shop': Shop.get_last_static_shop(),
-                            'daily_shop': Shop.get_last_daily_shop()}.items():
-        item_fields = []
-        options = []
-        for item in value:
-            item_fields.append(
-                {
-                    'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item), backticks=True)}{Inventory.get_item_name(item, lang)}',
-                    'value': f'```{locales["words"]["price"][lang]}: {Inventory.get_item_shop_price(item)} 🪙\n'
-                             f'{locales["words"]["rarity"][lang]}: {Inventory.get_item_rarity(item, lang)}\n'
-                             f'{locales["words"]["type"][lang]}: {Inventory.get_item_type(item, lang)}```',
-                    'inline': False})
-            options.append(
-                {'label': Inventory.get_item_name(item, lang),
-                 'value': f'{item}',
-                 'emoji': Inventory.get_item_emoji(item),
-                 'description': Func.cut_text(Inventory.get_item_description(item, lang), 100)
-                 }
-            )
-        page_embeds += BotUtils.generate_embeds_list_from_fields(item_fields,
-                                                                 description='' if item_fields else
-                                                                 locales['shop']['shop_empty_desc'][lang],
-                                                                 title=locales['shop'][f'{category}_title'][lang])
-        page_components += BotUtils.generate_select_components_for_pages(options, 'shop_item_select',
-                                                                         locales['inventory'][
-                                                                             'select_item_placeholder'][
-                                                                             lang])
-    await BotUtils.pagination(inter, lang, embeds=page_embeds,
+    for item in shop_items:
+        item_fields.append(
+            {
+                'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item), backticks=True)}{Inventory.get_item_name(item, lang)}',
+                'value': f'```{locales["words"]["price"][lang]}: {Inventory.get_item_shop_price(item)} 🪙\n'
+                         f'{locales["words"]["rarity"][lang]}: {Inventory.get_item_rarity(item, lang)}\n'
+                         f'{locales["words"]["type"][lang]}: {Inventory.get_item_type(item, lang)}```',
+                'inline': False})
+        options.append(
+            {'label': Inventory.get_item_name(item, lang),
+             'value': f'{item}',
+             'emoji': Inventory.get_item_emoji(item),
+             'description': Func.cut_text(Inventory.get_item_description(item, lang), 100)
+             }
+        )
+    page_embeds += BotUtils.generate_embeds_list_from_fields(Func.field_inline_alternation(item_fields),
+                                                             description='' if item_fields else
+                                                             locales['shop']['shop_empty_desc'][lang],
+                                                             title=locales['shop'][f'{category}_title'][lang])
+    page_components += BotUtils.generate_select_components_for_pages(options, 'shop_item_select',
+                                                                     locales['inventory'][
+                                                                         'select_item_placeholder'][
+                                                                         lang])
+    await BotUtils.pagination(inter if message is None else message, lang, embeds=page_embeds,
+                              return_if_starts_with=['back_to_inventory', 'wardrobe_category_choose'],
                               components=page_components if options else None,
+                              components_for_every_page=components.shop_category_choose_components(lang),
                               hide_button=False, embed_thumbnail_file='bin/images/shop_thumbnail.png')
 
 
@@ -59,11 +62,16 @@ async def shop_item_selected(inter, item_id, message: disnake.Message = None):
 
 async def shop_item_buy(inter, item_id):
     lang = User.get_language(inter.author.id)
+    if Shop.is_item_in_cooldown(inter.author.id, item_id):
+        await BotUtils.send_callback(inter, edit_original_message=False, ephemeral=True,
+                                     embed=embeds.item_cooldown(inter, item_id, lang))
+        return
     if User.get_money(inter.author.id) < Inventory.get_item_shop_price(item_id):
         await errors.callbacks.not_enough_money(inter)
         return
     User.add_money(inter.author.id, -Inventory.get_item_shop_price(item_id))
     Inventory.add_item(inter.author.id, item_id)
+    User.append_buy_history(inter.author.id, item_id)
     await BotUtils.send_callback(inter, edit_original_message=False, ephemeral=True,
                                  embed=embeds.shop_item_bought(inter, item_id, lang))
 

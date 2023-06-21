@@ -19,6 +19,7 @@ class Tech:
             "inventory json",
             "stats json",
             "events json",
+            "buy_history json",
             "language varchar(10) DEFAULT 'en'",
             'premium boolean DEFAULT FALSE',
             'blocked boolean DEFAULT FALSE',
@@ -41,7 +42,8 @@ class Tech:
         columns = ['id int AUTO_INCREMENT PRIMARY KEY UNIQUE',
                    'update_timestamp varchar(32)',
                    'static_shop json',
-                   'daily_shop json'
+                   'daily_shop json',
+                   'case_shop json'
                    ]
         try:
             Connection.make_request(f"CREATE TABLE {shop_schema} ({columns[0]})", commit=False)

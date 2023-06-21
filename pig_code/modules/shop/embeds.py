@@ -39,6 +39,17 @@ def shop_item_bought(inter, item_id, lang) -> disnake.Embed:
     )
     return embed
 
+def item_cooldown(inter, item_id, lang) -> disnake.Embed:
+    embed = BotUtils.generate_embed(
+        title=locales['error_callbacks']['shop_buy_cooldown_title'][lang],
+        description=locales['error_callbacks']['shop_buy_cooldown_desc'][lang].format(item=Inventory.get_item_name(item_id, lang), timestamp=Shop.get_timestamp_of_new_item(inter.author.id, item_id)),
+        prefix=Func.generate_prefix('scd'),
+        timestamp=True,
+        footer=Func.generate_footer(inter),
+        footer_url=Func.generate_footer_url('user_avatar', inter.author),
+    )
+    return embed
+
 # def inventory_item_sold(inter, item_id, amount, money_received, lang) -> disnake.Embed:
 #     embed = BotUtils.generate_embed(
 #         title=locales['inventory_item_sold']['title'][lang].format(item=Inventory.get_item_name(item_id, lang)),

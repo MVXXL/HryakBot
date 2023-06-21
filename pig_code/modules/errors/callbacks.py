@@ -42,16 +42,19 @@ async def error(error, inter):
                                                                                 footer=footer,
                                                                                 color=utils_config.main_color,
                                                                                 prefix='🥓'))
-    elif type(error) == PigbreedCooldown:
+    elif type(error) == PigBreedCooldown:
+        user = error.user
+        if user is None:
+            user = inter.author
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
                                                                                 title=locales['error_callbacks'][
                                                                                     'pig_breed_cooldown_title'][lang],
                                                                                 description=locales['error_callbacks'][
                                                                                     'pig_breed_cooldown_desc'][
                                                                                     lang].format(
-                                                                                    pig=Pig.get_name(inter.author.id),
+                                                                                    pig=Pig.get_name(user.id),
                                                                                     timestamp=Pig.get_time_of_next_breed(
-                                                                                        inter.author.id)),
+                                                                                        user.id)),
                                                                                 footer=footer,
                                                                                 color=utils_config.main_color,
                                                                                 prefix='🔞'))
@@ -83,10 +86,19 @@ async def error(error, inter):
         await cant_play_with_yourself_duel(inter)
     elif type(error) == BotAsOpponentDuel:
         await bot_as_opponent_duel(inter)
-    elif type(error) == breedWithYourself:
+    elif type(error) == BreedWithYourself:
         await cant_breed_with_yourself(inter)
-    elif type(error) == BotAsPartnerbreed:
+    elif type(error) == BotAsPartnerBreed:
         await bot_as_partner_breed(inter)
+    elif type(error) == LanguageNotSupported:
+        await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
+                                                                                locales['error_callbacks'][
+                                                                                    'language_not_supported_title'][
+                                                                                    lang],
+                                                                                locales['error_callbacks'][
+                                                                                    'language_not_supported_desc'][
+                                                                                    lang],
+                                                                                footer))
     elif type(error) == NotAllowedToUseCommand:
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
                                                                                 locales['error_callbacks'][
@@ -130,13 +142,13 @@ async def error(error, inter):
     elif type(error) == commands.errors.BotMissingPermissions:
         perms = Func.translate_permissions(error.missing_permissions, lang)
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter, locales['error_callbacks'][
-            'bot_missing_perms_title'][lang], f'```{Func.numerate_list_as_text(perms, False)}```', footer),
+            'bot_missing_perms_title'][lang], f'```{Func.numerate_list_as_text(perms, False)}```', footer, prefix='👧'),
                                      edit_original_message=False,
                                      ephemeral=True)
     elif type(error) == commands.errors.MissingPermissions:
         perms = Func.translate_permissions(error.missing_permissions, lang)
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter, locales['error_callbacks'][
-            'bot_missing_perms_title'][lang], f'```{Func.numerate_list_as_text(perms, False)}```', footer),
+            'bot_missing_perms_title'][lang], f'```{Func.numerate_list_as_text(perms, False)}```', footer, prefix='👧'),
                                      edit_original_message=False,
                                      ephemeral=True)
     elif type(error) == commands.errors.CommandOnCooldown:
@@ -148,12 +160,13 @@ async def error(error, inter):
                                                                                     timestamp=round(
                                                                                         Func.get_current_timestamp() + error.retry_after)),
                                                                                 footer, prefix='⚠️',
-                                                                                color=utils_config.warn_color))
+                                                                                color=utils_config.warn_color),
+                                     ephemeral=True, edit_original_message=False)
     elif type(error) == UserInBlackList:
         description = locales['error_callbacks']['user_in_black_list_desc'][lang]
         block_reason = User.get_block_reason(inter.author.id)
         if block_reason not in ['', None, 'None']:
-            description += f"\n```{locales['words']['reason'][lang]}: {block_reason}```"
+            description += f"\n\n```{locales['words']['reason'][lang]}: {block_reason}```"
         await BotUtils.send_callback(inter, embed=embeds.default_error_response(inter,
                                                                                 locales['error_callbacks'][
                                                                                     'user_in_black_list_title'][lang],

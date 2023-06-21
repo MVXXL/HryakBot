@@ -23,12 +23,16 @@ class PigCommands(commands.Cog):
         description=Localized(data=locales['rename']['name_var_desc']))):
         await modules.pig.callbacks.pig_rename(inter, name)
 
-    @commands.slash_command(description=Localized(data=locales['inventory']['description']))
+    @commands.slash_command(description=Localized(data=locales['breed']['description']))
     # @commands.is_nsfw()
     async def breed(self, inter, user: disnake.User = commands.Param(
         name=Localized(data=locales['breed']['user_var_name']),
         description=Localized(data=locales['breed']['user_var_desc']))):
-        await modules.pig.callbacks.breed(inter, user)
+        await modules.breed.callbacks.breed(inter, user)
+
+    # @commands.slash_command(description=Localized(data=locales['pregnancy']['description']))
+    # async def pregnancy(self, inter):
+    #     await modules.breed.callbacks.pregnancy(inter)
 
     # @commands.slash_command(description=Localized(data=locales['grunt']['description']))
     # async def grunt(self, inter, name: str = commands.Param(

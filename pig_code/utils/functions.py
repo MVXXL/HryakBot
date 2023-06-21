@@ -53,6 +53,7 @@ class Func:
 
         return probabilities
 
+
     @staticmethod
     def add_log(log_type, **kwargs):
         current_time = datetime.datetime.now()
@@ -450,11 +451,14 @@ class Func:
     @staticmethod
     def numerate_list_as_text(elements_list: list, bold_number: bool = True) -> str:
         text = ''
-        for i, j in enumerate(elements_list):
-            if bold_number:
-                text += f'**{i + 1}.** {j.capitalize()}\n'
-            else:
-                text += f'{i + 1}. {j.capitalize()}\n'
+        if len(elements_list) == 1:
+            text += f'{elements_list[0].capitalize()}\n'
+        else:
+            for i, j in enumerate(elements_list):
+                if bold_number:
+                    text += f'**{i + 1}.** {j.capitalize()}\n'
+                else:
+                    text += f'{i + 1}. {j.capitalize()}\n'
         return text
 
     @staticmethod
@@ -535,10 +539,10 @@ class Func:
         return round(datetime.datetime.now().timestamp())
 
     @staticmethod
-    def get_items_by_key(items_dict, key, include_only: str = None, not_include: str = None,
+    def get_items_by_key(items_, key, include_only: str = None, not_include: str = None,
                          one_element_if_key_is_list: bool = True):
         result = {}
-        for item_name, item_data in items_dict.items():
+        for item_name, item_data in items_.items():
             if key not in items[item_name]:
                 continue
             item_type = items[item_name][key]
@@ -549,6 +553,13 @@ class Func:
                 if not_include not in item_type and not item_type == not_include:
                     result[item_name] = item_data
         return result
+
+
+    @staticmethod
+    def field_inline_alternation(fields: list):
+        for i in range(1, len(fields) + 1):
+            fields[i - 1]['inline'] = False if i % 3 == 0 else True
+        return fields
 
     # @staticmethod
     # def get_items_by_type(items_dict, include_only: str = None, not_include: str = None):
@@ -566,6 +577,23 @@ class Func:
         return result
 
     @staticmethod
+    def check_consecutive_timestamps(timestamps: list, n: int, time: float = 5, start_time: int = 4) -> int:
+        count = 0
+        consecutive_count = 0
+        for i in range(len(timestamps) - 1):
+            current_timestamp = timestamps[i]
+            next_timestamp = timestamps[i + 1]
+
+            if start_time <= next_timestamp - current_timestamp < time:
+                count += 1
+                if count >= n:
+                    consecutive_count += 1
+            else:
+                count = 0
+
+        return consecutive_count
+
+    @staticmethod
     @cached(TTLCache(maxsize=1000, ttl=60))
     def build_pig(skins: tuple, genetic: tuple, output_filename: str = None, output_path: str = None,
                   eye_emotion: str = None):
@@ -576,10 +604,14 @@ class Func:
         for item in skins.values():
             if item is not None and item in items and 'not_draw' in items[item]:
                 not_draw += items[item]['not_draw']
+        if skins['hat'] is not None:
+            not_draw += ['piercing_ear']
         if output_filename is None:
             output_filename = random.randrange(10000000)
         skins_path = 'bin/pig_skins'
-        for i, key in enumerate(['body', 'tattoo', 'eyes', 'pupils', 'glasses', 'nose', '_nose', 'hat', 'legs', 'tie']):
+        for i, key in enumerate(['body', 'tattoo', 'eyes', 'pupils', 'glasses', 'nose', '_nose',
+                                 'piercing_nose', 'piercing_ear', 'suit', 'hat',
+                                 'legs', 'tie']):
             if key in not_draw:
                 continue
             folder_of_skin = key
@@ -661,7 +693,7 @@ class Func:
 
     @staticmethod
     def cut_text(text, chars, dots: bool = True):
-        if len(text) > chars + 2:
+        if len(text) > chars + 1:
             if dots:
                 text = text[:chars - 3] + '...'
             else:

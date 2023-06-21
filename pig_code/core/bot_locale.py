@@ -128,7 +128,7 @@ locales = {
             'en': 'Report sent!',
             'ru': 'Ваш репорт был отправлен'},
         'desc': {
-            'en': 'Thank you for helping to develop the bot\n\n*Contact email: boikooleksandr25@gmail.com*',
+            'en': 'Thank you for helping to develop the bot\n\n*Contact email: brevnoo@proton.me*',
             'ru': 'Хряк доволен за твою помощь, спасибо'}
     },
     'stats': {'description': {Locale.en_US: 'View your stats',
@@ -263,6 +263,8 @@ locales = {
                                          'ru': 'Выберите предмет'},
              'daily_shop_title': {'en': 'Daily shop',
                                   'ru': 'Ежедневный магазин'},
+             'case_shop_title': {'en': 'Case shop',
+                                 'ru': 'Кейсы'},
              },
     'promo_code': {'description': {Locale.en_US: 'Use promo code',
                                    Locale.ru: 'Использовать промо код'},
@@ -328,7 +330,7 @@ locales = {
                                       'ru': '- **{user}** отклонил приглашение на дуэль'},
              'no_money_for_bet_desc': {'en': "- **{user}** is so poor that he didn't have enough money to bet",
                                        'ru': '- **{user}** настолько бедный, что ему не хватило денег на ставку'},
-             'no_response_desc': {'en': "- {user} did not come to the duel",
+             'no_response_desc': {'en': "- **{user}** did not come to the duel",
                                   'ru': '- **{user}** не пришёл на дуэль'},
              'fight_will_start_in': {'en': 'Duel will start in {time_to_start} s',
                                      'ru': 'Дуэль начнётся через {time_to_start} с'},
@@ -344,10 +346,6 @@ locales = {
                                         '- **{user}** won **{money_earned}** 🪙',
                                   'ru': '# {user} выиграл дуэль\n'
                                         '- **{user}** получил **{money_earned}** 🪙'},
-             'accept_btn': {'en': 'Accept',
-                            'ru': 'Принять'},
-             'reject_btn': {'en': 'Reject',
-                            'ru': 'Отклонить'},
              'message_url_btn': {'en': 'Message',
                                  'ru': 'Сообщение'},
              # 'static_shop_title': {'en': 'Shop',
@@ -359,6 +357,43 @@ locales = {
              # 'daily_shop_title': {'en': 'Daily shop',
              #                      'ru': 'Ежедневный магазин'},
              },
+    'breed': {'description': {Locale.en_US: 'Try mating your pig with another boar',
+                              Locale.ru: 'Попробовать спарить вашего хряка с другим хряком'},
+              'user_var_name': {Locale.en_US: 'user',
+                                Locale.ru: 'пользователь'},
+              'user_var_desc': {Locale.en_US: 'The user whose pig you want to have children with',
+                                Locale.ru: 'Пользователь, с хряком которого хотите завести детей'},
+              'not_enough_weight_title': {'en': 'Not enough weight',
+                                          'ru': 'Не достаточно веса'},
+              'not_enough_weight_desc': {'en': "**{pig}** is too small for this\n\n"
+                                               "- Pig should be at least **{weight}** kg",
+                                         'ru': '**{pig}** слишком маленький для такого\n\n'
+                                               '- Хряк должен быть хотя бы **{weight}** кг'},
+              'invite_title': {'en': 'Proposal for mating',
+                               'ru': 'Предложение для спаривания'},
+              'personal_invite_desc': {'en': '{user} invited {partner} to breed their pigs',
+                                       'ru': '**{user}** предложил **{partner}** спарить своих хряков'},
+              'personal_invite_dm_desc': {'en': '**You** were invited to mate pigs with **{user}**',
+                                          'ru': '**Вы** были приглашены для спаривания хряков с **{user}**'},
+              'breed_canceled_title': {'en': 'Mate was canceled',
+                                       'ru': 'Спаривание было отменено'},
+              'partner_reject_desc': {'en': '- **{user}** did not want to breed boars, very cruel of him',
+                                      'ru': '- **{user}** не захотел спаривать хряков, очень жестоко с его стороны'},
+              'no_response_desc': {'en': "- **{user}** didn't answer, how cruel",
+                                   'ru': '- **{user}** ничего не ответил, как жестоко'},
+              'fail_title': {'en': 'Failure',
+                             'ru': 'Неудача'},
+              'fail_desc': {'en': '**{pig}** tried to have children with **{partner}** but failed\n\n'
+                                  '- Try again **<t:{retry}:R>**',
+                            'ru': '**{pig}** попытался завести детей с **{partner}**, но ничего не получилось\n\n'
+                                  '- Попробуйте ещё раз **<t:{retry}:R>**'},
+              # 'scd_title': {'en': 'New pig name: {pig}',
+              #               'ru': 'Новое имя хряка: {pig}'},
+              },
+    'pregnancy': {'description': {Locale.en_US: 'View boar pregnancy status',
+                                  Locale.ru: 'Посмотреть статус беременности хряка'},
+                  'not_enough_weight_title': {'en': 'Not enough weight',
+                                              'ru': 'Не достаточно веса'}},
     'transfer_money': {'description': {Locale.en_US: 'Transfer money to another user',
                                        Locale.ru: 'Перевести деньги другом пользователю'},
                        'user_var_name': {Locale.en_US: 'user',
@@ -383,10 +418,10 @@ locales = {
                                       'ru': '***{user}** перевёл на ваш счёт **{money}** 🪙*'},
                        'confirm_description': {'en': 'Are you sure you want to send **{money}** 🪙 to **{user}**?\n\n'
                                                      '- Commission is **{commission}** %\n'
-                                                     '- **{user}** will get **{money_with_commission}** 🪙',
+                                                     '- **{money_with_commission}** 🪙 will be charged from your account',
                                                'ru': 'Вы точно хотите отправить **{money}** 🪙 на счёт **{user}**?\n\n'
                                                      '- Коммисия составляет **{commission}** %\n'
-                                                     '- **{user}** получит **{money_with_commission}** 🪙'},
+                                                     '- С вашего счёта снимут **{money_with_commission}** 🪙'},
                        },
     'shop_item_bought': {'title': {'en': 'You bought {item}',
                                    'ru': 'Вы купили {item}'},
@@ -461,27 +496,6 @@ locales = {
                'scd_title': {'en': 'New pig name: {pig}',
                              'ru': 'Новое имя хряка: {pig}'},
                },
-    'breed': {'description': {Locale.en_US: 'Try mating your pig with another boar',
-                            Locale.ru: 'Попробовать спарить вашего хряка с другим хряком'},
-            'user_var_name': {Locale.en_US: 'user',
-                              Locale.ru: 'пользователь'},
-            'user_var_desc': {Locale.en_US: 'The user whose pig you want to have children with',
-                              Locale.ru: 'Пользователь, с хряком которого хотите завести детей'},
-            'not_enough_weight_title': {'en': 'Not enough weight',
-                                        'ru': 'Не достаточно веса'},
-            'not_enough_weight_desc': {'en': "**{pig}** is too small for this\n\n"
-                                             "- Pig should be at least **{weight}** kg",
-                                       'ru': '**{pig}** слишком маленький для такого\n\n'
-                                             '- Хряк должен быть хотя бы **{weight}** кг'},
-            'fail_title': {'en': 'Failure',
-                           'ru': 'Неудача'},
-            'fail_desc': {'en': '**{pig}** tried to have children with **{partner}** but failed\n\n' 
-                                '- Try again **<t:{retry}:R>**',
-                          'ru': '**{pig}** попытался завести детей с **{partner}**, но ничего не получилось\n\n'
-                                '- Попробуйте ещё раз **<t:{retry}:R>**'},
-            # 'scd_title': {'en': 'New pig name: {pig}',
-            #               'ru': 'Новое имя хряка: {pig}'},
-            },
     'join_message_set': {'description': {Locale.en_US: 'Set message when user joins server',
                                          Locale.ru: 'Установить сообщение, когда пользователь заходит на сервер'},
                          'channel_var_name': {Locale.en_US: 'channel',
@@ -522,7 +536,12 @@ locales = {
                                      'ru': 'Вы использовали слабительное'},
                   'laxative_desc': {
                       'en': '**{pig}** will produce more manure on the next **{step}** feedings',
-                      'ru': '**{pig}** будет давать больше навоза следующие **{step}** кормёжек'}
+                      'ru': '**{pig}** будет давать больше навоза следующие **{step}** кормёжек'},
+                  'case_title': {'en': 'You opened case',
+                                 'ru': 'Вы открыли кейс'},
+                  'case_desc': {
+                      'en': '## You got:\n```{items}```',
+                      'ru': '## Вы получили:\n```{items}```'}
                   },
 
     'words': {
@@ -558,6 +577,10 @@ locales = {
                          'ru': 'Снять'},
         'rarity': {'en': 'Rarity',
                    'ru': 'Редкость'},
+        'accept': {'en': 'Accept',
+                   'ru': 'Принять'},
+        'reject': {'en': 'Reject',
+                   'ru': 'Отклонить'},
         'buy': {'en': 'Buy',
                 'ru': 'Купить'},
         'reason': {'en': 'Reason',
@@ -576,6 +599,8 @@ locales = {
                      'ru': 'Каналы'},
         'total': {'en': 'Total',
                   'ru': 'Всего'},
+        'open': {'en': 'Open',
+                 'ru': 'Открыть'},
         'category': {'en': 'Category',
                      'ru': 'Категорий'},
         'text': {'en': 'Text',
@@ -758,6 +783,8 @@ locales = {
                  'ru': 'Инструмент'},
         'skin': {'en': 'Skin',
                  'ru': 'Скин'},
+        'case': {'en': 'Case',
+                 'ru': 'Кейс'},
         'skin:hat': {'en': 'Headdress',
                      'ru': 'Головной убор'},
         'skin:glasses': {'en': 'Glasses',
@@ -778,6 +805,12 @@ locales = {
                        'ru': 'Нос'},
         'skin:eyes': {'en': 'Eyes',
                       'ru': 'Глаза'},
+        'skin:suit': {'en': 'Suit',
+                      'ru': 'Костюм'},
+        'skin:piercing_nose': {'en': 'Piercing - nose',
+                      'ru': 'Пирсинг - нос'},
+        'skin:piercing_ear': {'en': 'Piercing - ear',
+                               'ru': 'Пирсинг - ухо'},
         'skin:eye_emotion': {'en': 'Eyes emotion',
                              'ru': 'Эмоция глаз'},
     },
@@ -790,7 +823,9 @@ locales = {
               'ru': 'Редкий'},
         '4': {'en': 'Epic',
               'ru': 'Эпический'},
-        '5': {'en': 'Legendary',
+        '5': {'en': 'Mythical',
+              'ru': 'Мифическое'},
+        '6': {'en': 'Legendary',
               'ru': 'Легендарный'},
     },
     'error_callbacks': {
@@ -805,11 +840,21 @@ locales = {
                                    'ru': 'Вы не можете так часто снимать сало с **{pig}**\n\n'
                                          '*Попробуйте ещё раз **<t:{timestamp}:R>***'},
         'pig_breed_cooldown_title': {'en': 'Calm down',
-                                    'ru': 'Успокойся'},
-        'pig_breed_cooldown_desc': {'en': "{pig} is too tired and can't have kids\n"
-                                         "Try again **<t:{timestamp}:R>**",
-                                   'ru': '**{pig}** слишком устал и не может заводить детей\n\n'
-                                         '*Попробуйте ещё раз **<t:{timestamp}:R>***'},
+                                     'ru': 'Успокойся'},
+        'pig_breed_cooldown_desc': {'en': "**{pig}** is too tired and can't have kids\n"
+                                          "Try again **<t:{timestamp}:R>**",
+                                    'ru': '**{pig}** слишком устал и не может заводить детей\n\n'
+                                          '*Попробуйте ещё раз **<t:{timestamp}:R>***'},
+        'shop_buy_cooldown_title': {'en': 'Product is out of stock',
+                                    'ru': 'Товар закончился'},
+        'shop_buy_cooldown_desc': {'en': "**{item}** is out of stock and out of stock\n"
+                                         "New product will be **<t:{timestamp}:R>**",
+                                   'ru': '**{item}** закончился и его больше нету на складе\n\n'
+                                         '*Новый товар привезут **<t:{timestamp}:R>***'},
+        'language_not_supported_title': {'en': 'Your language is not supported',
+                                         'ru': 'Ваш язык не поддерживается'},
+        'language_not_supported_desc': {'en': "*Try changing the language and try again*",
+                                        'ru': '*Попробуйте поменять язык и попробуйте заново*'},
         'wrong_component_clicked_title': {'en': "It's not your message",
                                           'ru': 'Это не ваше сообщение'},
         'wrong_component_clicked_desc': {'en': "You can't push tie people's buttons",
@@ -827,9 +872,9 @@ locales = {
         'not_allowed_to_use_command_desc': {'en': "*You need special permission to use the command*",
                                             'ru': '*Вам нужно специальное разрешение, чтобы использовать команду*'},
         'nsfw_required_title': {'en': "You are not allowed to use this command",
-                                             'ru': 'Это NSFW команда'},
+                                'ru': 'Это NSFW команда'},
         'nsfw_required_desc': {'en': "*You need to be in an NSFW channel to use the command*",
-                                            'ru': '*Вам нужно находится в NSFW канале, чтобы использовать команду*'},
+                               'ru': '*Вам нужно находится в NSFW канале, чтобы использовать команду*'},
         'not_owner_desc': {'en': "*Only the bot owner can use this command*",
                            'ru': '*Только владелец бота может использовать эту команду*'},
         'bot_as_opponent_duel_title': {'en': "Are you playing against a bot?",
@@ -838,7 +883,7 @@ locales = {
             'en': "I'll tell you a secret, bots don't know how to participate in duels. They can't even press a button.",
             'ru': 'Расскажу секрет, боты не умеют участвовать в дуэлях. Они даже на кнопку нажать не могут'},
         'bot_as_partner_breed_title': {'en': "Going to have kids with a bot?",
-                                     'ru': 'Собрался завести детей с ботом?'},
+                                       'ru': 'Собрался завести детей с ботом?'},
         'bot_as_partner_breed_desc': {
             'en': "The future is not close enough for you to breed with robots",
             'ru': 'Будущее не настолько близко, чтобы вы могли заводить потомство с роботами'},
@@ -849,7 +894,7 @@ locales = {
                                               'ru': 'Я думал что пользователи не станут выбирать самого себя в качестве соперника. '
                                                     'Кажется, я ошибался'},
         'cant_breed_with_yourself_title': {'en': "Hey hey hey",
-                                         'ru': 'Воу воу воу'},
+                                           'ru': 'Воу воу воу'},
         'cant_breed_with_yourself_desc': {
             'en': "I understand that you love yourself so much that you chose yourself as a partner, but unfortunately you can’t",
             'ru': 'Я понимаю что вы любите себя настолько сильно что выбрали себя в качестве партнёра, но так к сожалению нельзя'},
@@ -864,7 +909,8 @@ locales = {
         'user_in_black_list_title': {'en': "You are in black list",
                                      'ru': 'Вы в чёрном списке'},
         'user_in_black_list_desc': {'en': "*You are blacklisted by the bot, so you cannot use it*",
-                                    'ru': '*Вы находитесь в чёрном списке бота, поэтому не можете использовать его*\n'},
+                                    'ru': '*Вы находитесь в чёрном списке бота, поэтому не можете использовать его.\n'
+                                          '- Если вы считаете что это ошибка, то заходите на [сервер поддержки](https://discord.gg/xFvV6wnWUd)*'},
         # 'user_in_black_list_reason_desc': {'en': "*You are blacklisted by the bot, so you cannot use it*",
         #                             'ru': '*Вы находитесь в чёрном списке бота, поэтому не можете использовать его*\n'},
         'unknown_error_title': {'en': "Unknown error",

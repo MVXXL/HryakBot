@@ -123,8 +123,9 @@ class MainCommands(commands.Cog):
     #     print(emotion)
     # await modules.other.callbacks.promocode(inter, emotion)
 
-    @commands.cooldown(2, 20)
+    @commands.cooldown(2, 120)
     @commands.slash_command(description=Localized(data=locales['say']['description']))
+    @commands.bot_has_permissions(send_messages=True, view_channel=True)
     async def say(self, inter,
                   text: str = commands.Param(name=Localized(data=locales['say']['text_var_name']),
                                              description=Localized(data=locales['say']['text_var_description']),

@@ -28,3 +28,18 @@ def shop_item_selected(user_id, item_id, lang) -> list:
         # emoji='💰'
     ))
     return components
+
+def shop_category_choose_components(lang) -> list:
+    components = []
+    generated_options = []
+    for category in ['static_shop', 'daily_shop', 'case_shop']:
+        generated_options.append(disnake.SelectOption(
+            label=locales['shop'][f'{category}_title'][lang],
+            value=category,
+            # emoji=option['emoji'],
+            # description=option['description']
+        ))
+    if generated_options:
+        components.append(disnake.ui.Select(options=generated_options, custom_id='shop_category_choose',
+                                            placeholder=locales['inventory']['select_category_placeholder'][lang]))
+    return components

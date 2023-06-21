@@ -194,3 +194,21 @@ class Inventory:
             else:
                 buffs[buff] = 1
         return buffs
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_item_buy_cooldown(item_id):
+        if 'cooldown' in items[item_id]:
+            return tuple(items[item_id]['cooldown'].items())[0]
+        return None, None
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def is_item_obtainable_in_cases(item_id):
+        pass
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_items_obtainable_in_cases(items_: dict):
+        items_ = Func.get_items_by_key(Func.get_items_by_key(items_, 'method_of_obtaining', 'shop:daily'), 'type', 'skin')
+        return items_

@@ -21,7 +21,7 @@ async def duel(inter, opponent, bet):
                                            embed=embeds.personal_duel_invite(inter, lang, opponent, bet),
                                            components=components.invite_components(lang))
     dm_message = await BotUtils.send_callback(inter, send_to_dm=opponent,
-                                              components=components.duel_message_url(lang, message.jump_url),
+                                              components=components.duel_message_url(lang, message.jump_url) if message is not None else None,
                                               embed=embeds.personal_dm_duel_invite(inter, lang, bet))
     if dm_message is None:
         message = await BotUtils.send_callback(inter, opponent.mention,
