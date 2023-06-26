@@ -594,7 +594,7 @@ items = {
                    'type': 'skin:_nose',
                    'shop_price': 120,
                    'method_of_obtaining': 'shop:daily',
-                   'not_draw': ['nose'],
+                   'not_draw': ['piercing_nose', 'nose'],
                    'rarity': '3',
                    'emoji': '🔴'},
 
@@ -871,7 +871,7 @@ items = {
                      'rarity': '2',
                      'emoji': '🐉'},
     'spider_mark': {'name': {'en': 'Spider tattoo',
-                              'ru': 'Паук - дискорд'},
+                              'ru': 'Паук тату'},
                      'desc': tattoo_description,
                      'type': 'skin:tattoo',
                      'shop_price': 50,
