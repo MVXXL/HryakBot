@@ -1,7 +1,3 @@
-import mysql.connector
-from mysql.connector import pooling
-
-from ...core import *
 from .pool import pool
 
 
@@ -21,7 +17,8 @@ class Connection:
         return pool.get_connection()
 
     @staticmethod
-    def make_request(query, params: tuple = None, commit: bool = True, fetch: bool = False, fetch_first: bool = True, fetchall=False):
+    def make_request(query, params: tuple = None, commit: bool = True, fetch: bool = False, fetch_first: bool = True,
+                     fetchall=False):
         connection = Connection.connect()
         try:
             with connection.cursor() as cursor:

@@ -1,14 +1,9 @@
-import datetime
-import json
-
-import mysql.connector
-
 from .connection import Connection
-from ...core import *
-from ..functions import Func
-from ...core.config import users_schema, shop_schema
-from .user import User
 from .inventory import Inventory
+from .user import User
+from ..functions import Func
+from ...core import *
+from ...core.config import shop_schema
 
 
 class Shop:
@@ -75,8 +70,10 @@ class Shop:
     @staticmethod
     def add_shop_state(daily_shop):
         daily_shop = json.dumps(daily_shop, ensure_ascii=False)
-        static_shop = json.dumps(list(Func.get_items_by_key(items, 'method_of_obtaining', 'shop:always').keys()), ensure_ascii=False)
-        case_shop = json.dumps(list(Func.get_items_by_key(items, 'method_of_obtaining', 'shop:cases').keys()), ensure_ascii=False)
+        static_shop = json.dumps(list(Func.get_items_by_key(items, 'method_of_obtaining', 'shop:always').keys()),
+                                 ensure_ascii=False)
+        case_shop = json.dumps(list(Func.get_items_by_key(items, 'method_of_obtaining', 'shop:cases').keys()),
+                               ensure_ascii=False)
         print(case_shop)
         Connection.make_request(
             f"INSERT INTO {shop_schema} (update_timestamp, static_shop, daily_shop, case_shop) "
@@ -86,7 +83,8 @@ class Shop:
     @staticmethod
     def is_item_in_cooldown(user_id, item_id):
         cooldown_once_for, cooldown_in = Inventory.get_item_buy_cooldown(item_id)
-        if cooldown_once_for is not None and User.get_count_of_recent_bought_items(user_id, cooldown_in, [item_id]) >= cooldown_once_for:
+        if cooldown_once_for is not None and User.get_count_of_recent_bought_items(user_id, cooldown_in,
+                                                                                   [item_id]) >= cooldown_once_for:
             return True
         return False
 
@@ -98,4 +96,5 @@ class Shop:
         history = User.get_recent_bought_items(user_id, cooldown_in)
         if not history:
             return
-        return Func.get_current_timestamp() + (Inventory.get_item_buy_cooldown(item_id)[1] - (Func.get_current_timestamp() - list(history[0].values())[0]))
+        return Func.get_current_timestamp() + (Inventory.get_item_buy_cooldown(item_id)[1] - (
+                Func.get_current_timestamp() - list(history[0].values())[0]))

@@ -12,7 +12,7 @@ class PigBot:
     def __init__(self):
         intents = disnake.Intents.default()
         intents.members = True
-        self.pig_bot = commands.InteractionBot(intents=intents, max_messages=10000, strict_localization=True)
+        self.pig_bot = commands.InteractionBot(intents=intents, strict_localization=True)
 
     def load_cogs(self):
         cogs_path = 'pig_code/cogs'

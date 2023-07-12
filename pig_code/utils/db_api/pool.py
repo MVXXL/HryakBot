@@ -1,12 +1,4 @@
-import datetime
-import json
-
-import mysql.connector
-from mysql.connector import pooling
-
 from ...core import *
-from ..functions import Func
-from ...core.config import users_schema, shop_schema
 
 
 class MySQLPool:

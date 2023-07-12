@@ -15,4 +15,4 @@ async def choose_user(inter, lang, users) -> disnake.Embed:
             value=user_id,
             # description=option['description']
         ))
-    return disnake.ui.Select(options=options, custom_id='view_profile', placeholder=locales['top']['placeholder'][lang])
+    return disnake.ui.Select(options=options, custom_id='view_profile', placeholder=Locales.Top.placeholder[lang])

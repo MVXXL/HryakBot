@@ -1,12 +1,6 @@
-import datetime
-import json
-import random
-
-import mysql.connector
-
 from .connection import Connection
-from .user import User
 from .tech import Tech
+from .user import User
 from ..functions import Func
 from ...core import *
 from ...core.config import users_schema
@@ -55,7 +49,7 @@ class Pig:
     def update_pig(user_id, new_pig):
         new_pig = json.dumps(new_pig, ensure_ascii=False)
         Connection.make_request(
-            f"UPDATE {users_schema} SET pig = '{new_pig}' WHERE id = {user_id}"
+            f"UPDATE {users_schema} SET pig = %s WHERE id = {user_id}", (new_pig,)
         )
 
     @staticmethod
@@ -182,16 +176,16 @@ class Pig:
             case 'breed':
                 cooldown = utils_config.pig_breed_cooldown
         # primal_cooldown = cooldown
-        cont = True
-        while cont:
-            for i in range(
-                    Func.check_consecutive_timestamps(Pig._get_action_history(user_id, action)[-30:], 5, cooldown * 1.5,
-                                                      cooldown)):
-                cooldown += cooldown // 2
-            if Func.check_consecutive_timestamps(Pig._get_action_history(user_id, action)[-30:], 5, cooldown * 1.5,
-                                                 cooldown) == 0 or \
-                    cooldown > 12 * 3600:
-                cont = False
+        # cont = True
+        # while cont:
+        #     for i in range(
+        #             Func.check_consecutive_timestamps(Pig._get_action_history(user_id, action)[-30:], 5, cooldown * 1.5,
+        #                                               cooldown)):
+        #         cooldown += cooldown // 2
+        #     if Func.check_consecutive_timestamps(Pig._get_action_history(user_id, action)[-30:], 5, cooldown * 1.5,
+        #                                          cooldown) == 0 or \
+        #             cooldown > 12 * 3600:
+        #         cont = False
         if last_action is None:
             return -1
         next_action = last_action + cooldown - Func.get_current_timestamp()
@@ -292,6 +286,20 @@ class Pig:
         return pig['weight']
 
     @staticmethod
+    def age(user_id, lang=None):
+        weight = Pig.get_weight(user_id)
+        max_age = '1'
+        for age in utils_config.pig_ages:
+            if weight >= age:
+                max_age = utils_config.pig_ages[age]
+            else:
+                break
+        if lang is None:
+            return max_age
+        else:
+            return Locales.PigAges[max_age][lang]
+
+    @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def make_pregnant(user_id, pregnant_by_id, pregnant_with_id):
         pig = User.get_pig(user_id)
@@ -331,3 +339,11 @@ class Pig:
         pig = User.get_pig(user_id)
         pig['pregnant_time'] = None
         Pig.update_pig(user_id, pig)
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def is_pregnant(user_id):
+        pig = User.get_pig(user_id)
+        if pig['pregnant_time'] is not None:
+            return True
+        return False

@@ -1,36 +1,42 @@
-import asyncio
-import datetime
-import random
-
 from ...core import *
 from ...utils import *
 from . import embeds
 from . import components
-from .. import errors
 
 
 async def breed(inter, partner):
-    await BotUtils.pre_command_check(inter)
-    BotUtils.raise_if_language_not_supported(inter.author.id)
+    await Botutils.pre_command_check(inter)
+    Botutils.raise_if_language_not_supported(inter.author.id)
     User.register_user_if_not_exists(partner.id)
     Pig.create_pig_if_no_pig(partner.id)
-    BotUtils.check_pig_breed_cooldown(inter.author)
-    BotUtils.check_pig_breed_cooldown(partner)
+    Botutils.check_pig_breed_cooldown(inter.author)
+    Botutils.check_pig_breed_cooldown(partner)
     lang = User.get_language(inter.author.id)
     min_weight_to_breed = 50
     if partner == inter.author:
-        raise BreedWithYourself
+        await error_callbacks.default_error_callback(inter, Locales.ErrorCallbacks.cant_breed_with_yourself_title[lang],
+                                                     Locales.ErrorCallbacks.cant_breed_with_yourself_desc[lang])
+        return
     if partner.bot is True:
-        raise BotAsPartnerBreed
+        await error_callbacks.default_error_callback(inter, Locales.ErrorCallbacks.bot_as_partner_breed_title[lang],
+                                                     Locales.ErrorCallbacks.bot_as_partner_breed_desc[lang])
+        return
     if Pig.get_weight(inter.author.id) < min_weight_to_breed:
-        await BotUtils.send_callback(inter, embed=embeds.pig_is_too_small_for_breed(inter, lang, inter.author, min_weight_to_breed))
+        await error_callbacks.default_error_callback(inter, Locales.Breed.not_enough_weight_title[lang],
+                                                     Locales.Breed.not_enough_weight_desc[lang].format(
+                                                         pig=Pig.get_name(inter.author.id),
+                                                         weight=min_weight_to_breed))
         return
     if Pig.get_weight(partner.id) < min_weight_to_breed:
-        await BotUtils.send_callback(inter, embed=embeds.pig_is_too_small_for_breed(inter, lang, partner, min_weight_to_breed))
+        await error_callbacks.default_error_callback(inter, Locales.Breed.not_enough_weight_title[lang],
+                                                     Locales.Breed.not_enough_weight_desc[lang].format(
+                                                         pig=Pig.get_name(partner.id),
+                                                         weight=min_weight_to_breed))
         return
-    message = await BotUtils.send_callback(inter,
-                                           embed=embeds.personal_breed_invite(inter, lang, partner),
-                                           components=components.invite_components(lang))
+    message = await send_callback(inter,
+                                  embed=embeds.personal_breed_invite(inter, lang, partner),
+                                  components=components.invite_components(lang))
+
     def check(interaction):
         if message is not None:
             right_message = message.id == interaction.message.id
@@ -39,7 +45,7 @@ async def breed(inter, partner):
     try:
         interaction = await inter.client.wait_for('button_click', check=check, timeout=120)
     except asyncio.exceptions.TimeoutError:
-        await BotUtils.send_callback(message, embed=embeds.breed_canceled(inter, lang, partner, 'no_response'))
+        await send_callback(message, embed=embeds.breed_canceled(inter, lang, partner, 'no_response'))
         return
     if interaction.component.custom_id == 'in:accept':
         await interaction.response.defer(ephemeral=True)
@@ -50,14 +56,19 @@ async def breed(inter, partner):
         Pig.set_last_breed(inter.author.id, Func.get_current_timestamp())
         Pig.set_last_breed(partner.id, Func.get_current_timestamp())
         if mini_pig == 'fail':
-            await BotUtils.send_callback(inter, embed=embeds.pig_breed_fail(inter, lang, partner))
+            await send_callback(inter, embed=embeds.pig_breed_fail(inter, lang, partner))
         else:
             Pig.make_pregnant(partner.id, partner.id, mini_pig)
-            await BotUtils.send_callback(inter, embed=embeds.pig_breed_ok(inter, lang, partner, mini_pig))
+            await send_callback(inter, embed=embeds.pig_breed_ok(inter, lang, partner, mini_pig))
     elif interaction.component.custom_id == 'in:reject':
-        await BotUtils.send_callback(interaction, embed=embeds.breed_canceled(inter, lang, partner, 'partner_reject'))
+        await send_callback(interaction, embed=embeds.breed_canceled(inter, lang, partner, 'partner_reject'))
+
 
 async def pregnancy(inter):
-    await BotUtils.pre_command_check(inter)
+    await Botutils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
-    await BotUtils.send_callback(inter, embed=embeds.pregnancy(inter, lang))
+    if Pig.is_pregnant(inter.author.id):
+        await send_callback(inter, embed=embeds.pregnancy(inter, lang))
+    else:
+        await error_callbacks.default_error_callback(inter, Locales.Pregnancy.not_pregnant_title[lang],
+                                                     Locales.Pregnancy.not_pregnant_desc[lang], prefix='🐖')

@@ -1,13 +1,7 @@
-import functools
-import json
-import random
-
-import mysql.connector
-
 from .connection import Connection
+from ..functions import Func
 from ...core import *
 from ...core.config import users_schema
-from ..functions import Func
 
 
 # from .stats import Stats
@@ -34,7 +28,7 @@ class Events:
         print(new_events)
         Connection.make_request(
             f"UPDATE {users_schema} SET events = %s WHERE id = {user_id}",
-            (new_events, )
+            (new_events,)
         )
 
     @staticmethod
@@ -54,9 +48,11 @@ class Events:
             title = title.copy()
         if type(description) == dict:
             description = description.copy()
-        if type(description) == dict and description_format is not None:
-            for lang in description:
-                description[lang] = description[lang].format(**description_format)
+            if description_format is not None:
+                for lang in description:
+                    description[lang] = description[lang].format(**description_format)
+        elif type(description) == str and description_format is not None:
+            description = description.format(**description_format)
         if event_id is None:
             event_id = str(random.randrange(10000, 999999))
         events[event_id] = {

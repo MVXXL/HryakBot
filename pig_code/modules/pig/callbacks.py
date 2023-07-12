@@ -1,17 +1,12 @@
-import asyncio
-import datetime
-import random
-
 from ...core import *
 from ...utils import *
 from . import embeds
 from . import components
-from .. import errors
 
 
 async def pig_feed(inter):
-    await BotUtils.pre_command_check(inter)
-    BotUtils.check_pig_feed_cooldown(inter.author)
+    await Botutils.pre_command_check(inter)
+    Botutils.check_pig_feed_cooldown(inter.author)
     lang = User.get_language(inter.author.id)
     Stats.add_pig_fed(inter.author.id, 1)
     add_weight_chances = {'add': 85, 'remove': 15}
@@ -36,30 +31,29 @@ async def pig_feed(inter):
             weight_add *= buffs['weight_boost']
     pooped_poop = round(pooped_poop)
     weight_add = round(weight_add, 1)
-    Inventory.add_item(inter.author.id, 'poop', pooped_poop)
+    User.add_item(inter.author.id, 'poop', pooped_poop)
     Pig.add_weight(inter.user.id, weight_add)
     Pig.set_last_feed(inter.author.id, Func.get_current_timestamp())
-    await BotUtils.send_callback(inter, embed=embeds.pig_feed(inter, lang, weight_add, pooped_poop))
+    await send_callback(inter, embed=embeds.pig_feed(inter, lang, weight_add, pooped_poop))
 
 
 async def meat(inter):
-    await BotUtils.pre_command_check(inter)
-    BotUtils.check_pig_meat_cooldown(inter.author)
+    await Botutils.pre_command_check(inter)
+    Botutils.check_pig_meat_cooldown(inter.author)
     lang = User.get_language(inter.author.id)
     if Inventory.get_item_amount(inter.author.id, 'knife') <= 0:
-        raise NoItemInInventory('knife', locales['meat']['no_knife_desc'])
+        raise NoItemInInventory('knife', Locales.Meat.no_knife_desc)
     bacon_add = random.randrange(8, 16)
-    Inventory.add_item(inter.author.id, 'lard', bacon_add)
+    User.add_item(inter.author.id, 'lard', bacon_add)
     weight_lost = round(random.uniform(.2, .7) * bacon_add, 1)
     Pig.add_weight(inter.user.id, -weight_lost)
     Pig.set_last_meat(inter.author.id, Func.get_current_timestamp())
-    await BotUtils.send_callback(inter, embed=embeds.pig_meat(inter, lang, bacon_add, weight_lost))
-
+    await send_callback(inter, embed=embeds.pig_meat(inter, lang, bacon_add, weight_lost))
 
 
 async def pig_rename(inter, name):
-    await BotUtils.pre_command_check(inter)
+    await Botutils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
     name = name.replace('\'', '')
     Pig.rename(inter.author.id, name)
-    await BotUtils.send_callback(inter, embed=embeds.pig_rename(inter, lang))
+    await send_callback(inter, embed=embeds.pig_rename(inter, lang))

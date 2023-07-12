@@ -31,7 +31,7 @@ default_pig = {'name': 'Hryak',
                    'eye_emotion': None,
                    'suit': None,
                    'piercing_nose': None,
-'piercing_ear': None
+                   'piercing_ear': None
                }}
 pig_feed_cooldown = 4 * 60 ** 2 if not config.TEST else 5  # seconds
 premium_pig_feed_cooldown = 2 * 60 ** 2 if not config.TEST else 5  # seconds
@@ -78,7 +78,7 @@ stats = {'pig_fed': 0, 'money_earned': 0, 'commands_used': {}, 'items_used': {},
 guild_settings = {'join_channel': None, 'join_message': None}
 emotions_erase_cords = {
     'sad': [(265, 254, 154, 387, 352, 324), (646, 433, 444, 321, 588, 285)],
-    'happy': [(409,487,646,487,535,679), (151,461,269,555,349,473)],
+    'happy': [(409, 487, 646, 487, 535, 679), (151, 461, 269, 555, 349, 473)],
     'angry': [(302, 249, 197, 329, 381, 416), (379, 421, 610, 335, 420, 273)],
     'sus': [(380, 393, 634, 393, 509, 213)],
     'dont_care': [(164, 387, 366, 391, 327, 222), (380, 393, 634, 393, 509, 213)]
@@ -91,7 +91,7 @@ start_text = '**I am alive!**'
 
 # embed colors
 main_color = 0xc7604c
-error_color = 0xe32d2d
+error_color = 0xc94312
 warn_color = 0xe0bb36
 success_color = 0x2fc256
 premium_color = 0x61dfff
@@ -102,6 +102,16 @@ rare_rarity_color = 0x4d9aff
 epic_rarity_color = 0xc14dff
 mythical_rarity_color = 0xff3d33
 legendary_rarity_color = 0xffee54
+
+pig_ages = {
+    0: '1',
+    20: '2',
+    50: '3',
+    100: '4',
+    300: '5',
+    500: '6',
+    1000: '7',
+}
 
 rarity_colors = {
     '1': common_rarity_color,

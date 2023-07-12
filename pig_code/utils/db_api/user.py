@@ -1,16 +1,7 @@
-import datetime
-import functools
-import json
-
-import mysql.connector
-
 from .connection import Connection
 from ..functions import Func
 from ...core import *
 from ...core.config import users_schema
-
-
-# from .stats import Stats
 
 
 class User:
@@ -41,7 +32,9 @@ class User:
     @staticmethod
     @aiocache.cached(ttl=6000)
     async def get_user(client, user_id):
-        user = await client.fetch_user(int(user_id))
+        user = client.get_user(int(user_id))
+        if user is None:
+            user = await client.fetch_user(int(user_id))
         return user
 
     @staticmethod
@@ -102,7 +95,7 @@ class User:
             return {}
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_inventory(user_id):
         result = Connection.make_request(
             f"SELECT inventory FROM {users_schema} WHERE id = {user_id}",
@@ -113,6 +106,43 @@ class User:
             return json.loads(result)
         else:
             return {}
+
+    @staticmethod
+    def set_item_amount(user_id, item_id, amount: int = 1):
+        inventory = User.get_inventory(user_id)
+        inventory[item_id] = {}
+        inventory[item_id]['item_id'] = item_id
+        inventory[item_id]['amount'] = amount
+        User.set_new_inventory(user_id, inventory)
+
+    @staticmethod
+    def add_item(user_id, item_id, amount: int = 1):
+        inventory = User.get_inventory(user_id)
+        amount = round(amount)
+        if item_id in inventory:
+            inventory[item_id]['amount'] += amount
+        else:
+            inventory[item_id] = {}
+            inventory[item_id]['item_id'] = item_id
+            inventory[item_id]['amount'] = amount
+        User.set_new_inventory(user_id, inventory)
+
+    @staticmethod
+    def remove_item(user_id, item_id, amount: int = 1):
+        inventory = User.get_inventory(user_id)
+        if item_id in inventory:
+            if inventory[item_id]['amount'] - amount <= 0:
+                inventory.pop(item_id)
+            else:
+                inventory[item_id]['amount'] -= amount
+        User.set_new_inventory(user_id, inventory)
+
+    @staticmethod
+    def set_new_inventory(user_id, new_inventory):
+        new_inventory = json.dumps(new_inventory, ensure_ascii=False)
+        Connection.make_request(
+            f"UPDATE {users_schema} SET inventory = '{new_inventory}' WHERE id = {user_id}"
+        )
 
     @staticmethod
     def set_premium(user_id, premium: bool):
@@ -138,7 +168,7 @@ class User:
         )
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_language(user_id):
         try:
             result = Connection.make_request(
@@ -149,6 +179,21 @@ class User:
             return result
         except TypeError:
             return 'en'
+
+    @staticmethod
+    def set_family(user_id, family_id):
+        Connection.make_request(
+            f"UPDATE {users_schema} SET family = %s WHERE id = {user_id}", params=(family_id,)
+        )
+
+    @staticmethod
+    def get_family(user_id):
+        result = Connection.make_request(
+            f"SELECT family FROM {users_schema} WHERE id = {user_id}",
+            commit=False,
+            fetch=True
+        )
+        return result
 
     @staticmethod
     def set_block(user_id, block: bool):

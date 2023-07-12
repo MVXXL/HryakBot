@@ -1,6 +1,3 @@
-import datetime
-import random
-
 from ..core import *
 from ..utils import *
 from .. import modules
@@ -11,10 +8,10 @@ class Tasks(commands.Cog):
         self.client = client
         self.daily_shop_update.start()
         if not config.TEST:
-            self.monitorings_data_update.start()
+            self.monitoring_data_update.start()
             self.create_logs_copy.start()
 
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=3600)
     async def daily_shop_update(self):
         last_update_timestamp = Shop.get_last_update_timestamp()
         if last_update_timestamp is None:
@@ -23,11 +20,12 @@ class Tasks(commands.Cog):
             Shop.add_shop_state(Func.generate_shop_daily_items())
 
     @tasks.loop(seconds=3600)
-    async def monitorings_data_update(self):
+    async def monitoring_data_update(self):
         await self.client.wait_until_ready()
         servers = len(self.client.guilds)
         Func.send_data_to_sdc(servers)
         Func.send_data_to_boticord(servers)
+        await Func.send_data_to_stats_channel(self.client, servers)
 
     @tasks.loop(seconds=24 * 3600)
     async def create_logs_copy(self):
@@ -36,6 +34,7 @@ class Tasks(commands.Cog):
                 f.write(open(config.LOGS_PATH, 'r').read())
         except:
             pass
+
 
 def setup(client):
     client.add_cog(Tasks(client))

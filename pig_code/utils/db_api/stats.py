@@ -1,11 +1,7 @@
-import json
-
-import mysql.connector
-
 from .connection import Connection
+from .tech import Tech
 from ...core import *
 from ...core.config import users_schema
-from .tech import Tech
 
 
 class Stats:
@@ -81,7 +77,13 @@ class Stats:
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_commands_used(user_id, command):
+    def get_commands_stats(user_id):
+        stats = Stats.get_stats(user_id)
+        return stats['commands_used']
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_command_used_times(user_id, command):
         stats = Stats.get_stats(user_id)
         if command in stats['commands_used']:
             return stats['commands_used'][command]
@@ -133,7 +135,13 @@ class Stats:
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_items_sold(user_id, item):
+    def get_items_sold_stats(user_id):
+        stats = Stats.get_stats(user_id)
+        return stats['items_sold']
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_item_sold_amount(user_id, item):
         stats = Stats.get_stats(user_id)
         if item in stats['items_sold']:
             return stats['items_sold'][item]

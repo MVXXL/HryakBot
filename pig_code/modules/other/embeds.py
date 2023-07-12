@@ -1,9 +1,3 @@
-import asyncio
-import datetime
-import random
-
-import disnake
-
 from ...core import *
 from ...utils import *
 
@@ -11,216 +5,226 @@ from ...utils import *
 def profile(inter, lang, user: disnake.User = None) -> disnake.Embed:
     if user is None:
         user = inter.author
-    embed = BotUtils.generate_embed(
-        title=locales['profile']['profile_title'][lang].format(user=user.display_name),
-        description=locales['profile']['profile_desc'][lang].format(balance=User.get_money(user.id)),
+    embed = generate_embed(
+        title=Locales.Profile.profile_title[lang].format(user=user.display_name),
+        description=Locales.Profile.profile_desc[lang].format(balance=User.get_money(user.id),
+                                                              pig_name=Pig.get_name(user.id),
+                                                              weight=Pig.get_weight(user.id),
+                                                              age=Pig.age(user.id, lang)),
         prefix=Func.generate_prefix('🐽'),
-        thumbnail_file=BotUtils.generate_user_pig(user.id),
-        footer=Func.generate_footer(inter, user=user),
-        footer_url=Func.generate_footer_url('user_avatar', user),
-        timestamp=True,
-        fields=[{'name': locales['profile']['pig_field_title'][lang],
-                 'value': locales['profile']['pig_field_value'][lang].format(
-                     pig_name=Pig.get_name(user.id),
-                     weight=Pig.get_weight(user.id))}]
+        thumbnail_file=generate_user_pig(user.id),
+        inter=inter,
+        # fields=[{'name': Locales.Profile.pig_field_title[lang],
+        #          'value': Locales.Profile.pig_field_value[lang].format(
+        #              pig_name=Pig.get_name(user.id),
+        #              weight=Pig.get_weight(user.id))}]
     )
     return embed
 
 
 def promo_code_used(inter, lang, prise) -> disnake.Embed:
-    items_received = BotUtils.get_items_in_str_list(prise, lang)
-    embed = BotUtils.generate_embed(title=locales["promo_code"]["promo_code_used_title"][lang],
-                                    description=f'## {locales["promo_code"]["you_got_desc"][lang]}\n'
-                                                f'```{items_received}```',
-                                    prefix=Func.generate_prefix('🐷'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    items_received = Botutils.get_items_in_str_list(prise, lang)
+    embed = generate_embed(title=Locales.PromoCode.promo_code_used_title[lang],
+                           description=f'## {Locales.PromoCode.you_got_desc[lang]}\n'
+                                       f'```{items_received}```',
+                           prefix=Func.generate_prefix('🐷'),
+                           inter=inter)
     return embed
 
 
 def transfer_dm_notification(inter, lang, amount) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales['transfer_money']['event_title'][lang],
-                                    description=locales['transfer_money']['event_desc'][lang].format(
-                                        user=inter.author.display_name, money=amount),
-                                    prefix=Func.generate_prefix('💸'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.TransferMoney.event_title[lang],
+                           description=Locales.TransferMoney.event_desc[lang].format(
+                               user=inter.author.display_name, money=amount),
+                           prefix=Func.generate_prefix('💸'),
+                           inter=inter)
     return embed
 
 
 def user_used_promocode(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales["promo_code"]["promo_code_used_error_title"][lang],
-                                    description=f'{locales["promo_code"]["promo_code_used_error_desc"][lang]}',
-                                    prefix=Func.generate_prefix('error'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True, color=utils_config.error_color,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.PromoCode.promo_code_used_error_title[lang],
+                           description=f'{Locales.PromoCode.promo_code_used_error_desc[lang]}',
+                           prefix=Func.generate_prefix('error'), color=utils_config.error_color,
+                           inter=inter)
     return embed
 
 
 def promocode_expired(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales["promo_code"]["promocode_expired_title"][lang],
-                                    description=f'{locales["promo_code"]["promocode_expired_desc"][lang]}',
-                                    prefix=Func.generate_prefix('error'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True, color=utils_config.error_color,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.PromoCode.promocode_expired_title[lang],
+                           description=f'{Locales.PromoCode.promocode_expired_desc[lang]}',
+                           prefix=Func.generate_prefix('error'),
+                           footer=Func.generate_footer(inter), color=utils_config.error_color,
+                           inter=inter)
     return embed
 
 
 def cant_use_promocode(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales["promo_code"]["cant_use_promocode_title"][lang],
-                                    description=f'{locales["promo_code"]["cant_use_promocode_desc"][lang]}',
-                                    prefix=Func.generate_prefix('error'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True, color=utils_config.error_color,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.PromoCode.cant_use_promocode_title[lang],
+                           description=f'{Locales.PromoCode.cant_use_promocode_desc[lang]}',
+                           prefix=Func.generate_prefix('error'), color=utils_config.error_color,
+                           inter=inter)
     return embed
 
 
 def promocode_not_exist(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales["promo_code"]["promocode_not_exist_title"][lang],
-                                    description=f'{locales["promo_code"]["promocode_not_exist_desc"][lang]}',
-                                    prefix=Func.generate_prefix('error'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True, color=utils_config.error_color,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.PromoCode.promocode_not_exist_title[lang],
+                           description=f'{Locales.PromoCode.promocode_not_exist_desc[lang]}',
+                           prefix=Func.generate_prefix('error'),
+                           footer=Func.generate_footer(inter), color=utils_config.error_color,
+                           inter=inter)
     return embed
 
 
 def promocode_used_too_many_times(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales["promo_code"]["promocode_used_too_many_times_title"][lang],
-                                    description=f'{locales["promo_code"]["promocode_used_too_many_times_desc"][lang]}',
-                                    prefix=Func.generate_prefix('error'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True, color=utils_config.error_color,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.PromoCode.promocode_used_too_many_times_title[lang],
+                           description=f'{Locales.PromoCode.promocode_used_too_many_times_desc[lang]}',
+                           prefix=Func.generate_prefix('error'),
+                           footer=Func.generate_footer(inter), color=utils_config.error_color,
+                           inter=inter)
     return embed
 
 
-def stats(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales['stats']['title'][lang],
-                                    description=f"```{locales['stats']['desc'][lang].format(pig_fed=Stats.get_pig_fed(inter.author.id), commands_used=Stats.get_total_commands_used(inter.author.id), money_earned=Stats.get_money_earned(inter.author.id), items_used=Stats.get_total_items_used(inter.author.id), items_sold=Stats.get_total_items_sold(inter.author.id))}```",
-                                    prefix=Func.generate_prefix('📊'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+def base_stats(inter, lang) -> disnake.Embed:
+    embed = generate_embed(title=Locales.Stats.base_stats[lang],
+                           description=f"```{Locales.Stats.base_stats_desc[lang].format(pig_fed=Stats.get_pig_fed(inter.author.id), commands_used=Stats.get_total_commands_used(inter.author.id), money_earned=Stats.get_money_earned(inter.author.id), items_sold=Stats.get_total_items_sold(inter.author.id))}```",
+                           prefix=Func.generate_prefix('📊'),
+                           inter=inter)
+    return embed
+
+
+def commands_stats(inter, lang) -> disnake.Embed:
+    commands_stats = Stats.get_commands_stats(inter.author.id)
+    description = '\n'.join([f'{j} - /{i}' for i, j in Func.sort_by_values(commands_stats, reverse=True).items()])
+    embed = generate_embed(title=Locales.Stats.commands_stats[lang],
+                           description=f"```{Locales.Stats.commands_stats_desc[lang]}\n{description}```",
+                           prefix=Func.generate_prefix('📊'),
+                           inter=inter)
+    return embed
+
+
+def sell_stats(inter, lang) -> disnake.Embed:
+    commands_stats = Stats.get_items_sold_stats(inter.author.id)
+    description = '\n'.join([f'{Inventory.get_item_emoji(i)} {Inventory.get_item_name(i, lang)}: {j}' for i, j in
+                             Func.sort_by_values(commands_stats, reverse=True).items()])
+    embed = generate_embed(title=Locales.Stats.sell_stats[lang],
+                           description=f"```{Locales.Stats.sell_stats_desc[lang] if description else Locales.Stats.no_stats[lang]}\n{description}```",
+                           prefix=Func.generate_prefix('📊'),
+                           inter=inter)
     return embed
 
 
 def report(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales['report']['title'][lang],
-                                    description=f"{locales['report']['desc'][lang]}",
-                                    prefix=Func.generate_prefix('scd'),
-                                    footer=Func.generate_footer(inter),
-                                    timestamp=True,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.Report.title[lang],
+                           description=f"{Locales.Report.desc[lang]}",
+                           prefix=Func.generate_prefix('scd'),
+                           inter=inter)
     return embed
 
 
 def transfer_money(inter, lang, user, amount) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales['transfer_money']['scd_title'][lang],
-                                    description=f"{locales['transfer_money']['scd_desc'][lang].format(money=amount, user=user.display_name)}",
-                                    prefix=Func.generate_prefix('scd'),
-                                    color=utils_config.success_color,
-                                    timestamp=True,
-                                    footer=Func.generate_footer(inter),
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.TransferMoney.scd_title[lang],
+                           description=f"{Locales.TransferMoney.scd_desc[lang].format(money=amount, user=user.display_name)}",
+                           prefix=Func.generate_prefix('scd'),
+                           color=utils_config.success_color,
+                           inter=inter)
     return embed
 
 
 def cancel_sending_money(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales['transfer_money']['cancel_title'][lang],
-                                    description=f"{locales['transfer_money']['cancel_desc'][lang]}",
-                                    prefix=Func.generate_prefix('🪙'),
-                                    timestamp=True,
-                                    footer=Func.generate_footer(inter),
-                                    color=utils_config.error_color,
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.TransferMoney.cancel_title[lang],
+                           description=f"{Locales.TransferMoney.cancel_desc[lang]}",
+                           prefix=Func.generate_prefix('🪙'),
+                           timestamp=True,
+                           inter=inter)
     return embed
 
 
 def set_language(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales['set_language']['scd_title'][lang],
-                                    description=locales['set_language']['scd_desc'][
-                                        lang],
-                                    prefix=Func.generate_prefix('scd'),
-                                    timestamp=True,
-                                    footer=Func.generate_footer(inter),
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.SetLanguage.scd_title[lang],
+                           description=Locales.SetLanguage.scd_desc[
+                               lang],
+                           prefix=Func.generate_prefix('scd'),
+                           inter=inter)
     return embed
 
 
 def set_join_message(inter, lang, channel, message) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales['join_message_set']['scd_title'][lang].format(channel=channel),
-                                    description=locales['join_message_set']['scd_desc'][
-                                        lang].format(message=message).format(user=inter.author.mention),
-                                    prefix=Func.generate_prefix('scd'),
-                                    timestamp=True,
-                                    footer=Func.generate_footer(inter),
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.JoinMessageSet.scd_title[lang].format(channel=channel),
+                           description=Locales.JoinMessageSet.scd_desc[
+                               lang].format(message=message).format(user=inter.author.mention),
+                           prefix=Func.generate_prefix('scd'),
+                           inter=inter)
     return embed
 
 
 def reset_join_message(inter, lang) -> disnake.Embed:
-    embed = BotUtils.generate_embed(title=locales['join_message_reset']['scd_title'][lang],
-                                    prefix=Func.generate_prefix('scd'),
-                                    timestamp=True,
-                                    footer=Func.generate_footer(inter),
-                                    footer_url=Func.generate_footer_url('user_avatar', inter.author))
+    embed = generate_embed(title=Locales.JoinMessageReset.scd_title[lang],
+                           prefix=Func.generate_prefix('scd'),
+                           inter=inter)
     return embed
 
 
-def guild_info(client: disnake.Client, guild_id: int, lang) -> disnake.Embed:
-    guild = client.get_guild(int(guild_id))
-    embed = disnake.Embed(title=guild.name, color=utils_config.main_color)
-    embed.add_field(name=locales['words']['owner'][lang],
-                    value=f'{guild.owner.mention}')
-    embed.add_field(name=locales["words"]['created'][lang],
-                    value=f'<t:{round(guild.created_at.timestamp())}:D>\n'
-                          f'<t:{round(guild.created_at.timestamp())}:R>')
-    icon_value = locales["words"]['no_icon'][lang]
-    if guild.icon is not None:
-        icon_value = f'[{locales["words"]["click"][lang]}]({guild.icon.url})'
-        embed.set_thumbnail(url=guild.icon.url)
-    embed.add_field(name=locales["words"]['icon'][lang],
-                    value=f'{icon_value}')
-    channels_value = f'{locales["words"]["total"][lang]}: **{len(guild.channels)}**\n'
-    if len(guild.categories) > 0:
-        channels_value += f'{locales["words"]["category"][lang]}: **{len(guild.categories)}**\n'
-    if len(guild.text_channels) > 0:
-        channels_value += f'{locales["words"]["text"][lang]}: **{len(guild.text_channels)}**\n'
-    if len(guild.voice_channels) > 0:
-        channels_value += f'{locales["words"]["voice"][lang]}: **{len(guild.voice_channels)}**\n'
-    if len(guild.stage_channels) > 0:
-        channels_value += f'{locales["words"]["stage"][lang]}: **{len(guild.stage_channels)}**\n'
-    if len(guild.stage_channels) > 0:
-        channels_value += f'{locales["words"]["forum"][lang]}: **{len(guild.stage_channels)}**\n'
-    embed.add_field(
-        name=f'{locales["words"]["channels"][lang]}',
-        value=channels_value
+def wardrobe_item_preview(inter, item_id, lang) -> disnake.Embed:
+    skin_type = Inventory.get_item_skin_type(item_id)
+    preview_options = Pig.get_skin(inter.author.id, 'all')
+    preview_options[skin_type] = item_id
+    embed = generate_embed(
+        title=Locales.WardrobeItemPreview.title[lang].format(item=Inventory.get_item_name(item_id, lang)),
+        description=Locales.WardrobeItemPreview.desc[lang].format(item=Inventory.get_item_name(item_id, lang)),
+        prefix=Func.generate_prefix('👁️'),
+        inter=inter,
+        thumbnail_file=Func.build_pig(tuple(preview_options.items()),
+                                      tuple(Pig.get_genetic(inter.author.id, 'all').items())),
     )
-    embed.add_field(
-        name=f'{locales["words"]["members"][lang]}',
-        value=f'{locales["words"]["total"][lang]}: **{guild.member_count}**\n'
-              f'{locales["words"]["users"][lang]}: **{len([m for m in guild.members if not m.bot])}**\n'
-              f'{locales["words"]["bots"][lang]}: **{len([m for m in guild.members if m.bot])}**'
-    )
-    integration_roles_count = 0
-    for role in guild.roles:
-        if role.is_bot_managed():
-            integration_roles_count += 1
-    roles_text = f'{locales["words"]["total"][lang]}: **{len(guild.roles) - 1}**\n'
-    if integration_roles_count > 0:
-        roles_text += f'{locales["words"]["bot_roles"][lang]}: **{integration_roles_count}**\n'
-    if guild.premium_subscriber_role is not None:
-        roles_text += f'{locales["words"]["premium"][lang]}: **{guild.premium_subscriber_role.mention}**\n'
-    embed.add_field(
-        name=f'{locales["words"]["roles"][lang]}',
-        value=roles_text
-    )
+    return embed
+    # def guild_info(client: disnake.Client, guild_id: int, lang) -> disnake.Embed:
+    #     guild = client.get_guild(int(guild_id))
+    #     embed = disnake.Embed(title=guild.name, color=utils_config.main_color)
+    #     embed.add_field(name=Locales.Global.owner[lang],
+    #                     value=f'{guild.owner.mention}')
+    #     embed.add_field(name=locales["words"]['created'][lang],
+    #                     value=f'<t:{round(guild.created_at.timestamp())}:D>\n'
+    #                           f'<t:{round(guild.created_at.timestamp())}:R>')
+    #     icon_value = locales["words"]['no_icon'][lang]
+    #     if guild.icon is not None:
+    #         icon_value = f'[{locales["words"]["click"][lang]}]({guild.icon.url})'
+    #         embed.set_thumbnail(url=guild.icon.url)
+    #     embed.add_field(name=locales["words"]['icon'][lang],
+    #                     value=f'{icon_value}')
+    #     channels_value = f'{locales["words"]["total"][lang]}: **{len(guild.channels)}**\n'
+    #     if len(guild.categories) > 0:
+    #         channels_value += f'{locales["words"]["category"][lang]}: **{len(guild.categories)}**\n'
+    #     if len(guild.text_channels) > 0:
+    #         channels_value += f'{locales["words"]["text"][lang]}: **{len(guild.text_channels)}**\n'
+    #     if len(guild.voice_channels) > 0:
+    #         channels_value += f'{locales["words"]["voice"][lang]}: **{len(guild.voice_channels)}**\n'
+    #     if len(guild.stage_channels) > 0:
+    #         channels_value += f'{locales["words"]["stage"][lang]}: **{len(guild.stage_channels)}**\n'
+    #     if len(guild.stage_channels) > 0:
+    #         channels_value += f'{locales["words"]["forum"][lang]}: **{len(guild.stage_channels)}**\n'
+    #     embed.add_field(
+    #         name=f'{locales["words"]["channels"][lang]}',
+    #         value=channels_value
+    #     )
+    #     embed.add_field(
+    #         name=f'{locales["words"]["members"][lang]}',
+    #         value=f'{locales["words"]["total"][lang]}: **{guild.member_count}**\n'
+    #               f'{locales["words"]["users"][lang]}: **{len([m for m in guild.members if not m.bot])}**\n'
+    #               f'{locales["words"]["bots"][lang]}: **{len([m for m in guild.members if m.bot])}**'
+    #     )
+    #     integration_roles_count = 0
+    #     for role in guild.roles:
+    #         if role.is_bot_managed():
+    #             integration_roles_count += 1
+    #     roles_text = f'{locales["words"]["total"][lang]}: **{len(guild.roles) - 1}**\n'
+    #     if integration_roles_count > 0:
+    #         roles_text += f'{locales["words"]["bot_roles"][lang]}: **{integration_roles_count}**\n'
+    #     if guild.premium_subscriber_role is not None:
+    #         roles_text += f'{locales["words"]["premium"][lang]}: **{guild.premium_subscriber_role.mention}**\n'
+    #     embed.add_field(
+    #         name=f'{locales["words"]["roles"][lang]}',
+    #         value=roles_text
+    #     )
     # if extended:
     #     animated_emojis = [e for e in guild.emojis if e.animated]
     #     if len(guild.emojis) > 0:

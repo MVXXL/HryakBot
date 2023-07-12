@@ -1,12 +1,4 @@
-import datetime
-import json
-import string
-
-import mysql.connector
-
 from .connection import Connection
-from .user import User
-from .tech import Tech
 from ..functions import *
 from ...core import *
 from ...core.config import promo_code_schema

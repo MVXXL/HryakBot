@@ -1,11 +1,6 @@
-import random
-
-import mysql.connector
-
-from .user import User
 from .connection import Connection
 from ...core import *
-from ...core.config import users_schema, shop_schema, promo_code_schema, guilds_schema
+from ...core.config import users_schema, shop_schema, promo_code_schema, guilds_schema, families_schema
 
 
 class Tech:
@@ -24,7 +19,8 @@ class Tech:
             'premium boolean DEFAULT FALSE',
             'blocked boolean DEFAULT FALSE',
             'blocked_promocodes boolean DEFAULT FALSE',
-            "block_reason varchar(1000) DEFAULT ''"
+            "block_reason varchar(512) DEFAULT ''",
+            'family varchar(20)'
         ]
         try:
             Connection.make_request(f"CREATE TABLE {users_schema} ({columns[0]})", commit=False)
@@ -88,6 +84,28 @@ class Tech:
         for column in columns[1:]:
             try:
                 Connection.make_request(f"ALTER TABLE {guilds_schema} ADD COLUMN {column}", commit=False)
+            except:
+                pass
+
+    @staticmethod
+    def create_families_table():
+        columns = ['id int AUTO_INCREMENT PRIMARY KEY UNIQUE',
+                   'name varchar(32)',
+                   'description varchar(512)',
+                   'members json',
+                   'bans json',
+                   'requests json',
+                   'image varchar(512)',
+                   'private boolean DEFAULT FALSE',
+                   'ask_to_join boolean DEFAULT FALSE'
+                   ]
+        try:
+            Connection.make_request(f"CREATE TABLE {families_schema} ({columns[0]})", commit=False)
+        except mysql.connector.errors.ProgrammingError:
+            pass
+        for column in columns[1:]:
+            try:
+                Connection.make_request(f"ALTER TABLE {families_schema} ADD COLUMN {column}", commit=False)
             except:
                 pass
 

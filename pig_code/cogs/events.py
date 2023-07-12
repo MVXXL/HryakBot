@@ -1,10 +1,4 @@
-import os
-import random
-import threading
-
-import disnake
-
-from ..core import *
+from ..other.item_components.item_components import item_components
 from ..utils import *
 from .. import modules
 
@@ -20,136 +14,96 @@ class Events(commands.Cog):
         Tech.create_shop_table()
         Tech.create_promo_code_table()
         Tech.create_guild_table()
+        Tech.create_families_table()
         Pig.fix_pig_structure_for_all_users()
         Stats.fix_stats_structure_for_all_users()
         for guild in self.client.guilds:
             Guild.register_guild_if_not_exists(guild.id)
         await self.client.change_presence(
             activity=disnake.Activity(type=disnake.ActivityType.watching, name=f'/help'))
-        # gen = {'body': 'default_1',
-        #        'eyes': 'white_eyes',
-        #        'pupils': 'black_pupils'}
-        # skins = {'body': None,
-        #          'tattoo': None,
-        #          'eyes': None,
-        #          'pupils': None,
-        #          'hat': None,
-        #          'glasses': None,
-        #          'tie': None,
-        #          'legs': None,
-        #          '_nose': None}
-        # print(Func.get_items_by_types(items, include_only=['skin:body']))
-        # for body in Func.get_items_by_types(items, include_only=['skin:body']):
-        #     skins['body'] = body
-        # for hat in Func.get_items_by_types(items, include_only=['skin:hat']):
-        #     skins['hat'] = hat
-        #     for glasses in Func.get_items_by_types(items, include_only=['skin:glasses']):
-        #         skins['glasses'] = glasses
-        #         for pupils in Func.get_items_by_types(items, include_only=['skin:pupils']):
-        #             skins['pupils'] = pupils
-        #             for _nose in Func.get_items_by_types(items, include_only=['skin:_nose']):
-        #                 skins['_nose'] = _nose
-        #                 for tie in Func.get_items_by_types(items, include_only=['skin:tie']):
-        #                     skins['tie'] = tie
-        #                     for legs in Func.get_items_by_types(items, include_only=['skin:legs']):
-        #                         skins['legs'] = legs
-        #                         for eyes in Func.get_items_by_types(items, include_only=['skin:eyes']):
-        #                             skins['eyes'] = eyes
-        #                             for tattoo in Func.get_items_by_types(items, include_only=['skin:tattoo']):
-        #                                 skins['tattoo'] = tattoo
-        # def thread_pig():
-        #     while True:
-        #         copy_skins = skins.copy()
-        #         for i in skins.keys():
-        #             if i in ['legs', 'body']:
-        #                 continue
-        #             skin = random.choice(list(Func.get_items_by_types(items, include_only=[i]).keys()) + [None])
-        #             copy_skins[i] = skin
-        #         file_name = '.'.join([str(i) for i in copy_skins.values()])
-        #         path = f'pig_code/cogs/pig_skins/{file_name}.png'
-        #         if not os.path.exists(path):
-        #             Func.build_pig(tuple(copy_skins.items()), genetic=tuple(gen.items()),
-        #                            output_path=path)
-        # threading.Thread(target=thread_pig).start()
-        # threading.Thread(target=thread_pig).start()
-        # threading.Thread(target=thread_pig).start()
         aiocache.Cache(Cache.MEMORY)
-        # Func.send_start_message(self.client, config.start_channel_webhook)
 
     @commands.Cog.listener()
     async def on_message_interaction(self, interaction):
         if interaction.component.custom_id.startswith('in:'):
             return
         if interaction.message.interaction is not None:
-            if not BotUtils.check_if_right_user(interaction):
-                await modules.errors.callbacks.wrong_component_clicked(interaction)
+            if not Botutils.check_if_right_user(interaction):
+                await error_callbacks.wrong_component_clicked(interaction)
                 return
         if interaction.component.custom_id == 'inventory_item_select':
             await modules.inventory.callbacks.inventory_item_selected(interaction, interaction.values[0])
-        elif interaction.component.custom_id == 'wardrobe_item_select':
-            await modules.wardrobe.callbacks.wardrobe_item_selected(interaction, interaction.values[0])
         elif interaction.component.custom_id == 'shop_item_select':
             await modules.shop.callbacks.shop_item_selected(interaction, interaction.values[0])
-        elif interaction.component.custom_id == 'guild_select':
-            await modules.other.callbacks.guild_info(interaction, interaction.values[0])
         elif interaction.component.custom_id == 'view_profile':
             await modules.other.callbacks.profile(interaction, await User.get_user(self.client, interaction.values[0]),
                                                   edit_original_message=False, ephemeral=True, pre_command_check=False)
-        elif interaction.component.custom_id.split(':')[0] in ['sell_item', 'use_item', 'wear_skin', 'remove_skin',
-                                                               'preview_skin', 'cook_item']:
-            item_action = interaction.component.custom_id.split(':')[0]
-            item_id = interaction.component.custom_id.split(':')[1]
-            if Inventory.get_item_amount(interaction.author.id, item_id) == 0:
-                await modules.errors.callbacks.no_item(interaction)
-                return
-            match item_action:
-                case 'sell_item':
-                    await interaction.response.send_modal(
-                        modal=modules.inventory.callbacks.SellItemModal(interaction, item_id))
-                case 'cook_item':
-                    if Inventory.get_item_amount(interaction.author.id, 'grill') == 0:
-                        await modules.errors.callbacks.error(
-                            NoItemInInventory('grill', locales['error_callbacks']['no_mangal_to_cook'], ephemeral=True,
-                                              edit_original_message=False), interaction)
-                    await interaction.response.send_modal(
-                        modal=modules.inventory.callbacks.CookItemModal(interaction, item_id))
-                case 'use_item':
-                    await modules.inventory.callbacks.inventory_item_used(interaction, item_id)
-                case 'wear_skin':
-                    await modules.wardrobe.callbacks.wardrobe_item_wear(interaction, item_id)
-                case 'remove_skin':
-                    await modules.wardrobe.callbacks.wardrobe_item_remove(interaction, item_id)
-                case 'preview_skin':
-                    await modules.wardrobe.callbacks.wardrobe_item_preview(interaction, item_id)
-        elif interaction.component.custom_id.split(':')[0] in ['preview_shop_skin', 'buy']:
-            item_action = interaction.component.custom_id.split(':')[0]
-            item_id = interaction.component.custom_id.split(':')[1]
-            match item_action:
-                case 'buy':
-                    await modules.shop.callbacks.shop_item_buy(interaction, item_id)
-                case 'preview_shop_skin':
-                    await modules.wardrobe.callbacks.wardrobe_item_preview(interaction, item_id,
-                                                                           update_item_selected_embed=False)
-        elif interaction.component.custom_id.split(':')[0] == 'back_to_inventory':
+        elif interaction.component.custom_id == 'view_profile_family_requests':
+            print(324324324)
+            await modules.other.callbacks.profile(interaction,
+                                                  await User.get_user(self.client, interaction.values[0]),
+                                                  edit_original_message=False, ephemeral=True,
+                                                  pre_command_check=False,
+                                                  _components=modules.family.components.accept_reject_user_to_family(
+                                                      User.get_language(interaction.author.id), interaction.values[0], User.get_family(interaction.author.id)))
+        elif len(interaction.component.custom_id.split(':')) == 2:
+            lang = User.get_language(interaction.author.id)
             action_object = interaction.component.custom_id.split(':')[1]
-            match action_object:
-                case 'inventory':
-                    await modules.inventory.callbacks.inventory(interaction)
-                case 'wardrobe':
-                    await modules.wardrobe.callbacks.wardrobe(interaction)
-                case 'shop':
-                    await modules.shop.callbacks.shop(interaction)
-        elif interaction.component.custom_id.split(':')[0] == 'wardrobe_category_choose':
-            action_object = interaction.values[0]
-            if action_object == 'skin:all':
-                include_only = 'skin'
-            else:
-                include_only = action_object
-            await modules.inventory.callbacks.inventory_embed(interaction, include_only=[include_only],
-                                                              inventory_type='wardrobe')
-        elif interaction.component.custom_id.split(':')[0] == 'shop_category_choose':
-            action_object = interaction.values[0]
-            await modules.shop.callbacks.shop(interaction, category=action_object)
+            action = interaction.component.custom_id.split(':')[0]
+            if action == 'back_to_inventory':
+                match action_object:
+                    case 'inventory':
+                        await modules.inventory.callbacks.inventory(interaction)
+                    case 'wardrobe':
+                        await modules.inventory.callbacks.wardrobe(interaction)
+                    case 'shop':
+                        await modules.shop.callbacks.shop(interaction)
+            elif action == 'preview_skin':
+                await modules.other.callbacks.skin_preview(interaction, action_object)
+            elif action == 'buy':
+                await modules.shop.callbacks.shop_item_buy(interaction, action_object)
+            elif action == 'wear_skin':
+                await modules.inventory.callbacks.wardrobe_item_wear(interaction, action_object)
+            elif action == 'remove_skin':
+                await modules.inventory.callbacks.wardrobe_item_remove(interaction, action_object)
+            elif action_object in item_components and action in item_components[action_object]:
+                async def update_inventory():
+                    if Inventory.get_item_amount(interaction.author.id, action_object) == 0:
+                        if Inventory.is_skin(action_object):
+                            await modules.inventory.callbacks.wardrobe(interaction, interaction.message)
+                        else:
+                            await modules.inventory.callbacks.inventory(interaction, interaction.message)
+                    else:
+                        await modules.inventory.callbacks.inventory_item_selected(interaction, action_object, interaction.message)
+
+                # options = []
+                # if 'options' in item_components[action_object][action]:
+                #     options = item_components[action_object][action]['options']
+                result = await item_components[action_object][action]['func'](interaction, action_object,
+                                                                              update_inventory)
+                if result is None:
+                    result = {}
+                if 'callback' in item_components[action_object][action]:
+                    embed = generate_embed(
+                        title=item_components[action_object][action]['callback']['title'][lang],
+                        description=item_components[action_object][action]['callback']['description'][lang].format(
+                            **result),
+                        prefix=Func.generate_prefix(item_components[action_object][action]['callback']['prefix']),
+                        inter=interaction,
+                    )
+                    await send_callback(interaction, embed=embed,
+                                        ephemeral=True, edit_original_message=False)
+                    await update_inventory()
+        elif len(interaction.component.custom_id.split(':')) == 3:
+            lang = User.get_language(interaction.author.id)
+            action = interaction.component.custom_id.split(':')[0]
+            action_object1 = interaction.component.custom_id.split(':')[1]
+            action_object2 = interaction.component.custom_id.split(':')[2]
+            if action == 'accept_user_to_family':
+                print(interaction, action_object1, action_object2)
+                await modules.family.callbacks.accept_user_to_family(interaction, action_object1, action_object2)
+            elif action == 'reject_user_to_family':
+                await modules.family.callbacks.reject_user_to_family(interaction, action_object1, action_object2)
         elif interaction.component.custom_id == 'hide':
             await interaction.message.delete()
 
@@ -165,11 +119,11 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_slash_command_error(self, inter, error):
-        await modules.errors.callbacks.error(error, inter)
+        await error_callbacks.error(error, inter)
 
     @commands.Cog.listener()
     async def on_user_command_error(self, inter, error):
-        await modules.errors.callbacks.error(error, inter)
+        await error_callbacks.error(error, inter)
 
     #
     @commands.Cog.listener()
@@ -201,11 +155,11 @@ class Events(commands.Cog):
                      guild_name=str(guild),
                      guild_id=guild.id,
                      members=guild.member_count)
+        User.register_user_if_not_exists(guild.owner_id)
         if User.get_money(guild.owner_id) < 80 and \
-            len(Func.get_items_by_key(User.get_inventory(guild.owner_id), 'type', 'skin')) < 1 and \
+                len(Func.get_items_by_key(User.get_inventory(guild.owner_id), 'type', 'skin')) < 1 and \
                 len(Func.get_items_by_key(User.get_inventory(guild.owner_id), 'type', 'case')) < 1:
-            Inventory.add_item(guild.id, 'common_case', 1)
-
+            User.add_item(guild.owner_id, 'common_case', 1)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: disnake.Guild):

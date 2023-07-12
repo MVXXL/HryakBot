@@ -7,7 +7,7 @@ class UserCommands(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.user_command(name=Localized(data=locales['profile']['user_app_name']))
+    @commands.user_command(name=Localized(data=Locales.Profile.user_app_name))
     async def profile(self, inter, user: disnake.User):
         await modules.other.callbacks.profile(inter, user, ephemeral=True)
 

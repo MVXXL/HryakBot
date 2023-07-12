@@ -1,115 +1,48 @@
-import asyncio
-import datetime
-import random
-
-from ...core import *
 from ...utils import *
-from . import embeds
-from . import components
-from .. import errors
-from ..inventory.callbacks import inventory_embed
-from ..inventory.embeds import inventory_item_selected
+from . import embeds, components
 
 
-async def shop(inter, message=None, category: str = 'static_shop'):
-    await BotUtils.pre_command_check(inter)
+async def shop(inter, message=None):
+    await Botutils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
-    page_embeds = []
-    page_components = []
-    shop_items = {'static_shop': Shop.get_last_static_shop,
-                  'daily_shop': Shop.get_last_daily_shop,
-                  'case_shop': Shop.get_last_case_shop
-                  }[category]()
-    item_fields = []
-    options = []
-    for item in shop_items:
-        item_fields.append(
-            {
-                'name': f'{Func.generate_prefix(Inventory.get_item_emoji(item), backticks=True)}{Inventory.get_item_name(item, lang)}',
-                'value': f'```{locales["words"]["price"][lang]}: {Inventory.get_item_shop_price(item)} 🪙\n'
-                         f'{locales["words"]["rarity"][lang]}: {Inventory.get_item_rarity(item, lang)}\n'
-                         f'{locales["words"]["type"][lang]}: {Inventory.get_item_type(item, lang)}```',
-                'inline': False})
-        options.append(
-            {'label': Inventory.get_item_name(item, lang),
-             'value': f'{item}',
-             'emoji': Inventory.get_item_emoji(item),
-             'description': Func.cut_text(Inventory.get_item_description(item, lang), 100)
+    shops = {'static_shop': Shop.get_last_static_shop,
+             'daily_shop': Shop.get_last_daily_shop,
+             'case_shop': Shop.get_last_case_shop
              }
-        )
-    page_embeds += BotUtils.generate_embeds_list_from_fields(Func.field_inline_alternation(item_fields),
-                                                             description='' if item_fields else
-                                                             locales['shop']['shop_empty_desc'][lang],
-                                                             title=locales['shop'][f'{category}_title'][lang])
-    page_components += BotUtils.generate_select_components_for_pages(options, 'shop_item_select',
-                                                                     locales['inventory'][
-                                                                         'select_item_placeholder'][
-                                                                         lang])
-    await BotUtils.pagination(inter if message is None else message, lang, embeds=page_embeds,
+    items_by_cats = {}
+    for shop_ in shops:
+        items_by_cats[Locales.Shop.titles[shop_][lang]] = shops[shop_]()
+    await Botutils.pagination(inter if message is None else message, lang,
+                              embeds=await Botutils.generate_list_embeds(inter, items_by_cats, lang, sort=False,
+                                                                   not_include_if_amount_0=False,
+                                                                   title=Locales.Wardrobe.wardrobe_title[lang],
+                                                                   select_item_component_id='shop_item_select',
+                                                                   cat_as_title=True,
+                                                                   basic_info=[['price'], ['rarity'], ['type']]),
                               return_if_starts_with=['back_to_inventory', 'wardrobe_category_choose'],
-                              components=page_components if options else None,
-                              components_for_every_page=components.shop_category_choose_components(lang),
-                              hide_button=False, embed_thumbnail_file='bin/images/shop_thumbnail.png')
-
-
-async def shop_item_selected(inter, item_id, message: disnake.Message = None):
-    lang = User.get_language(inter.author.id)
-    await BotUtils.send_callback(inter if message is None else message,
-                                 embed=inventory_item_selected(inter, item_id, lang, 'shop'),
-                                 components=components.shop_item_selected(inter.author.id, item_id, lang)
-                                 )
+                              embed_thumbnail_file='bin/images/shop_thumbnail.png', arrows=False, categories=True)
 
 
 async def shop_item_buy(inter, item_id):
     lang = User.get_language(inter.author.id)
     if Shop.is_item_in_cooldown(inter.author.id, item_id):
-        await BotUtils.send_callback(inter, edit_original_message=False, ephemeral=True,
-                                     embed=embeds.item_cooldown(inter, item_id, lang))
+        await send_callback(inter, edit_original_message=False, ephemeral=True,
+                            embed=embeds.item_buy_cooldown(inter, item_id, lang))
         return
     if User.get_money(inter.author.id) < Inventory.get_item_shop_price(item_id):
-        await errors.callbacks.not_enough_money(inter)
+        await error_callbacks.not_enough_money(inter)
         return
     User.add_money(inter.author.id, -Inventory.get_item_shop_price(item_id))
-    Inventory.add_item(inter.author.id, item_id)
+    User.add_item(inter.author.id, item_id)
     User.append_buy_history(inter.author.id, item_id)
-    await BotUtils.send_callback(inter, edit_original_message=False, ephemeral=True,
-                                 embed=embeds.shop_item_bought(inter, item_id, lang))
-
-# async def shop_skin_preview(inter, item_id, message: disnake.Message = None):
-#     lang = User.get_language(inter.author.id)
-#     await BotUtils.send_callback(inter if message is None else message,
-#                                  embed=inventory_item_selected(inter, item_id, lang, 'shop'),
-#                                  components=components.shop_item_selected(inter.author.id, item_id, lang)
-#                                  )
+    await send_callback(inter, edit_original_message=False, ephemeral=True,
+                        embed=embeds.shop_item_bought(inter, item_id, lang))
 
 
-# async def wardrobe_item_wear(inter, item_id, message: disnake.Message = None):
-#     lang = User.get_language(inter.author.id)
-#     Pig.set_skin(inter.author.id, 0, item_id)
-#     await BotUtils.send_callback(inter if message is None else message,
-#                                  embed=embeds.wardrobe_item_wear(inter, item_id, lang),
-#                                  edit_original_message=False,
-#                                  ephemeral=True
-#                                  )
-#     await wardrobe_item_selected(inter, item_id, inter.message)
-
-
-# async def wardrobe_item_remove(inter, item_id, message: disnake.Message = None):
-#     lang = User.get_language(inter.author.id)
-#     Pig.remove_skin(inter.author.id, 0, Inventory.get_item_skin_type(item_id))
-#     await BotUtils.send_callback(inter if message is None else message,
-#                                  embed=embeds.wardrobe_item_remove(inter, item_id, lang),
-#                                  edit_original_message=False,
-#                                  ephemeral=True
-#                                  )
-#     await wardrobe_item_selected(inter, item_id, inter.message)
-#
-#
-# async def wardrobe_item_preview(inter, item_id, message: disnake.Message = None):
-#     lang = User.get_language(inter.author.id)
-#     await BotUtils.send_callback(inter if message is None else message,
-#                                  embed=embeds.wardrobe_item_preview(inter, item_id, lang),
-#                                  edit_original_message=False,
-#                                  ephemeral=True
-#                                  )
-#     await wardrobe_item_selected(inter, item_id, inter.message)
+async def shop_item_selected(inter, item_id, message: disnake.Message = None):
+    lang = User.get_language(inter.author.id)
+    await send_callback(inter if message is None else message,
+                        embed=Botutils.generate_item_selected_embed(inter, lang, item_id=item_id,
+                                                                    basic_info=['price', 'type', 'rarity']),
+                        components=components.shop_item_selected(inter.author.id, item_id, lang)
+                        )

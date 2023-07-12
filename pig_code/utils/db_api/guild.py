@@ -1,12 +1,8 @@
-import json
-
-import mysql.connector
-
 from .connection import Connection
+from .tech import Tech
+from ..functions import Func
 from ...core import *
 from ...core.config import guilds_schema
-from ..functions import Func
-from .tech import Tech
 
 
 class Guild:
@@ -66,7 +62,7 @@ class Guild:
     def set_settings(guild_id, new_settings):
         new_settings = json.dumps(new_settings, ensure_ascii=False)
         Connection.make_request(
-            f"UPDATE {guilds_schema} SET settings = '{new_settings}' WHERE id = {guild_id}"
+            f"UPDATE {guilds_schema} SET settings = %s WHERE id = {guild_id}", (new_settings, )
         )
 
     @staticmethod
