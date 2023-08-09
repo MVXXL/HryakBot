@@ -5,7 +5,7 @@ from ...utils import *
 def pig_feed(inter, lang, weight_changed: float, pooped_poop: int) -> disnake.Embed:
     weight_changed_description = ''
     pooped_poop_description = random.choice(Locales.Feed.pig_pooped_desc_list[lang])
-    if weight_changed > 0:
+    if weight_changed >= 0:
         weight_changed_description = random.choice(Locales.Feed.feed_scd_desc_list[lang])
     elif weight_changed < 0:
         weight_changed_description = random.choice(Locales.Feed.feed_fail_desc_list[lang])
@@ -15,7 +15,7 @@ def pig_feed(inter, lang, weight_changed: float, pooped_poop: int) -> disnake.Em
                     f'- {pooped_poop_description.format(pig=Pig.get_name(inter.author.id), poop=pooped_poop)}\n\n'
                     f"*{Locales.Feed.total_pig_weight[lang].format(weight=Pig.get_weight(inter.author.id))}*",
         prefix=Func.generate_prefix('🐷'),
-        thumbnail_file=generate_user_pig(inter.author.id, eye_emotion='happy'),
+        thumbnail_file=BotUtils.generate_user_pig(inter.author.id, eye_emotion='happy'),
         inter=inter,
     )
     return embed
@@ -28,7 +28,7 @@ def pig_meat(inter, lang, bacon_add: int, weight_lost: float) -> disnake.Embed:
                     f'- {random.choice(Locales.Meat.weight_lost_desc_list[lang]).format(pig=Pig.get_name(inter.author.id), weight_lost=weight_lost)}\n\n'
                     f"*{Locales.Meat.total_pig_weight[lang].format(weight=Pig.get_weight(inter.author.id))}*",
         prefix=Func.generate_prefix('🐷'),
-        thumbnail_file=generate_user_pig(inter.author.id),
+        thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
         inter=inter,
     )
     return embed

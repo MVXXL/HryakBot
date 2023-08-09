@@ -85,8 +85,9 @@ class Func:
 
     @staticmethod
     def str_to_bool(target):
+        if target is None:
+            return None
         return True if target.lower() in ['✅ true', 'true', '✅', 'yes', 'да', 'так'] else False
-
 
     @staticmethod
     def get_item_index_by_id_from_inventory(inventory, item):
@@ -134,7 +135,8 @@ class Func:
             if key == 'other':
                 new_daily_items += Func.select_random_items(
                     Func.get_items_by_types(daily_items,
-                                            not_include=Func.remove_keys(utils_config.daily_shop_items_number.copy(), [key])),
+                                            not_include=Func.remove_keys(utils_config.daily_shop_items_number.copy(),
+                                                                         [key])),
                     utils_config.daily_shop_items_number[key])
             else:
                 new_daily_items += Func.select_random_items_by_key('type', f'skin:{key}',
@@ -297,10 +299,27 @@ class Func:
                 result = Func.get_items_by_key(result, 'type', not_include=i)
         return result
 
+    # @staticmethod
+    # def check_consecutive_timestamps(timestamps: list, n: int, time: float = 5, start_time: int = 4) -> int:
+    #     count = 0
+    #     consecutive_count = 0
+    #     for i in range(len(timestamps) - 1):
+    #         current_timestamp = timestamps[i]
+    #         next_timestamp = timestamps[i + 1]
+    #
+    #         if start_time <= next_timestamp - current_timestamp < time:
+    #             count += 1
+    #             if count >= n:
+    #                 consecutive_count += 1
+    #         else:
+    #             count = 0
+    #
+    #     return consecutive_count
+
     @staticmethod
-    def check_consecutive_timestamps(timestamps: list, n: int, time: float = 5, start_time: int = 4) -> int:
+    def check_consecutive_timestamps(timestamps: list, time: float = 5, start_time: int = 4) -> int:
         count = 0
-        consecutive_count = 0
+        n = 1  # Initialize n with 1
         for i in range(len(timestamps) - 1):
             current_timestamp = timestamps[i]
             next_timestamp = timestamps[i + 1]
@@ -308,64 +327,12 @@ class Func:
             if start_time <= next_timestamp - current_timestamp < time:
                 count += 1
                 if count >= n:
-                    consecutive_count += 1
+                    n = count
+
             else:
                 count = 0
 
-        return consecutive_count
-
-    @staticmethod
-    @cached(TTLCache(maxsize=1000, ttl=60))
-    def build_pig(skins: tuple, genetic: tuple, output_filename: str = None, output_path: str = None,
-                  eye_emotion: str = None):
-        skins = dict(skins)
-        genetic = dict(genetic)
-        eye_emotion = skins['eye_emotion'] if eye_emotion is None else eye_emotion
-        not_draw = []
-        for item in skins.values():
-            if item is not None and item in items and 'not_draw' in items[item]:
-                not_draw += items[item]['not_draw']
-        if skins['hat'] is not None:
-            not_draw += ['piercing_ear']
-        if output_filename is None:
-            output_filename = random.randrange(10000000)
-        skins_path = 'bin/pig_skins'
-        for i, key in enumerate(['body', 'tattoo', 'eyes', 'pupils', 'glasses', 'nose', '_nose',
-                                 'piercing_nose', 'piercing_ear', 'suit', 'hat',
-                                 'legs', 'tie']):
-            if key in not_draw:
-                continue
-            folder_of_skin = key
-            if key == 'nose':
-                folder_of_skin = 'nose'
-                key = 'body'
-            part = skins[key]
-            if skins[key] is None and key in genetic:
-                part = genetic[key]
-            elif skins[key] is None and key not in genetic:
-                continue
-            part_path = f'{skins_path}/{folder_of_skin}/{part}.png'
-            if i == 0:
-                built_pig_img = Image.open(part_path)
-            else:
-                img_to_paste = Image.open(part_path)
-                if key == 'eyes':
-                    if eye_emotion in utils_config.emotions_erase_cords:
-                        draw = ImageDraw.Draw(img_to_paste)
-                        for cords in utils_config.emotions_erase_cords[eye_emotion]:
-                            if len(cords) == 3:
-                                x1 = cords[0] - cords[2]
-                                y1 = cords[1] - cords[2]
-                                x2 = cords[0] + cords[2]
-                                y2 = cords[1] + cords[2]
-                                draw.ellipse([(x1, y1), (x2, y2)], fill=img_to_paste.getpixel((0, 0)))
-                            else:
-                                draw.polygon(cords, fill=img_to_paste.getpixel((0, 0)))
-                built_pig_img.paste(img_to_paste, (0, 0), img_to_paste)
-        if output_path is None:
-            output_path = f'bin/pigs/{output_filename}.png'
-        built_pig_img.save(output_path)
-        return output_path
+        return n
 
     # @staticmethod
     # def is_2d_list(lst):
@@ -388,6 +355,13 @@ class Func:
             await channel.edit(name=str(re.sub(r'\d+', str(servers), str(channel))))
         except:
             pass
+
+    @staticmethod
+    def get_number_of_possible_skin_variations():
+        num = 1
+        for cat in os.listdir('bin/pig_skins'):
+            num *= len(os.listdir(f'bin/pig_skins/{cat}'))
+        return num
 
     @staticmethod
     def send_data_to_sdc(servers, shards: int = 1):

@@ -1,3 +1,5 @@
+import time
+
 from .connection import Connection
 from .tech import Tech
 from .user import User
@@ -9,10 +11,11 @@ from ...core.config import users_schema
 class Pig:
 
     @staticmethod
-    def fix_pig_structure_for_all_users():
+    async def fix_pig_structure_for_all_users():
         users = Tech.get_all_users()
         for user in users:
             Pig.fix_pig_structure(user)
+            await asyncio.sleep(0.1)
         # Connection.make_request(
         #     "UPDATE users SET stats = JSON_SET(stats, '$.commands_used', JSON_OBJECT());"
         # )
@@ -282,8 +285,15 @@ class Pig:
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_weight(user_id):
-        pig = User.get_pig(user_id)
-        return pig['weight']
+        if type(user_id) != list:
+            pig = User.get_pig(user_id)
+            return pig['weight']
+        else:
+            weight = 0
+            pigs = User.get_pig(user_id)
+            for pig in pigs.values():
+                weight += pig['weight']
+            return weight
 
     @staticmethod
     def age(user_id, lang=None):

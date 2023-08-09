@@ -7,7 +7,7 @@ from ..functions import Func
 from ..db_api import *
 
 
-class Botutils:
+class BotUtils:
 
     @staticmethod
     async def pre_command_check(inter, ephemeral=False, defer=True, language_check: bool = True):
@@ -22,17 +22,17 @@ class Botutils:
             raise UserInBlackList(inter.author)
         commands_used = Stats.get_total_commands_used(inter.author.id)
         if not Stats.get_language_changed(inter.author.id) and language_check:
-            await Botutils.choose_language_callback(inter, 'en')
+            await BotUtils.choose_language_callback(inter, 'en')
             Stats.set_language_changed(inter.author.id, True)
-        elif commands_used == 15:
-            await Botutils.rate_bot_callback(inter)
+        elif commands_used == 17:
+            await BotUtils.rate_bot_callback(inter)
         else:
             for event_id, event_data in Events.get_events(inter.author.id).copy().items():
                 Events.remove(inter.author.id, event_id)
                 wait_for_btn = .7
                 if event_data['expires_in'] is None or event_data['expires_in'] + event_data[
                     'created'] > Func.get_current_timestamp():
-                    await Botutils.event_callback(inter, event_data, wait_for_btn)
+                    await BotUtils.event_callback(inter, event_data, wait_for_btn)
 
     @staticmethod
     async def choose_language_callback(inter, lang):
@@ -60,7 +60,7 @@ class Botutils:
             interaction = await inter.client.wait_for('interaction',
                                                       check=check
                                                       )
-            if not Botutils.check_if_right_user(interaction):
+            if not BotUtils.check_if_right_user(interaction):
                 continue
             if interaction.component.custom_id == 'select_lang':
                 User.set_language(inter.author.id, interaction.values[0])
@@ -88,7 +88,7 @@ class Botutils:
         while True:
             interaction = await inter.client.wait_for('button_click',
                                                       check=lambda interaction: message.id == interaction.message.id)
-            if not Botutils.check_if_right_user(interaction):
+            if not BotUtils.check_if_right_user(interaction):
                 continue
             if interaction.component.custom_id == 'ok':
                 await interaction.response.defer()
@@ -119,9 +119,10 @@ class Botutils:
         while True:
             interaction = await inter.client.wait_for('button_click',
                                                       check=lambda interaction: message.id == interaction.message.id)
-            if not Botutils.check_if_right_user(interaction):
+            if not BotUtils.check_if_right_user(interaction):
                 continue
             if interaction.component.custom_id == 'rate_later':
+                await interaction.response.defer()
                 break
             break
 
@@ -142,6 +143,12 @@ class Botutils:
         if Pig.get_last_breed(user.id) is not None:
             if Func.get_current_timestamp() < Pig.get_time_of_next_breed(user.id):
                 raise PigBreedCooldown(user)
+
+    # @staticmethod
+    # def get_pig_feed_cooldown(user: disnake.User):
+    #     if Pig.get_last_feed(user.id) is not None:
+    #         if Func.get_current_timestamp() < Pig.get_time_of_next_feed(user.id):
+    #             raise PigFeedCooldown
 
     @staticmethod
     async def confirm_message(inter, lang, description: str = ''):
@@ -168,7 +175,7 @@ class Botutils:
         def check(interaction):
             if message is not None:
                 right_message = message.id == interaction.message.id
-                return right_message and Botutils.check_if_right_user(interaction)
+                return right_message and BotUtils.check_if_right_user(interaction)
 
         interaction = await inter.client.wait_for('button_click', check=check)
         try:
@@ -182,10 +189,12 @@ class Botutils:
 
     @staticmethod
     def generate_embeds_list_from_fields(fields: list, title: str = '', description: str = '',
-                                         color=utils_config.main_color, fields_for_one: int = 25, thumbnail_url: str = None):
+                                         color=utils_config.main_color, fields_for_one: int = 25,
+                                         thumbnail_url: str = None):
         fields_for_one -= 1
         embeds = []
-        create_embed = lambda: generate_embed(title=title, color=color, description=description, thumbnail_url=thumbnail_url)
+        create_embed = lambda: generate_embed(title=title, color=color, description=description,
+                                              thumbnail_url=thumbnail_url)
         embed = create_embed()
         for i, field in enumerate(fields, 1):
             embed.add_field(name=field['name'], value=field['value'], inline=field['inline'])
@@ -227,9 +236,14 @@ class Botutils:
 
     @staticmethod
     def get_items_in_str_list(items_to_convert: dict, lang):
-        return '\n'.join(
-            [f'{Func.generate_prefix(Inventory.get_item_emoji(k))}{Inventory.get_item_name(k, lang)} x{v}' for k, v in
-             items_to_convert.items()])
+        list_res = []
+        for item_id in items_to_convert:
+            if type(items_to_convert[item_id]) == dict:
+                list_res.append(f'{Func.generate_prefix(Inventory.get_item_emoji(item_id))}{Inventory.get_item_name(item_id, lang)} x{items_to_convert[item_id]["amount"]}')
+            else:
+                list_res.append(
+                    f'{Func.generate_prefix(Inventory.get_item_emoji(item_id))}{Inventory.get_item_name(item_id, lang)} x{items_to_convert[item_id]}')
+        return '\n'.join(list_res)
 
     @staticmethod
     def get_rarest_item(items_):
@@ -243,8 +257,10 @@ class Botutils:
     @staticmethod
     async def generate_list_embeds(inter, _items, lang, empty_desc='Empty', basic_info=None, title=None,
                                    prefix: str = '📦', description='', fields_for_one: int = 7, list_type: str = None,
-                                   select_item_component_id: str = 'inventory_item_select', sort=True, thumbnail_url: str = None,
-                                   cat_as_title=False, show_amount_in_field_value=False, not_include_if_amount_0=True):
+                                   select_item_component_id: str = 'inventory_item_select', sort=True,
+                                   thumbnail_url: str = None,
+                                   cat_as_title=False, show_amount_in_field_value=False, not_include_if_amount_0=True,
+                                   client=None):
         if basic_info is None:
             basic_info = []
         complete_embeds = {}
@@ -257,6 +273,8 @@ class Botutils:
                     _items = new_items.copy()
         except:
             pass
+        if client is None:
+            client = inter.client
         for cat, v in _items.items():
             item_fields = []
             options = []
@@ -294,11 +312,13 @@ class Botutils:
                     emoji = Inventory.get_item_emoji(item)
                     option_desc = Func.cut_text(Inventory.get_item_description(item, lang), 100)
                 elif list_type == 'family_members':
-                    member = await User.get_user(inter.client, item)
+                    member = await User.get_user(client, item)
                     item_label_without_prefix = f'{member.display_name}'
                     emoji = '👤'
                     select_item_placeholder = Locales.ViewFamily.select_member_placeholder[lang]
                     thumbnail_url = Family.get_image(cat)
+                    if not thumbnail_url.startswith('http://') or not thumbnail_url.startswith('https://'):
+                        thumbnail_url = None
                     role = Family.get_member_role(cat, member.id)
                     if role is not None:
                         option_desc = Locales.FamilyRoles[role][lang]
@@ -306,7 +326,7 @@ class Botutils:
                     field_value = f'```{Locales.Global.role[lang]}: {Locales.FamilyRoles[role][lang]}\n' \
                                   f'{Locales.Global.weight[lang]}: {Pig.get_weight(member.id)} {Locales.Global.kilograms_short[lang]}```'
                 elif list_type == 'family_requests':
-                    member = await User.get_user(inter.client, item)
+                    member = await User.get_user(client, item)
                     item_label_without_prefix = f'{member.display_name}'
                     select_item_placeholder = Locales.FamilyRequests.select_member_placeholder[lang]
                     field_value = f'*{Locales.Global.sent[lang]}: <t:{Family.get_request_timestamp(cat, member.id)}:R>*'
@@ -324,11 +344,12 @@ class Botutils:
                 )
             if list_type not in ['family_requests']:
                 item_fields = Func.field_inline_alternation(item_fields)
-            page_embeds = Botutils.generate_embeds_list_from_fields(item_fields,
+            page_embeds = BotUtils.generate_embeds_list_from_fields(item_fields,
                                                                     description=description if item_fields else empty_desc,
                                                                     title=f'{Func.generate_prefix(prefix)}{title if not cat_as_title else cat}',
-                                                                    fields_for_one=fields_for_one, thumbnail_url=thumbnail_url)
-            page_components = Botutils.generate_select_components_for_pages(options, select_item_component_id,
+                                                                    fields_for_one=fields_for_one,
+                                                                    thumbnail_url=thumbnail_url)
+            page_components = BotUtils.generate_select_components_for_pages(options, select_item_component_id,
                                                                             select_item_placeholder,
                                                                             fields_for_one=fields_for_one)
             for i, embed in enumerate(page_embeds):
@@ -353,8 +374,8 @@ class Botutils:
                 skin_type = Inventory.get_item_skin_type(item_id)
                 preview_options = utils_config.default_pig['skins'].copy()
                 preview_options[skin_type] = item_id
-                thumbnail_file = Func.build_pig(tuple(preview_options.items()),
-                                                tuple(utils_config.default_pig['genetic'].items()))
+                thumbnail_file = BotUtils.build_pig(tuple(preview_options.items()),
+                                                    tuple(utils_config.default_pig['genetic'].items()))
             elif Inventory.get_item_image_file(item_id) is not None:
                 thumbnail_file = Inventory.get_item_image_file(item_id)
         for i, element in enumerate(basic_info):
@@ -395,7 +416,9 @@ class Botutils:
                          everyone_can_click: bool = False,
                          return_if_starts_with: list = None,
                          arrows: bool = True,
-                         categories: bool = False):
+                         categories: bool = False,
+                         ephemeral=False,
+                         edit_original_message=True):
         if return_if_starts_with is None:
             return_if_starts_with = ['back_to_inventory', 'inventory_item_select', 'shop_item_select']
         complete_embeds = {}
@@ -416,10 +439,8 @@ class Botutils:
 
         def get_current_embed():
             if not is_categorised_pages():
-                print(embeds)
                 return embeds[list(embeds)[current_page - 1]]
             else:
-                print(list(embeds))
                 return embeds[current_cat]['embeds'][current_page - 1]
 
         def category_components():
@@ -457,6 +478,10 @@ class Botutils:
                         for j, embed in enumerate(embeds[i]['embeds']):
                             embed['embed'].set_footer(
                                 text=f'📚 {Locales.Global.page[lang]}: {j + 1}')
+            elif len(embeds[list(embeds)[0]]['embeds']) > 1:
+                for i, embed in enumerate(embeds[list(embeds)[0]]['embeds']):
+                    embed['components'].append(arrows_components())
+                    embed['embed'].set_footer(text=f'📚 {Locales.Global.page[lang]}: {i + 1}')
 
 
         else:
@@ -489,8 +514,13 @@ class Botutils:
         set_thumbnail_file_if_not_none()
         message = await send_callback(inter, embed=get_current_embed()['embed'],
                                       components=get_current_embed()['components'],
-                                      ctx_message=ctx_message, ephemeral=False)
-
+                                      ctx_message=ctx_message, ephemeral=ephemeral,
+                                      edit_original_message=edit_original_message)
+        if message is None:
+            try:
+                message = await inter.original_message()
+            except:
+                pass
         def check(interaction):
             if message is not None and type(interaction) == disnake.MessageInteraction:
                 right_message = message.id == interaction.message.id
@@ -499,7 +529,9 @@ class Botutils:
         while True:
 
             try:
-                interaction = await inter.client.wait_for('interaction', check=check, timeout=timeout)
+                interaction = await inter.client.wait_for('interaction',
+                                                          check=check,
+                                                          timeout=timeout)
                 if not everyone_can_click and not inter.author.id == interaction.author.id:
                     await send_callback(interaction,
                                         embed=generate_embed(
@@ -514,7 +546,7 @@ class Botutils:
             except asyncio.exceptions.TimeoutError as e:
                 try:
                     set_thumbnail_file_if_not_none()
-                    await message.edit(components=[Botutils.generate_hide_button()])
+                    await message.edit(components=[BotUtils.generate_hide_button()])
                 except:
                     pass
                 return
@@ -524,11 +556,10 @@ class Botutils:
                 continue
             if interaction.component.custom_id in ['next', 'previous', 'hide', 'choose_category']:
                 try:
-                    await interaction.response.defer(ephemeral=True)
+                    if not ephemeral:
+                        await interaction.response.defer(ephemeral=True)
                 except disnake.errors.HTTPException:
                     return
-            else:
-                continue
             if interaction.component.custom_id == 'next':
                 embeds_num = len(embeds)
                 if is_categorised_pages():
@@ -549,6 +580,8 @@ class Botutils:
                 return
             elif Func.startswith_list(interaction.component.custom_id, return_if_starts_with):
                 return
+            else:
+                continue
             embed = get_current_embed()['embed']
             components = get_current_embed()['components']
             set_thumbnail_file_if_not_none()
@@ -566,14 +599,118 @@ class Botutils:
         return hide_button
 
     @staticmethod
-    def check_if_right_user(interaction):
+    def check_if_right_user(interaction, except_users: list = None):
+        if except_users is None:
+            except_users = []
+        if interaction.author.id in except_users:
+            return True
         return interaction.message.interaction.user.id == interaction.author.id
 
     @staticmethod
+    def get_commission(user1, user2, min: int = 5, max: int = 50):
+        pigs_weight_dif = Pig.get_weight(user1.id) - Pig.get_weight(user2.id)
+        commission = round(pigs_weight_dif * .35)
+        if commission < min:
+            commission = min
+        if commission > max:
+            commission = max
+        return commission
+
+    @staticmethod
+    def get_amount_with_commission(amount, commission):
+        amount_with_commission = round(amount + amount * (commission / 100))
+        return amount_with_commission
+
+    @staticmethod
     def generate_user_pig(user_id, eye_emotion: str = None):
-        return Func.build_pig(tuple(Pig.get_skin(user_id, 'all').items()),
-                              tuple(Pig.get_genetic(user_id, 'all').items()),
-                              eye_emotion=eye_emotion)
+        return BotUtils.build_pig(tuple(Pig.get_skin(user_id, 'all').items()),
+                                  tuple(Pig.get_genetic(user_id, 'all').items()),
+                                  eye_emotion=eye_emotion, user_id=user_id)
+
+    @staticmethod
+    @cached(TTLCache(maxsize=1000, ttl=60))
+    def build_pig(skins: tuple, genetic: tuple = None, output_filename: str = None, output_path: str = None,
+                  eye_emotion: str = None, user_id=None):
+        skins = dict(skins)
+        if genetic is None:
+            genetic = utils_config.default_pig['genetic']
+        else:
+            genetic = dict(genetic)
+        skin_types = ['body', 'tattoo', 'makeup', 'eyes', 'pupils',
+                      'glasses', 'nose', '_nose', 'piercing_nose',
+                      'face',
+                      'piercing_ear', 'suit', 'hat', 'legs', 'tie']
+        for i in skin_types:
+            if i not in skins and i not in 'nose':
+                skins[i] = None
+        if 'eye_emotion' not in skins:
+            skins['eye_emotion'] = None
+        eye_emotion = skins['eye_emotion'] if eye_emotion is None else eye_emotion
+        not_draw = []
+        not_draw_raw = {}
+        print(skins)
+        for item in skins.values():
+            if item is not None and item in items and 'not_draw' in items[item]:
+                not_draw_raw[items[item]['type'].split(':')[1]] = items[item]['not_draw']
+        for i, key in enumerate(skin_types):
+            if key in skins and user_id is not None and Inventory.get_item_amount(user_id, skins[key]) == 0 and skins[
+                key] is not None:
+                skins[key] = None
+                if key in not_draw_raw:
+                    not_draw_raw.pop(key)
+        print(not_draw_raw)
+        for k, v in not_draw_raw.copy().items():
+            for i in v:
+                if i not in skin_types and i not in items:
+                    continue
+                skin_type = i
+                if i in items:
+                    skin_type = Inventory.get_item_skin_type(i)
+                if skin_type in not_draw_raw and skin_types.index(skin_type) < skin_types.index(k):
+                    not_draw_raw.pop(skin_type)
+        for v in not_draw_raw.values():
+            not_draw += v
+        if skins['hat'] is not None:
+            not_draw += ['piercing_ear']
+        if 'paint' in not_draw:
+            skins['body'] = None
+        if output_filename is None:
+            output_filename = random.randrange(10000000)
+        skins_path = 'bin/pig_skins'
+        for i, key in enumerate(skin_types):
+            if key in not_draw or (key in skins and skins[key] in items and skins[key] in not_draw):
+                continue
+            folder_of_skin = key
+            if key == 'nose':
+                folder_of_skin = 'nose'
+                key = 'body'
+            part = skins[key]
+            if skins[key] is None and key in genetic:
+                part = genetic[key]
+            elif skins[key] is None and key not in genetic:
+                continue
+            part_path = f'{skins_path}/{folder_of_skin}/{part}.png'
+            if i == 0:
+                built_pig_img = Image.open(part_path)
+            else:
+                img_to_paste = Image.open(part_path)
+                if key == 'eyes':
+                    if eye_emotion in utils_config.emotions_erase_cords:
+                        draw = ImageDraw.Draw(img_to_paste)
+                        for cords in utils_config.emotions_erase_cords[eye_emotion]:
+                            if len(cords) == 3:
+                                x1 = cords[0] - cords[2]
+                                y1 = cords[1] - cords[2]
+                                x2 = cords[0] + cords[2]
+                                y2 = cords[1] + cords[2]
+                                draw.ellipse([(x1, y1), (x2, y2)], fill=img_to_paste.getpixel((0, 0)))
+                            else:
+                                draw.polygon(cords, fill=img_to_paste.getpixel((0, 0)))
+                built_pig_img = Image.alpha_composite(built_pig_img, img_to_paste)
+        if output_path is None:
+            output_path = f'bin/pigs/{output_filename}.png'
+        built_pig_img.save(output_path)
+        return output_path
 
     @staticmethod
     def filter_users(client, users, is_on_server: int):
@@ -584,6 +721,35 @@ class Botutils:
                 if guild.get_member(int(user_id)) is not None:
                     result.append(user_id)
         return result
+
+    @staticmethod
+    def profile_embed(inter, lang, user: disnake.User = None, info: list = None) -> disnake.Embed:
+        if user is None:
+            user = inter.author
+        description = ''
+        if 'user' in info:
+            description += Locales.Profile.user_profile_desc[lang].format(balance=User.get_money(user.id),
+                                                                          likes=len(User.get_likes(user.id))) + '\n\n'
+        if 'pig' in info:
+            description += Locales.Profile.pig_profile_desc[lang].format(pig_name=Pig.get_name(user.id),
+                                                                         weight=Pig.get_weight(user.id),
+                                                                         age=Pig.age(user.id, lang)) + '\n\n'
+        if 'family' in info:
+            family_id = User.get_family(user.id)
+            description += Locales.Profile.family_profile_desc[lang].format(role=Family.get_member_role(
+                family_id, user.id, lang))
+        embed = generate_embed(
+            title=Locales.Profile.profile_title[lang].format(user=user.display_name),
+            description=description,
+            prefix=Func.generate_prefix('🐽'),
+            thumbnail_file=BotUtils.generate_user_pig(user.id),
+            inter=inter,
+            # fields=[{'name': Locales.Profile.pig_field_title[lang],
+            #          'value': Locales.Profile.pig_field_value[lang].format(
+            #              pig_name=Pig.get_name(user.id),
+            #              weight=Pig.get_weight(user.id))}]
+        )
+        return embed
 
     @staticmethod
     def raise_if_language_not_supported(user_id, lang: str = 'en'):

@@ -13,6 +13,13 @@ class Inventory:
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_item_local_data(user_id, item_id):
+        inventory = User.get_inventory(user_id)
+        if item_id in inventory:
+            return User.get_inventory(user_id)[item_id]
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_item_name(item_id, lang):
         if 'name' in items[item_id]:
             return items[item_id]['name'][lang]

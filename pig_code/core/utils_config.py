@@ -21,17 +21,19 @@ default_pig = {'name': 'Hryak',
                'skins': {
                    'body': None,
                    'tattoo': None,
+                   'makeup': None,
                    'eyes': None,
                    'pupils': None,
-                   'hat': None,
                    'glasses': None,
-                   'tie': None,
-                   'legs': None,
                    '_nose': None,
                    'eye_emotion': None,
-                   'suit': None,
                    'piercing_nose': None,
-                   'piercing_ear': None
+                   'face': None,
+                   'piercing_ear': None,
+                   'suit': None,
+                   'hat': None,
+                   'legs': None,
+                   'tie': None,
                }}
 pig_feed_cooldown = 4 * 60 ** 2 if not config.TEST else 5  # seconds
 premium_pig_feed_cooldown = 2 * 60 ** 2 if not config.TEST else 5  # seconds
@@ -70,12 +72,15 @@ win_gifs = [
 db_api_cash_size = 10
 db_api_cash_ttl = 1
 
-default_pig_body_genetic = ['default_1', 'default_2', 'default_3', 'default_4', 'default_5']
-default_pig_pupils_genetic = ['black_pupils']
+default_pig_body_genetic = ['default_1',
+                            # 'default_2', 'default_3', 'default_4', 'default_5'
+                            ]
+default_pig_pupils_genetic = ['black_pupils', 'blue_pupils', 'green_pupils',
+                              'orange_pupils', 'pink_pupils', 'yellow_pupils', 'purple_pupils']
 default_pig_eyes_genetic = ['white_eyes']
 stats = {'pig_fed': 0, 'money_earned': 0, 'commands_used': {}, 'items_used': {}, 'items_sold': {},
          'language_changed': False}
-guild_settings = {'join_channel': None, 'join_message': None}
+guild_settings = {'join_channel': None, 'join_message': None, 'allow_say': False}
 emotions_erase_cords = {
     'sad': [(265, 254, 154, 387, 352, 324), (646, 433, 444, 321, 588, 285)],
     'happy': [(409, 487, 646, 487, 535, 679), (151, 461, 269, 555, 349, 473)],
@@ -85,6 +90,7 @@ emotions_erase_cords = {
 }
 
 ignore_users_in_top = [1102273144733049003, 932191352677097534, 715575898388037676]
+anti_bot_decreases = [0, 0, 0, 2, 5, 15, 20, 25, 45, 60, 80, 95, 96, 97, 98, 99]
 
 # text
 start_text = '**I am alive!**'

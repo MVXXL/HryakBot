@@ -15,8 +15,8 @@ class User:
     def register(user_id):
         stats = json.dumps(utils_config.stats)
         Connection.make_request(
-            f"INSERT INTO {users_schema} (id, pig, inventory, stats, events, buy_history) "
-            f"VALUES ('{user_id}', '{'{}'}', '{'{}'}', '{stats}', '{'{}'}', '[]')"
+            f"INSERT INTO {users_schema} (id, pig, inventory, stats, events, buy_history, likes) "
+            f"VALUES ('{user_id}', '{'{}'}', '{'{}'}', '{stats}', '{'{}'}', '[]', '{'{}'}')"
         )
         # Stats.fix_stats_structure(user_id)
 
@@ -52,6 +52,11 @@ class User:
                 f"SELECT id FROM {users_schema} ORDER BY {column} ASC;",
                 fetch=True, commit=False, fetchall=True
             )
+        elif json_key == 'len':
+            result = Connection.make_request(
+                f"SELECT id FROM {users_schema} ORDER BY JSON_LENGTH({column}) ASC;",
+                fetch=True, commit=False, fetchall=True
+            )
         else:
             result = Connection.make_request(
                 f"SELECT id FROM {users_schema} ORDER BY JSON_EXTRACT({column}, '$.{json_key}') ASC;",
@@ -84,19 +89,39 @@ class User:
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_pig(user_id):
-        result = Connection.make_request(
-            f"SELECT pig FROM {users_schema} WHERE id = {user_id}",
-            commit=False,
-            fetch=True,
-        )
-        if result is not None:
-            return json.loads(result)
+        if type(user_id) is not list:
+            result = Connection.make_request(
+                f"SELECT pig FROM {users_schema} WHERE id = {user_id}",
+                commit=False,
+                fetch=True,
+            )
+            if result is not None:
+                return json.loads(result)
+            else:
+                return {}
         else:
-            return {}
+            user_ids = []
+            for i in user_id:
+                user_ids.append(int(i))
+            result = Connection.make_request(
+                f"SELECT pig FROM {users_schema} WHERE id IN {tuple(user_ids)}",
+                commit=False,
+                fetch=True,
+                fetchall=True,
+                fetch_first=False
+            )
+            if result is not None:
+                final_result = {}
+                for i, j in enumerate(result):
+                    final_result[user_ids[i]] = json.loads(j[0])
+                return final_result
+            else:
+                return {}
 
     @staticmethod
     @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_inventory(user_id):
+        print(user_id)
         result = Connection.make_request(
             f"SELECT inventory FROM {users_schema} WHERE id = {user_id}",
             commit=False,
@@ -270,6 +295,41 @@ class User:
         buy_history = User.get_buy_history(user_id)
         buy_history.append({item_id: Func.get_current_timestamp()})
         User.set_buy_history(user_id, buy_history)
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def get_likes(user_id):
+        result = Connection.make_request(
+            f"SELECT likes FROM {users_schema} WHERE id = {user_id}",
+            commit=False,
+            fetch=True,
+        )
+        if result is not None:
+            return json.loads(result)
+        else:
+            return {}
+
+    @staticmethod
+    def set_likes(user_id, new_likes):
+        new_likes = json.dumps(new_likes, ensure_ascii=False)
+        Connection.make_request(
+            f"UPDATE {users_schema} SET likes = '{new_likes}' WHERE id = {user_id}"
+        )
+
+    @staticmethod
+    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def append_like(user_id, liked_by):
+        likes = User.get_likes(user_id)
+        if str(liked_by) not in likes:
+            likes[str(liked_by)] = {"timestamp": Func.get_current_timestamp()}
+        User.set_likes(user_id, likes)
+
+    @staticmethod
+    def have_like_by(user_id, liked_by):
+        likes = User.get_likes(user_id)
+        if str(liked_by) in likes:
+            return True
+        return False
 
     @staticmethod
     def get_recent_bought_items(user_id, seconds):

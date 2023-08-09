@@ -2,28 +2,11 @@ from ...core import *
 from ...utils import *
 
 
-def profile(inter, lang, user: disnake.User = None) -> disnake.Embed:
-    if user is None:
-        user = inter.author
-    embed = generate_embed(
-        title=Locales.Profile.profile_title[lang].format(user=user.display_name),
-        description=Locales.Profile.profile_desc[lang].format(balance=User.get_money(user.id),
-                                                              pig_name=Pig.get_name(user.id),
-                                                              weight=Pig.get_weight(user.id),
-                                                              age=Pig.age(user.id, lang)),
-        prefix=Func.generate_prefix('🐽'),
-        thumbnail_file=generate_user_pig(user.id),
-        inter=inter,
-        # fields=[{'name': Locales.Profile.pig_field_title[lang],
-        #          'value': Locales.Profile.pig_field_value[lang].format(
-        #              pig_name=Pig.get_name(user.id),
-        #              weight=Pig.get_weight(user.id))}]
-    )
-    return embed
+
 
 
 def promo_code_used(inter, lang, prise) -> disnake.Embed:
-    items_received = Botutils.get_items_in_str_list(prise, lang)
+    items_received = BotUtils.get_items_in_str_list(prise, lang)
     embed = generate_embed(title=Locales.PromoCode.promo_code_used_title[lang],
                            description=f'## {Locales.PromoCode.you_got_desc[lang]}\n'
                                        f'```{items_received}```',
@@ -173,7 +156,7 @@ def wardrobe_item_preview(inter, item_id, lang) -> disnake.Embed:
         description=Locales.WardrobeItemPreview.desc[lang].format(item=Inventory.get_item_name(item_id, lang)),
         prefix=Func.generate_prefix('👁️'),
         inter=inter,
-        thumbnail_file=Func.build_pig(tuple(preview_options.items()),
+        thumbnail_file=BotUtils.build_pig(tuple(preview_options.items()),
                                       tuple(Pig.get_genetic(inter.author.id, 'all').items())),
     )
     return embed

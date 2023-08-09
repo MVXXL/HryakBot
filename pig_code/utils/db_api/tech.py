@@ -1,6 +1,6 @@
 from .connection import Connection
 from ...core import *
-from ...core.config import users_schema, shop_schema, promo_code_schema, guilds_schema, families_schema
+from ...core.config import users_schema, shop_schema, promo_code_schema, guilds_schema, families_schema, trades_schema
 
 
 class Tech:
@@ -15,6 +15,7 @@ class Tech:
             "stats json",
             "events json",
             "buy_history json",
+            "likes json",
             "language varchar(10) DEFAULT 'en'",
             'premium boolean DEFAULT FALSE',
             'blocked boolean DEFAULT FALSE',
@@ -106,6 +107,21 @@ class Tech:
         for column in columns[1:]:
             try:
                 Connection.make_request(f"ALTER TABLE {families_schema} ADD COLUMN {column}", commit=False)
+            except:
+                pass
+
+    @staticmethod
+    def create_trades_table():
+        columns = ['id varchar(32) PRIMARY KEY UNIQUE',
+                   'data json',
+                   ]
+        try:
+            Connection.make_request(f"CREATE TABLE {trades_schema} ({columns[0]})", commit=False)
+        except mysql.connector.errors.ProgrammingError:
+            pass
+        for column in columns[1:]:
+            try:
+                Connection.make_request(f"ALTER TABLE {trades_schema} ADD COLUMN {column}", commit=False)
             except:
                 pass
 

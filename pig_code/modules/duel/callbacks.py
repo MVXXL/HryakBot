@@ -5,9 +5,10 @@ from . import components
 
 
 async def duel(inter, opponent, bet):
-    await Botutils.pre_command_check(inter)
+    await BotUtils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
     User.register_user_if_not_exists(opponent.id)
+    Pig.create_pig_if_no_pig(opponent.id)
     if opponent == inter.author:
         await error_callbacks.cant_play_with_yourself_duel(inter)
         return

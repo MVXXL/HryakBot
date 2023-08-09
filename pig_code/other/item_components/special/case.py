@@ -34,9 +34,9 @@ async def case_used(inter, gift_case, update):
         User.add_item(inter.author.id, item, amount)
     await send_callback(inter, embed=generate_embed(
         title=Locales.ItemUsed.case_title[lang],
-        description=f"{Locales.ItemUsed.case_desc[lang].format(items=Botutils.get_items_in_str_list(items_received, lang))}",
+        description=f"{Locales.ItemUsed.case_desc[lang].format(items=BotUtils.get_items_in_str_list(items_received, lang))}",
         prefix=Func.generate_prefix('🎁'),
-        color=utils_config.rarity_colors[str(Botutils.get_rarest_item(items_received))],
+        color=utils_config.rarity_colors[str(BotUtils.get_rarest_item(items_received))],
         inter=inter,
     ), ephemeral=True, edit_original_message=False)
     await update()

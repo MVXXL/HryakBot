@@ -36,6 +36,20 @@ class SetupCommands(commands.Cog):
     async def reset(self, inter):
         await modules.other.callbacks.reset_join_message(inter)
 
+    @commands.has_guild_permissions(administrator=True)
+    @commands.slash_command()
+    async def settings(self, inter):
+        pass
+
+    @settings.sub_command(description=Localized(data=Locales.SettingsSay.description))
+    async def say(self, inter,
+                  allow: str = commands.Param(
+                      name=Localized(data=Locales.SettingsSay.allow_var_name),
+                      description=Localized(data=Locales.SettingsSay.allow_var_description),
+                  choices=BotUtils.bool_command_choice())
+                  ):
+        await modules.other.callbacks.settings_say(inter, Func.str_to_bool(allow))
+
 
 def setup(client):
     client.add_cog(SetupCommands(client))

@@ -20,12 +20,13 @@ SDC_TOKEN = get_env('SDC_TOKEN')
 BOTICORD_TOKEN = get_env('BOTICORD_TOKEN')
 VERSION = '1.0'
 TEST = True
-PUBLIC_TEST = True
+PUBLIC_TEST = False
 ADMIN_GUILDS = get_env('TEST_ADMIN_GUILDS', list) if TEST else get_env('ADMIN_GUILDS', list)
 TEST_GUILDS = get_env('TEST_GUILDS', list)
 PUBLIC_TEST_GUILDS = get_env('PUBLIC_TEST_GUILDS', list)
 BOT_GUILD = int(get_env('BOT_GUILD'))
 BOT_STATS_CHANNEL = int(get_env('BOT_STATS_CHANNEL'))
+BOT_IDEAS_CHANNEL = int(get_env('BOT_IDEAS_CHANNEL'))
 LOGS_PATH = get_env('LOGS_PATH')
 TEST_LOGS_PATH = get_env('TEST_LOGS_PATH')
 RESERVE_LOGS_FOLDER_PATH = get_env('RESERVE_LOGS_FOLDER_PATH')
@@ -49,6 +50,7 @@ users_schema = 'users' if not TEST else 'test_users'
 guilds_schema = 'guilds' if not TEST else 'test_guilds'
 shop_schema = 'shop' if not TEST else 'test_shop'
 promo_code_schema = 'promo_codes' if not TEST else 'test_promo_codes'
+trades_schema = 'trades' if not TEST else 'test_trades'
 families_schema = 'families' if not TEST else 'test_families'
 
 if PUBLIC_TEST:

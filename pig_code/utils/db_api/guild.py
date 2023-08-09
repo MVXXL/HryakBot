@@ -30,10 +30,11 @@ class Guild:
         return bool(result)
 
     @staticmethod
-    def fix_settings_structure_for_all_guilds():
+    async def fix_settings_structure_for_all_guilds():
         guilds = Tech.get_all_guilds()
         for guild in guilds:
             Guild.fix_settings_structure(guild)
+            await asyncio.sleep(.1)
 
     @staticmethod
     def fix_settings_structure(guild_id):
@@ -86,6 +87,17 @@ class Guild:
     def join_message(guild_id):
         settings = Guild.get_settings(guild_id)
         return settings['join_message']
+
+    @staticmethod
+    def is_say_allowed(guild_id):
+        settings = Guild.get_settings(guild_id)
+        return settings['allow_say']
+
+    @staticmethod
+    def allow_say(guild_id, allow: bool = True):
+        settings = Guild.get_settings(guild_id)
+        settings['allow_say'] = allow
+        Guild.set_settings(guild_id, settings)
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))

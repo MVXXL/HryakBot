@@ -242,10 +242,10 @@ async def not_enough_money(inter, minimum_money=None, ephemeral: bool = True, ed
     ), ephemeral=ephemeral, edit_original_message=edit_original_message)
 
 
-async def no_item(inter):
+async def no_item(inter, item):
     lang = User.get_language(inter.author.id)
     await send_callback(inter, embed=generate_embed(
-        title=Locales.ErrorCallbacks.no_item_title[lang],
+        title=Locales.ErrorCallbacks.no_item_title[lang].format(item=Inventory.get_item_name(item, lang)),
         description=f"{Locales.ErrorCallbacks.no_item_desc[lang]}",
         prefix=Func.generate_prefix('❌'),
         inter=inter,

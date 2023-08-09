@@ -145,8 +145,8 @@ class Locales:
                                   'ru': '*Вам сначала нужно выйти из текущей семьи*'}
         accept_user_title = {'en': "Great",
                              'ru': 'Отлично'}
-        accept_user_desc = {'en': "*You have accepted the request to join from {user}*",
-                            'ru': '*Вы приняли запрос на вступление от {user}*'}
+        accept_user_desc = {'en': "*You have accepted the request to join from **{user}***",
+                            'ru': '*Вы приняли запрос на вступление от **{user}***'}
         reject_user_title = {'en': "Great",
                              'ru': 'Отлично'}
         reject_user_desc = {'en': "*You have rejected the request to join from **{user}***",
@@ -155,10 +155,14 @@ class Locales:
                            'ru': 'У вас нету семьи'}
         no_family_desc = {'en': "*You can't do this because you don't have a family.*",
                           'ru': '*Вы не можете сделать это, так как у вас нету семьи*'}
-        not_exist_title = {'en': "You don't have a family",
+        not_exist_title = {'en': "Family doesn't exist",
                            'ru': 'Семьи не существует'}
         not_exist_desc = {'en': "*It seems that such a family does not exist. It's a pity...*",
                           'ru': '*Кажется, такой семьи не существует. Жаль...*'}
+        user_banned_title = {'en': "You are banned",
+                           'ru': 'Вы забанены'}
+        user_banned_desc = {'en': "*Oops, looks like you've been kicked out of this family forever. What have you done?*",
+                          'ru': '*Упс, кажется вас навсегда выгнали с этой семьи . Что же вы такого натворили?*'}
 
     class ViewFamily:
         description = {Locale.en_US: 'Look at your family',
@@ -204,7 +208,7 @@ class Locales:
         no_family_title = {'en': "You don't have a family",
                            'ru': 'У вас нету семьи'}
         no_family_desc = {'en': "*You can't invite someone to a family that doesn't exist.*",
-                          'ru': '*Вы не можете пригласить кого-тов в семью, которой не существует*'}
+                          'ru': '*Вы не можете пригласить кого-то в семью, которой не существует*'}
         not_owner_title = {'en': "You are not the owner",
                            'ru': 'Вы не имеете прав'}
         not_owner_desc = {'en': "*You cannot invite someone to your family because you do not have rights*",
@@ -217,6 +221,23 @@ class Locales:
                     'ru': '*Пользователь может присоединиться к вашей семье используя данный код: **{code}**\n'
                           'Пользователь которого вы хотите пригласить должен использовать команду **/family join**\n\n'
                           'Также возможно вам прийдётся вызвать команду **/family requests** чтобы принять пользователя*'}
+
+    class ChangeFamilySettings:
+        description = {Locale.en_US: 'Change family settings',
+                       Locale.ru: 'Изменить настройки семьи'}
+        no_family_title = {'en': "You don't have a family",
+                           'ru': 'У вас нету семьи'}
+        no_family_desc = {'en': "*You can't change family that doesn't exist.*",
+                          'ru': '*Вы не можете изменить семью, которой не существует*'}
+        not_owner_title = {'en': "You are not the owner",
+                           'ru': 'Вы не глава'}
+        not_owner_desc = {'en': "*You cannot change family settings because you do not have rights*",
+                          'ru': '*Вы не можете менять настройки семьи, так как вы не глава семьи*'}
+        scd_title = {'en': 'Settings changed ',
+                     'ru': 'Настройки изменены'}
+        scd_desc = {'en': '*You have changed your family settings*',
+                    'ru': '*Вы изменили настройки своей семьи*'}
+
 
     class JoinFamily:
         description = {Locale.en_US: 'Join the family',
@@ -255,6 +276,18 @@ class Locales:
                      'ru': 'Вы покинули семью'}
         scd_desc = {'en': '*You have left **{family}**. Your family will miss you (Probably)*',
                     'ru': '*Вы ушли за хлебом. **{family}** будет скучать за вами (Наверное)*'}
+
+    class FamilyMemberKick:
+        scd_title = {'en': 'User kicked',
+                     'ru': 'Участник выгнан'}
+        scd_desc = {'en': '*You kicked {user}. Now he will be sad*',
+                    'ru': '*Вы выгнали {user}. Теперь ему будет грустно*'}
+
+    class FamilyMemberBan:
+        scd_title = {'en': 'User banned',
+                     'ru': 'Участник забанен'}
+        scd_desc = {'en': '*You banned {user}. It serves him right*',
+                    'ru': '*Вы забанили {user}. Так ему и надо*'}
 
     class CreateFamily:
         description = {Locale.en_US: 'Create your family',
@@ -332,6 +365,48 @@ class Locales:
         message_url_btn = {'en': 'Message',
                            'ru': 'Сообщение'}
 
+    class Trade:
+        description = {Locale.en_US: 'Trade with user',
+                       Locale.ru: 'Торговать с пользователем'}
+        user_var_name = {Locale.en_US: 'user',
+                         Locale.ru: 'пользователь'}
+        user_var_desc = {Locale.en_US: 'The user you want to trade with',
+                         Locale.ru: 'Пользователь с которым вы хотите торговать'}
+        # invite_title = {'en': 'Invitation to a duel',
+        #                 'ru': 'Приглашение на дуэль'}
+        # personal_invite_desc = {'en': '**{opponent}** was invited to duel with **{user}**\n\n'
+        #                               '- Bet: **{bet}** 🪙',
+        #                         'ru': '**{opponent}** был приглашен на дуэль с **{user}**\n\n'
+        #                               '- Ставка: **{bet}** 🪙'}
+        # personal_invite_dm_desc = {'en': '**You** were invited to duel with **{user}**\n\n'
+        #                                  '- Bet: **{bet}** 🪙',
+        #                            'ru': '**Вы** были приглашены на дуэль с **{user}**\n\n'
+        #                                  '- Ставка: **{bet}** 🪙\n'}
+        # duel_canceled_title = {'en': 'Duel was canceled',
+        #                        'ru': 'Дуэль была отменена'}
+        # opponent_reject_desc = {'en': '- **{user}** declined duel invitation',
+        #                         'ru': '- **{user}** отклонил приглашение на дуэль'}
+        # no_money_for_bet_desc = {'en': "- **{user}** is so poor that he didn't have enough money to bet",
+        #                          'ru': '- **{user}** настолько бедный, что ему не хватило денег на ставку'}
+        # no_response_desc = {'en': "- **{user}** did not come to the duel",
+        #                     'ru': '- **{user}** не пришёл на дуэль'}
+        # fight_will_start_in = {'en': 'Duel will start in {time_to_start} s',
+        #                        'ru': 'Дуэль начнётся через {time_to_start} с'}
+        # fight_starting_field_value = {'en': '```Weight: {weight} kg\n'
+        #                                     'Win chance: {chance} %```',
+        #                               'ru': '```Вес: {weight} кг\n'
+        #                                     'Шанс на победу: {chance} %```'}
+        # fight_is_going_title = {'en': 'Duel is going...',
+        #                         'ru': 'Идёт дуэль...'}
+        # fight_ended_title = {'en': 'Duel ended',
+        #                      'ru': 'Дуэль окончена'}
+        # fight_ended_desc = {'en': '# {user} won the duel\n'
+        #                           '- **{user}** won **{money_earned}** 🪙',
+        #                     'ru': '# {user} выиграл дуэль\n'
+        #                           '- **{user}** получил **{money_earned}** 🪙'}
+        # message_url_btn = {'en': 'Message',
+        #                    'ru': 'Сообщение'}
+
     class TransferMoney:
         description = {Locale.en_US: 'Transfer money to another user',
                        Locale.ru: 'Перевести деньги другом пользователю'}
@@ -387,20 +462,44 @@ class Locales:
                          Locale.ru: 'Пользователь, у которого вы хотите посмотреть профиль'}
         profile_title = {'en': '{user}\'s profile',
                          'ru': 'Профиль {user}'}
-        profile_desc = {'en': '> Balance: **{balance}** 🪙\n\n'
-                              '> Pig name: **{pig_name}**\n'
+        user_profile_desc = {'en': '> Balance: **{balance}** 🪙'
+                                   '> Likes: **{likes}** ❤️',
+                        'ru': '> Баланс: **{balance}** 🪙\n'
+                              '> Лайки: **{likes}** ❤️'}
+        pig_profile_desc = {'en': '> Pig name: **{pig_name}**\n'
                               '> Age: **{age}**\n'
                               '> Weight: **{weight}** kg',
-                        'ru': '> Баланс: **{balance}** 🪙\n\n'
-                              '> Имя хряка: **{pig_name}**\n'
+                        'ru': '> Имя хряка: **{pig_name}**\n'
                               '> Возраст: **{age}**\n'
                               '> Вес: **{weight}** кг'}
+        family_profile_desc = {'en': '> Role: **{role}**',
+                        'ru': '> Роль: **{role}**'}
         pig_field_title = {'en': 'Pig',
                            'ru': 'Свинтус'}
         pig_field_value = {'en': 'Pig name: **{pig_name}**\n'
                                  'Weight: **{weight}** kg',
                            'ru': 'Имя хряка: **{pig_name}**\n'
                                  'Вес: **{weight}** кг'}
+
+    class View:
+        description = {Locale.en_US: 'View pig\'s appearance',
+                       Locale.ru: 'Посмотреть внешний вид хряка'}
+        user_var_name = {Locale.en_US: 'user',
+                         Locale.ru: 'пользователь'}
+        user_var_desc = {Locale.en_US: 'The user you want to see the pig of',
+                         Locale.ru: 'Пользователь, у которого вы хотите посмотреть хряка'}
+        title = {'en': '{user}\'s pig',
+                         'ru': 'Хряк {user}'}
+
+    class ProfileLike:
+        scd_title = {'en': 'Liked',
+                         'ru': 'Лайк поставлен'}
+        scd_desc = {'en': "*You liked **{user}'s** profile*",
+                        'ru': '*Вам понравился профиль **{user}***'}
+        already_put_title = {'en': 'No no no',
+                         'ru': 'Эй, нельзя'}
+        already_put_desc = {'en': "*You can't like 2 times*",
+                        'ru': '*Вы не можете поставить лайк 2 раза*'}
 
     class Stats:
         description = {Locale.en_US: 'View your stats',
@@ -435,14 +534,18 @@ class Locales:
                                         'Pig weight: {weight} kg',
                                   'ru': 'Имя хряка: {name}\n'
                                         'Вес хряка: {weight} кг'}
-        server_var_name = {Locale.en_US: 'server_only',
-                           Locale.ru: 'только_сервер'}
-        server_var_description = {Locale.en_US: 'Show top members on the server',
-                                  Locale.ru: 'Показать топ участников на сервере'}
+        server_var_name = {Locale.en_US: 'global',
+                           Locale.ru: 'глобальный'}
+        server_var_description = {Locale.en_US: 'Show global user top',
+                                  Locale.ru: 'Показать глобальный топ пользователей'}
         money_top_title = {'en': 'Money top',
                            'ru': 'Топ богачей'}
+        likes_top_title = {'en': 'Likes top',
+                           'ru': 'Топ популярных'}
         money_top_field_value = {'en': 'Balance: {money}',
                                  'ru': 'Баланс: {money}'}
+        likes_top_field_value = {'en': 'Likes: {likes} ❤️',
+                                 'ru': 'Лайки: {likes} ❤️'}
         placeholder = {'en': 'View profile',
                        'ru': 'Посмотреть профиль'}
 
@@ -488,6 +591,22 @@ class Locales:
                          Locale.ru: 'пользователь'}
         user_var_description = {Locale.en_US: 'Speak for the user',
                                 Locale.ru: 'Говорить от лица пользователя'}
+        not_allowed_title = {'en': 'Forbidden',
+                     'ru': 'Нельзя'}
+        not_allowed_desc = {'en': '*The `/say` command is disabled on this server. Ask the admin to enable it with `/settings say`*',
+                    'ru': '*Команда `/say` отключена на этом сервере. Попросите администрацию включить её при помощи `/settings say`*'}
+
+    class SettingsSay:
+        description = {Locale.en_US: 'Configuring the say command',
+                       Locale.ru: 'Настройка команды /say'}
+        allow_var_name = {Locale.en_US: 'allow',
+                         Locale.ru: 'включить'}
+        allow_var_description = {Locale.en_US: 'Use "\\\\" to go to the next line',
+                                Locale.ru: 'Используйте "\\\\" для перехода на следующую строку'}
+        scd_title = {'en': 'Great',
+                         'ru': 'Отлично'}
+        scd_desc = {'en': '*Settings for `/say` command changed*',
+                                'ru': '*Настройки для команды `/say` изменены*'}
 
     class Report:
         description = {Locale.en_US: 'Report bug',
@@ -506,6 +625,32 @@ class Locales:
         desc = {
             'en': 'Thank you for helping to develop the bot\n\n*Contact email: brevnoo@proton.me*',
             'ru': 'Хряк доволен за твою помощь, спасибо'}
+
+    class Idea:
+        description = {Locale.en_US: 'Suggest your idea for updating the bot',
+                       Locale.ru: 'Предложить свою идею для обновления бота'}
+        title_var_name = {Locale.en_US: 'title',
+                         Locale.ru: 'заголовок'}
+        title_var_desc = {Locale.en_US: 'Idea title',
+                         Locale.ru: 'Заголовок идеи'}
+        description_var_name = {Locale.en_US: 'description',
+                         Locale.ru: 'описание'}
+        description_var_desc = {Locale.en_US: 'Describe your idea in all colors',
+                         Locale.ru: 'Опишите вашу идею во всех красках'}
+        anonymous_var_name = {Locale.en_US: 'anonymous',
+                         Locale.ru: 'анонимно'}
+        anonymous_var_desc = {Locale.en_US: 'Submit an idea anonymously',
+                         Locale.ru: 'Отправить идею анонимно'}
+        attachment_var_name = {Locale.en_US: 'attachment',
+                               Locale.ru: 'картинка'}
+        attachment_var_desc = {Locale.en_US: 'Attach a picture if required',
+                               Locale.ru: 'Прикрепите картинку если требуется'}
+        title = {
+            'en': 'Idea sent!',
+            'ru': 'Ваша идея отправлена!'}
+        desc = {
+            'en': '*Your idea has been sent to the support server, thanks for the idea*',
+            'ru': '*Ваша идея отправлена на сервер поддержки, спасибо за идею*'}
 
     class ChooseLanguage:
         title = {'en': 'Choose language',
@@ -599,6 +744,12 @@ class Locales:
     class Global:
         page = {'en': 'Page',
                 'ru': 'Страница'}
+        like = {'en': 'Like',
+                'ru': 'Нравится'}
+        kick = {'en': 'Kick',
+                'ru': 'Выгнать'}
+        ban = {'en': 'Ban',
+                'ru': 'Бан'}
         date = {'en': 'Date',
                 'ru': 'Дата'}
         requests = {'en': 'Requests',
@@ -908,24 +1059,34 @@ class Locales:
         bot_as_opponent_duel_title = {'en': "Are you playing against a bot?",
                                       'ru': 'Ты против бота играешь?'}
         bot_as_opponent_duel_desc = {
-            'en': "I'll tell you a secret, bots don't know how to participate in duels. They can't even press a button.",
-            'ru': 'Расскажу секрет, боты не умеют участвовать в дуэлях. Они даже на кнопку нажать не могут'}
+            'en': "*I'll tell you a secret, bots don't know how to participate in duels. They can't even press a button.*",
+            'ru': '*Расскажу секрет, боты не умеют участвовать в дуэлях. Они даже на кнопку нажать не могут*'}
         bot_as_partner_breed_title = {'en': "Going to have kids with a bot?",
                                       'ru': 'Собрался завести детей с ботом?'}
         bot_as_partner_breed_desc = {
-            'en': "The future is not close enough for you to breed with robots",
-            'ru': 'Будущее не настолько близко, чтобы вы могли заводить потомство с роботами'}
+            'en': "*The future is not close enough for you to breed with robots*",
+            'ru': '*Будущее не настолько близко, чтобы вы могли заводить потомство с роботами*'}
         cant_play_with_yourself_duel_title = {'en': "Going to play by yourself?",
                                               'ru': 'Собрался играть сам с собой?'}
-        cant_play_with_yourself_duel_desc = {'en': "I thought users wouldn't choose themselves as opponents."
-                                                   "I think I was wrong",
-                                             'ru': 'Я думал что пользователи не станут выбирать самого себя в качестве соперника. '
-                                                   'Кажется, я ошибался'}
+        cant_play_with_yourself_duel_desc = {'en': "*I thought users wouldn't choose themselves as opponents."
+                                                   "I think I was wrong*",
+                                             'ru': '*Я думал что пользователи не станут выбирать самого себя в качестве соперника. '
+                                                   'Кажется, я ошибался*'}
         cant_breed_with_yourself_title = {'en': "Hey hey hey",
                                           'ru': 'Воу воу воу'}
         cant_breed_with_yourself_desc = {
-            'en': "I understand that you love yourself so much that you chose yourself as a partner, but unfortunately you can’t",
-            'ru': 'Я понимаю что вы любите себя настолько сильно что выбрали себя в качестве партнёра, но так к сожалению нельзя'}
+            'en': "*I understand that you love yourself so much that you chose yourself as a partner, but unfortunately you can’t*",
+            'ru': '*Я понимаю что вы любите себя настолько сильно что выбрали себя в качестве партнёра, но так к сожалению нельзя*'}
+        cant_trade_with_yourself_title = {'en': "You can't trade with yourself",
+                                          'ru': 'Нельзя торговать с собой'}
+        cant_trade_with_yourself_desc = {
+            'en': "*What are you going to inject yourself? Like \"Hey Me, let me sell you 10 coins for 10 coins\"?*",
+            'ru': '*Что ты себе впаривать собрался? Типо "Эй Я, давай я тебе продам 10 монет за 10 монет"?*'}
+        bot_as_trade_user_title = {'en': "Can't trade with a bot",
+                                      'ru': 'Нельзя торговать с ботом'}
+        bot_as_trade_user_desc = {
+            'en': "Hey, seriously. I'm already tired of reminding users that they can't interact with bots",
+            'ru': '*Эй, ну серьезно. Мне уже надоело напоминать пользователям что они не могут взаимодействовать с ботами*'}
         cooldown_title = {'en': "Cooldown",
                           'ru': 'Притормози'}
         cooldown_desc = {'en': 'You use the command too often\n\n'
@@ -987,6 +1148,10 @@ class Locales:
                       'ru': 'Глаза'},
         'skin:suit': {'en': 'Suit',
                       'ru': 'Костюм'},
+        'skin:makeup': {'en': 'Makeup',
+                      'ru': 'Макияж'},
+        'skin:face': {'en': 'Face',
+                        'ru': 'Лицо'},
         'skin:piercing_nose': {'en': 'Piercing - nose',
                                'ru': 'Пирсинг - нос'},
         'skin:piercing_ear': {'en': 'Piercing - ear',

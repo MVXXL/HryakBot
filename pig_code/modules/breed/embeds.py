@@ -6,7 +6,7 @@ def pig_breed_ok(inter, lang, became_pregnant, mini_pig) -> disnake.Embed:
         title='OK',
         description=f'{became_pregnant.display_name}, {Inventory.get_item_name(mini_pig, lang)}',
         prefix=Func.generate_prefix('🐷'),
-        thumbnail_file=generate_user_pig(inter.author.id),
+        thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
         inter=inter,
     )
     return embed
@@ -20,7 +20,7 @@ def pig_breed_fail(inter, lang, partner) -> disnake.Embed:
                                                          partner=Pig.get_name(partner.id),
                                                          retry=Pig.get_time_of_next_breed(inter.author.id)),
         prefix=Func.generate_prefix('🔞'),
-        thumbnail_file=generate_user_pig(inter.author.id, eye_emotion='sad'),
+        thumbnail_file=BotUtils.generate_user_pig(inter.author.id, eye_emotion='sad'),
         inter=inter,
     )
     return embed

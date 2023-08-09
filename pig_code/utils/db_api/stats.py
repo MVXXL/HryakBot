@@ -1,3 +1,5 @@
+import time
+
 from .connection import Connection
 from .tech import Tech
 from ...core import *
@@ -7,10 +9,11 @@ from ...core.config import users_schema
 class Stats:
 
     @staticmethod
-    def fix_stats_structure_for_all_users():
+    async def fix_stats_structure_for_all_users():
         users = Tech.get_all_users()
         for user in users:
             Stats.fix_stats_structure(user)
+            await asyncio.sleep(0.1)
 
     @staticmethod
     def fix_stats_structure(user_id):

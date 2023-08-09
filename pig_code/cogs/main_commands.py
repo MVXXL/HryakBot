@@ -23,19 +23,18 @@ class MainCommands(commands.Cog):
     async def stats(self, inter):
         await modules.other.callbacks.stats(inter)
 
-    #
     @commands.slash_command(description=Localized(data=Locales.Top.description))
     async def top(self, inter,
-                  server_only: str = commands.Param(default='False',
+                  _global: str = commands.Param(default='False',
                                                     name=Localized(data=Locales.Top.server_var_name),
                                                     description=Localized(
                                                         data=Locales.Top.server_var_description),
-                                                    choices=Botutils.bool_command_choice()
+                                                    choices=BotUtils.bool_command_choice()
                                                     )
                   ):
         await modules.top.callbacks.top(inter,
                                         # True
-                                        Func.str_to_bool(server_only)
+                                        Func.str_to_bool(_global)
                                         )
 
     #
@@ -59,6 +58,13 @@ class MainCommands(commands.Cog):
                                              name=Localized(data=Locales.Duel.bet_var_name),
                                              description=Localized(data=Locales.Duel.bet_var_desc))):
         await modules.duel.callbacks.duel(inter, user, bet)
+
+    # @commands.cooldown(2, 120)
+    # @commands.slash_command(description=Localized(data=Locales.Trade.description))
+    # async def trade(self, inter, user: disnake.User = commands.Param(
+    #     name=Localized(data=Locales.Trade.user_var_name),
+    #     description=Localized(data=Locales.Trade.user_var_desc))):
+    #     await modules.trade.callbacks.trade(inter, inter.author, user)
 
     @commands.cooldown(2, 60)
     @commands.slash_command(description=Localized(data=Locales.TransferMoney.description))
@@ -90,6 +96,29 @@ class MainCommands(commands.Cog):
                              data=Locales.Report.attachment_var_desc),
                          default=None)):
         await modules.other.callbacks.report(inter, text, attachment)
+
+    # @commands.cooldown(1, 60)
+    # @commands.slash_command(description=Localized(data=Locales.Idea.description))
+    # async def idea(self, inter,
+    #                  # title: str = commands.Param(
+    #                  #     name=Localized(data=Locales.Idea.title_var_name),
+    #                  #     description=Localized(data=Locales.Idea.title_var_desc), max_length=90),
+    #                description: str = commands.Param(
+    #                    name=Localized(data=Locales.Idea.description_var_name),
+    #                    description=Localized(data=Locales.Idea.description_var_desc), max_length=3900),
+    #                anonymous: str = commands.Param(default='False',
+    #                                              name=Localized(data=Locales.Idea.anonymous_var_name),
+    #                                              description=Localized(
+    #                                                  data=Locales.Idea.anonymous_var_desc),
+    #                                              choices=BotUtils.bool_command_choice()
+    #                                              )
+    #                  # attachment: disnake.Attachment = commands.Param(
+    #                  #     name=Localized(data=Locales.Idea.attachment_var_name),
+    #                  #     description=Localized(
+    #                  #         data=Locales.Idea.attachment_var_desc),
+    #                  #     default=None)
+    #                ):
+    #     await modules.other.callbacks.idea(inter, description, Func.str_to_bool(anonymous))
 
     @commands.cooldown(3, 30)
     @commands.slash_command(description=Localized(data=Locales.PromoCode.description))

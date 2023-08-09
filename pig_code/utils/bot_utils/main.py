@@ -1,3 +1,5 @@
+import aiohttp.client_exceptions
+
 from ..functions import Func
 from ..db_api import *
 from ...core import *
@@ -11,48 +13,56 @@ async def send_callback(inter,
                         edit_original_message: bool = True,
                         ctx_message: bool = False,
                         components: list = None,
-                        files: list = None):
+                        files: list = None,
+                        retries: int = 3):
     if components is None:
         components = []
     if files is None:
         files = []
-    message = None
-    if not send_to_dm:
-        try:
-            if ctx_message:
-                await inter.response.defer(ephemeral=ephemeral)
-                message = await inter.channel.send(content, embed=embed, components=components, files=files)
-            elif type(inter) in [disnake.Message, disnake.InteractionMessage]:
-                if edit_original_message:
-                    message = await inter.edit(content, embed=embed, components=components, files=files)
-            else:
-                try:
+    for _ in range(retries):
+        message = None
+        if not send_to_dm:
+            try:
+                if ctx_message:
+                    await inter.response.defer(ephemeral=ephemeral)
+                    message = await inter.channel.send(content, embed=embed, components=components, files=files)
+                elif type(inter) in [disnake.Message, disnake.InteractionMessage]:
                     if edit_original_message:
-                        await inter.response.defer(ephemeral=ephemeral)
-                except disnake.errors.InteractionResponded:
-                    pass
-                try:
-                    if edit_original_message:
-                        message = await inter.edit_original_message(content=content, embed=embed,
-                                                                    components=components,
-                                                                    files=files)
-                    else:
+                        message = await inter.edit(content, embed=embed, components=components, files=files)
+                else:
+                    try:
+                        if edit_original_message:
+                            await inter.response.defer(ephemeral=ephemeral)
+                    except disnake.errors.InteractionResponded:
+                        pass
+                    try:
+                        if edit_original_message:
+                            message = await inter.edit_original_message(content=content, embed=embed,
+                                                                        components=components,
+                                                                        files=files)
+                        else:
+                            extra_kwargs = {}
+                            if embed is not None:
+                                extra_kwargs['embed'] = embed
+                            message = await inter.response.send_message(content, ephemeral=ephemeral,
+                                                                        components=components, files=files, **extra_kwargs)
+                    except disnake.HTTPException:
+                        # await inter.channel.send()
                         message = await inter.response.send_message(content, embed=embed, ephemeral=ephemeral,
                                                                     components=components, files=files)
-                except disnake.HTTPException:
-                    await inter.channel.send()
-                    message = await inter.response.send_message(content, embed=embed, ephemeral=ephemeral,
-                                                                components=components, files=files)
-        except Exception as e:
-            # raise e
-            print(e)
-    else:
-        try:
-            message = await send_to_dm.send(content, embed=embed, components=components, files=files)
-        except Exception as e:
-            # raise e
-            print(e)
-    return message
+            except aiohttp.client_exceptions.ClientOSError as e:
+                print(e)
+                await asyncio.sleep(1)
+                continue
+            except Exception as e:
+                print(e)
+        else:
+            try:
+                message = await send_to_dm.send(content, embed=embed, components=components, files=files)
+            except Exception as e:
+                # raise e
+                print(e)
+        return message
 
 
 def generate_embed(title: str = None,
@@ -60,6 +70,7 @@ def generate_embed(title: str = None,
                    color=utils_config.main_color,
                    prefix: str = None,
                    image_url: str = None,
+                   image_file: str = None,
                    thumbnail_url: str = None,
                    thumbnail_file: str = None,
                    footer: str = None,
@@ -89,6 +100,8 @@ def generate_embed(title: str = None,
         embed.set_thumbnail(url=thumbnail_url)
     elif thumbnail_file is not None:
         embed.set_thumbnail(file=disnake.File(fp=thumbnail_file))
+    elif image_file is not None:
+        embed.set_image(file=disnake.File(fp=image_file))
     if footer_url is None and inter is not None:
         footer_url = Func.generate_footer_url('user_avatar', inter.author)
     if footer is not None:
@@ -115,9 +128,3 @@ async def send_webhook_embed(url: str, embed=None, content: str = None, username
             break
         else:
             await asyncio.sleep(webhook_ex.json()['retry_after'] / 1000 + .2)
-
-
-def generate_user_pig(user_id, eye_emotion: str = None):
-    return Func.build_pig(tuple(Pig.get_skin(user_id, 'all').items()),
-                          tuple(Pig.get_genetic(user_id, 'all').items()),
-                          eye_emotion=eye_emotion)

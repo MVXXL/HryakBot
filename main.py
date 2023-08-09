@@ -12,7 +12,13 @@ class PigBot:
     def __init__(self):
         intents = disnake.Intents.default()
         intents.members = True
-        self.pig_bot = commands.InteractionBot(intents=intents, strict_localization=True)
+        if not config.TEST:
+            self.pig_bot = commands.AutoShardedInteractionBot(intents=intents, strict_localization=True, shard_count=2,
+                                                              max_messages=10000,
+                                                          activity=disnake.Activity(type=disnake.ActivityType.watching,
+                                                                                    name=f'/help'))
+        else:
+            self.pig_bot = commands.InteractionBot(intents=intents, strict_localization=True)
 
     def load_cogs(self):
         cogs_path = 'pig_code/cogs'

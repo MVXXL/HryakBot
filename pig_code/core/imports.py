@@ -9,6 +9,7 @@ from typing import Literal
 import requests
 import json
 import os
+import difflib
 import random
 import re
 import mysql.connector

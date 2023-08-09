@@ -3,13 +3,24 @@ import random
 from .connection import Connection
 from .tech import Tech
 from .user import User
+from .pig import Pig
 from ..functions import Func
 from ...core import *
 from ...core.config import families_schema
 
 
 class Family:
-    pass
+    @staticmethod
+    def get_public_families():
+        result = Connection.make_request(
+            f"SELECT id FROM {families_schema} WHERE private = 0",
+            commit=False, fetch=True,
+            fetchall=True, fetch_first=False
+        )
+        if result is not None:
+            return [i[0] for i in result]
+        else:
+            return []
 
     @staticmethod
     def create(name, owner_id, description: str = '', image: str = '',
@@ -34,7 +45,7 @@ class Family:
         Connection.make_request(f"DELETE FROM {families_schema} WHERE id = {family_id}")
 
     @staticmethod
-    def update_members(family_id, new_family):
+    def set_members(family_id, new_family):
         new_family = json.dumps(new_family, ensure_ascii=False)
         Connection.make_request(
             f"UPDATE {families_schema} SET members = %s WHERE id = {family_id}", (new_family,)
@@ -42,25 +53,24 @@ class Family:
 
     @staticmethod
     def add_member(family_id, user_id, role: str = 'member'):
-        print(family_id)
         members = Family.get_members(int(family_id))
         members[str(user_id)] = {'role': role}
-        Family.update_members(family_id, members)
+        Family.set_members(family_id, members)
         User.set_family(user_id, family_id)
 
     @staticmethod
     def remove_member(family_id, user_id):
         members = Family.get_members(int(family_id))
-        print(user_id)
-        print(members)
         members.pop(str(user_id))
-        Family.update_members(family_id, members)
+        Family.set_members(family_id, members)
         User.set_family(user_id, None)
 
     @staticmethod
-    def get_member_role(family_id, user_id):
+    def get_member_role(family_id, user_id, lang = None):
         member = Family.get_member(int(family_id), user_id)
         if member is not None:
+            if lang is not None:
+                return Locales.FamilyRoles[member['role']][lang]
             return member['role']
 
     @staticmethod
@@ -95,6 +105,51 @@ class Family:
             return {}
 
     @staticmethod
+    def get_bans(family_id):
+        result = Connection.make_request(
+            f"SELECT bans FROM {families_schema} WHERE id = {family_id}",
+            commit=False,
+            fetch=True,
+        )
+        if result is not None:
+            return json.loads(result)
+        else:
+            return {}
+
+    @staticmethod
+    def ban_member(family_id, user_id):
+        bans = Family.get_bans(int(family_id))
+        bans[str(user_id)] = {}
+        Family.remove_member(family_id, user_id)
+        Family.set_bans(family_id, bans)
+
+    @staticmethod
+    def unban_member(family_id, user_id):
+        bans = Family.get_bans(int(family_id))
+        if str(user_id) in bans:
+            bans.pop(str(user_id))
+        Family.set_bans(family_id, bans)
+
+    @staticmethod
+    def is_user_banned(family_id, user_id):
+        bans = Family.get_bans(int(family_id))
+        if str(user_id) in bans:
+            return True
+        return False
+
+    @staticmethod
+    def set_bans(family_id, new_bans):
+        new_bans = json.dumps(new_bans, ensure_ascii=False)
+        Connection.make_request(
+            f"UPDATE {families_schema} SET bans = %s WHERE id = {family_id}", (new_bans,)
+        )
+
+    @staticmethod
+    def get_total_weight(family_id):
+        members = Family.get_members(family_id)
+        return Pig.get_weight(list(members))
+
+    @staticmethod
     def exists(family_id):
         result = Connection.make_request(
             f"SELECT EXISTS(SELECT 1 FROM {families_schema} WHERE id = %s)", params=(family_id,),
@@ -116,7 +171,7 @@ class Family:
     def set_private(family_id, private: bool):
         private = 1 if private else 0
         Connection.make_request(
-            f"UPDATE {families_schema} SET premium = '{private}' WHERE id = {family_id}"
+            f"UPDATE {families_schema} SET private = '{private}' WHERE id = {family_id}"
         )
 
     @staticmethod
@@ -132,7 +187,7 @@ class Family:
     def set_ask_to_join(family_id, ask_to_join: bool):
         ask_to_join = 1 if ask_to_join else 0
         Connection.make_request(
-            f"UPDATE {families_schema} SET premium = '{ask_to_join}' WHERE id = {family_id}"
+            f"UPDATE {families_schema} SET ask_to_join = '{ask_to_join}' WHERE id = {family_id}"
         )
 
     @staticmethod

@@ -5,8 +5,8 @@ from . import components
 
 
 async def pig_feed(inter):
-    await Botutils.pre_command_check(inter)
-    Botutils.check_pig_feed_cooldown(inter.author)
+    await BotUtils.pre_command_check(inter)
+    BotUtils.check_pig_feed_cooldown(inter.author)
     lang = User.get_language(inter.author.id)
     Stats.add_pig_fed(inter.author.id, 1)
     add_weight_chances = {'add': 85, 'remove': 15}
@@ -29,6 +29,15 @@ async def pig_feed(inter):
                 Pig.remove_buff(inter.author.id, item_buff)
             pooped_poop *= buffs['pooping_boost']
             weight_add *= buffs['weight_boost']
+    tf = Func.check_consecutive_timestamps(Pig.get_feed_history(inter.author.id)[-40:],
+                                           6 * 3600, 4 * 3600
+                                           # utils_config.pig_feed_cooldown * 1.5, utils_config.pig_feed_cooldown
+                                           )
+    print(tf)
+    if tf > len(utils_config.anti_bot_decreases) - 1:
+        tf = len(utils_config.anti_bot_decreases) - 1
+    weight_add *= 1 - utils_config.anti_bot_decreases[tf] / 100
+    pooped_poop *= 1 - utils_config.anti_bot_decreases[tf] / 100
     pooped_poop = round(pooped_poop)
     weight_add = round(weight_add, 1)
     User.add_item(inter.author.id, 'poop', pooped_poop)
@@ -38,8 +47,8 @@ async def pig_feed(inter):
 
 
 async def meat(inter):
-    await Botutils.pre_command_check(inter)
-    Botutils.check_pig_meat_cooldown(inter.author)
+    await BotUtils.pre_command_check(inter)
+    BotUtils.check_pig_meat_cooldown(inter.author)
     lang = User.get_language(inter.author.id)
     if Inventory.get_item_amount(inter.author.id, 'knife') <= 0:
         raise NoItemInInventory('knife', Locales.Meat.no_knife_desc)
@@ -52,7 +61,7 @@ async def meat(inter):
 
 
 async def pig_rename(inter, name):
-    await Botutils.pre_command_check(inter)
+    await BotUtils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
     name = name.replace('\'', '')
     Pig.rename(inter.author.id, name)

@@ -36,7 +36,7 @@ async def cook(inter, item_id, update):
                             ))
 
     await inter.response.send_modal(
-        modal=modals.GetItemAmountModal(inter, item_id, cook_item, Locales.InventoryItemCookModal.label))
+        modal=modals.GetItemAmountModal(inter, item_id, cook_item, Locales.InventoryItemCookModal.label, Locales.InventoryItemCookModal.title))
 
 
 async def sell(inter, item_id, update):
@@ -58,7 +58,7 @@ async def sell(inter, item_id, update):
                             ))
 
     await inter.response.send_modal(
-        modal=modals.GetItemAmountModal(inter, item_id, sell_item, Locales.InventoryItemSellModal.label))
+        modal=modals.GetItemAmountModal(inter, item_id, sell_item, Locales.InventoryItemSellModal.label, Locales.InventoryItemSellModal.title))
 
 
 def cook_comp():
@@ -117,8 +117,19 @@ item_components = {
                                           'ru': '*Вы чувствуете вину за то что откусили кусочек своего хряка*'},
                                       'prefix': '🍖'
                                       }}, 'sell': sell_comp()},
-    'common_case': {'sell': case_comp()},
-    'rare_case': {'sell': case_comp()}
+        'beer': {'eat': {'label': {'en': 'Drink',
+                                   'ru': 'Выпить'},
+                         'color': disnake.ButtonStyle.primary,
+                         'func': item_remove,
+                         'callback': {'title': {'en': 'You drank a beer',
+                                                'ru': 'Вы выпили пиво'},
+                                      'description': {
+                                          'en': '*You feel a little intoxicated and joyful*',
+                                          'ru': '*Вы чувствуете небольшое опьянение и радость*'},
+                                      'prefix': '🍻'
+                                      }}},
+    'common_case': {'open': case_comp()},
+    'rare_case': {'open': case_comp()}
 }
 
 for item in items:

@@ -33,7 +33,7 @@ def inventory_item_selected(inter, item_id, lang,
             description = f'{Locales.Global.amount[lang]}: **{Inventory.get_item_amount(inter.author.id, item_id)}**\n' \
                           f'{Locales.Global.type[lang]}: **{Inventory.get_item_type(item_id, lang)}**\n' \
                           f'{Locales.Global.rarity[lang]}: **{Inventory.get_item_rarity(item_id, lang)}**'
-        thumbnail_file = Func.build_pig(tuple(preview_options.items()),
+        thumbnail_file = BotUtils.build_pig(tuple(preview_options.items()),
                                         tuple(utils_config.default_pig['genetic'].items()))
     if inventory_type == 'shop':
         description = f'{Locales.Global.price[lang]}: **{Inventory.get_item_shop_price(item_id)}** 🪙\n' \
@@ -64,7 +64,7 @@ def wardrobe_item_wear(inter, item_id, lang) -> disnake.Embed:
             item=Inventory.get_item_name(item_id, lang)),
         prefix=Func.generate_prefix('scd'),
         inter=inter,
-        thumbnail_file=generate_user_pig(inter.author.id),
+        thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
     )
     return embed
 
@@ -75,6 +75,6 @@ def wardrobe_item_remove(inter, item_id, lang) -> disnake.Embed:
         description=Locales.WardrobeItemRemove.desc[lang].format(item=Inventory.get_item_name(item_id, lang)),
         prefix=Func.generate_prefix('scd'),
         inter=inter,
-        thumbnail_file=generate_user_pig(inter.author.id),
+        thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
     )
     return embed
