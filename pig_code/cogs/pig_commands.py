@@ -22,16 +22,16 @@ class PigCommands(commands.Cog):
         description=Localized(data=Locales.Rename.name_var_desc), max_length=50)):
         await modules.pig.callbacks.pig_rename(inter, name)
 
-    @commands.slash_command(description=Localized(data=Locales.Breed.description))
-    # @commands.is_nsfw()
-    async def breed(self, inter, user: disnake.User = commands.Param(
-        name=Localized(data=Locales.Breed.user_var_name),
-        description=Localized(data=Locales.Breed.user_var_desc))):
-        await modules.breed.callbacks.breed(inter, user)
+    # @commands.slash_command(description=Localized(data=Locales.Breed.description))
+    # # @commands.is_nsfw()
+    # async def breed(self, inter, user: disnake.User = commands.Param(
+    #     name=Localized(data=Locales.Breed.user_var_name),
+    #     description=Localized(data=Locales.Breed.user_var_desc))):
+    #     await modules.breed.callbacks.breed(inter, user)
 
-    @commands.slash_command(description=Localized(data=Locales.Pregnancy.description))
-    async def pregnancy(self, inter):
-        await modules.breed.callbacks.pregnancy(inter)
+    # @commands.slash_command(description=Localized(data=Locales.Pregnancy.description))
+    # async def pregnancy(self, inter):
+    #     await modules.breed.callbacks.pregnancy(inter)
 
     @commands.slash_command(description=Localized(data=Locales.View.description))
     async def view(self, inter, user: disnake.User = commands.Param(default=None,

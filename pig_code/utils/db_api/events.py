@@ -25,7 +25,6 @@ class Events:
     @staticmethod
     def update_events(user_id, new_events):
         new_events = json.dumps(new_events, ensure_ascii=False)
-        print(new_events)
         Connection.make_request(
             f"UPDATE {users_schema} SET events = %s WHERE id = {user_id}",
             (new_events,)
@@ -61,7 +60,6 @@ class Events:
             'expires_in': expires_in,
             'created': Func.get_current_timestamp()
         }
-        print(events)
         Events.update_events(user_id, events)
 
     @staticmethod

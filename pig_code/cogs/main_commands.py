@@ -1,3 +1,5 @@
+import disnake.ext.commands
+
 from ..core import *
 from ..utils import *
 from .. import modules
@@ -19,11 +21,12 @@ class MainCommands(commands.Cog):
                                                                            data=Locales.Profile.user_var_desc)), ):
         await modules.other.callbacks.profile(inter, user)
 
-    @commands.slash_command(description=Localized(data=Locales.Stats.description))
-    async def stats(self, inter):
-        await modules.other.callbacks.stats(inter)
+    # @commands.slash_command(description=Localized(data=Locales.Stats.description))
+    # async def stats(self, inter):
+    #     await modules.other.callbacks.stats(inter)
 
     @commands.slash_command(description=Localized(data=Locales.Top.description))
+    @commands.guild_only()
     async def top(self, inter,
                   _global: str = commands.Param(default='False',
                                                     name=Localized(data=Locales.Top.server_var_name),
@@ -51,6 +54,7 @@ class MainCommands(commands.Cog):
         await modules.shop.callbacks.shop(inter)
 
     @commands.slash_command(description=Localized(data=Locales.Duel.description))
+    @commands.guild_only()
     async def duel(self, inter, user: disnake.User = commands.Param(
         name=Localized(data=Locales.Duel.user_var_name),
         description=Localized(data=Locales.Duel.user_var_desc)),
@@ -59,16 +63,21 @@ class MainCommands(commands.Cog):
                                              description=Localized(data=Locales.Duel.bet_var_desc))):
         await modules.duel.callbacks.duel(inter, user, bet)
 
-    # @commands.cooldown(2, 120)
-    # @commands.slash_command(description=Localized(data=Locales.Trade.description))
-    # async def trade(self, inter, user: disnake.User = commands.Param(
-    #     name=Localized(data=Locales.Trade.user_var_name),
-    #     description=Localized(data=Locales.Trade.user_var_desc))):
-    #     await modules.trade.callbacks.trade(inter, inter.author, user)
+    @commands.cooldown(2, 120, commands.BucketType.user)
+    @commands.guild_only()
+    @commands.slash_command(description=Localized(data=Locales.Trade.description))
+    async def trade(self, inter, user: disnake.User = commands.Param(
+        name=Localized(data=Locales.Trade.user_var_name),
+        description=Localized(data=Locales.Trade.user_var_desc))):
+        await modules.trade.callbacks.trade(inter, inter.author, user)
 
-    @commands.cooldown(2, 60)
-    @commands.slash_command(description=Localized(data=Locales.TransferMoney.description))
-    async def transfer_money(self, inter,
+    @commands.slash_command()
+    async def send(self, inter):
+        pass
+
+    @commands.cooldown(2, 60, commands.BucketType.user)
+    @send.sub_command(description=Localized(data=Locales.TransferMoney.description))
+    async def money(self, inter,
                              user: disnake.User = commands.Param(
                                  name=Localized(data=Locales.TransferMoney.user_var_name),
                                  description=Localized(data=Locales.TransferMoney.user_var_desc)),
@@ -82,9 +91,9 @@ class MainCommands(commands.Cog):
                                  description=Localized(data=Locales.TransferMoney.message_var_desc),
                                  default=None, max_length=200),
                              ):
-        await modules.other.callbacks.transfer_money(inter, user, amount, message)
+        await modules.other.callbacks.send_money(inter, user, amount, message)
 
-    @commands.cooldown(1, 60)
+    @commands.cooldown(1, 60, commands.BucketType.user)
     @commands.slash_command(description=Localized(data=Locales.Report.description))
     async def report(self, inter,
                      text: str = commands.Param(
@@ -120,7 +129,7 @@ class MainCommands(commands.Cog):
     #                ):
     #     await modules.other.callbacks.idea(inter, description, Func.str_to_bool(anonymous))
 
-    @commands.cooldown(3, 30)
+    @commands.cooldown(3, 30, type=commands.BucketType.user)
     @commands.slash_command(description=Localized(data=Locales.PromoCode.description))
     async def promocode(self, inter,
                         code: str = commands.Param(
@@ -143,8 +152,9 @@ class MainCommands(commands.Cog):
     #     print(emotion)
     # await modules.other.callbacks.promocode(inter, emotion)
 
-    @commands.cooldown(2, 120)
+    @commands.cooldown(2, 120, type=commands.BucketType.user)
     @commands.slash_command(description=Localized(data=Locales.Say.description))
+    @commands.guild_only()
     @commands.bot_has_permissions(send_messages=True, view_channel=True)
     async def say(self, inter,
                   text: str = commands.Param(name=Localized(data=Locales.Say.text_var_name),

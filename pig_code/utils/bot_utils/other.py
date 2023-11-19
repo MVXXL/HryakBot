@@ -3,7 +3,7 @@ from disnake import OptionChoice
 from ...core import *
 from .main import send_callback, generate_embed
 from . import error_callbacks
-from ..functions import Func
+from ..functions import Func, translate
 from ..db_api import *
 
 
@@ -17,15 +17,11 @@ class BotUtils:
             except:
                 pass
         User.register_user_if_not_exists(inter.author.id)
-        Pig.create_pig_if_no_pig(inter.author.id)
         if User.is_blocked(inter.author.id):
             raise UserInBlackList(inter.author)
-        commands_used = Stats.get_total_commands_used(inter.author.id)
         if not Stats.get_language_changed(inter.author.id) and language_check:
             await BotUtils.choose_language_callback(inter, 'en')
             Stats.set_language_changed(inter.author.id, True)
-        elif commands_used == 17:
-            await BotUtils.rate_bot_callback(inter)
         else:
             for event_id, event_data in Events.get_events(inter.author.id).copy().items():
                 Events.remove(inter.author.id, event_id)
@@ -42,7 +38,7 @@ class BotUtils:
                                           description=Locales.ChooseLanguage.desc[lang],
                                           prefix=Func.generate_prefix('🏴‍☠️'),
                                           inter=inter),
-                                      components=disnake.ui.Select(custom_id='select_lang',
+                                      components=disnake.ui.Select(custom_id='in;select_lang',
                                                                    placeholder=
                                                                    Locales.ChooseLanguage.placeholder[lang],
                                                                    options=[disnake.SelectOption(
@@ -62,8 +58,9 @@ class BotUtils:
                                                       )
             if not BotUtils.check_if_right_user(interaction):
                 continue
-            if interaction.component.custom_id == 'select_lang':
+            if interaction.component.custom_id == 'in;select_lang':
                 User.set_language(inter.author.id, interaction.values[0])
+                # await interaction.response.defer()
                 break
 
     @staticmethod
@@ -81,9 +78,11 @@ class BotUtils:
                 style=disnake.ButtonStyle.green,
                 # emoji='✅',
                 label=Locales.Global.got_it_btn[lang],
+                disabled=True
             )]
-        message = await send_callback(inter, embed=embed)
+        message = await send_callback(inter, embed=embed, components=components)
         await asyncio.sleep(wait_for_btn)
+        components[0].disabled = False
         message = await send_callback(message, embed=embed, components=components)
         while True:
             interaction = await inter.client.wait_for('button_click',
@@ -151,22 +150,24 @@ class BotUtils:
     #             raise PigFeedCooldown
 
     @staticmethod
-    async def confirm_message(inter, lang, description: str = ''):
+    async def confirm_message(inter, lang, description: str = '', image_file=None, ctx_message=False):
         message = await send_callback(inter, embed=generate_embed(
             title=Locales.Global.are_you_sure[lang],
             description=description,
             prefix=Func.generate_prefix('❓'),
+            image_file=image_file,
             inter=inter
-        ), components=[
+        ), ctx_message=ctx_message,
+           components=[
             disnake.ui.Button(
                 label=Locales.Global.yes[lang],
-                custom_id='yes',
+                custom_id='in;yes',
                 # emoji='✅',
                 style=disnake.ButtonStyle.green
             ),
             disnake.ui.Button(
                 label=Locales.Global.no[lang],
-                custom_id='no',
+                custom_id='in;no',
                 # emoji='❌',
                 style=disnake.ButtonStyle.red
             )
@@ -182,19 +183,20 @@ class BotUtils:
             await interaction.response.defer(ephemeral=True)
         except disnake.errors.HTTPException:
             return
-        if interaction.component.custom_id == 'yes':
+        if interaction.component.custom_id == 'in;yes':
             return True
-        elif interaction.component.custom_id == 'no':
+        elif interaction.component.custom_id == 'in;no':
             return False
 
     @staticmethod
     def generate_embeds_list_from_fields(fields: list, title: str = '', description: str = '',
                                          color=utils_config.main_color, fields_for_one: int = 25,
-                                         thumbnail_url: str = None):
+                                         thumbnail_url: str = None, footer: str = None,
+                                         footer_url: str = None):
         fields_for_one -= 1
         embeds = []
         create_embed = lambda: generate_embed(title=title, color=color, description=description,
-                                              thumbnail_url=thumbnail_url)
+                                              thumbnail_url=thumbnail_url, footer=footer, footer_url=footer_url)
         embed = create_embed()
         for i, field in enumerate(fields, 1):
             embed.add_field(name=field['name'], value=field['value'], inline=field['inline'])
@@ -206,7 +208,8 @@ class BotUtils:
         return embeds
 
     @staticmethod
-    def generate_select_components_for_pages(options: list, custom_id, placeholder, fields_for_one: int = 25):
+    def generate_select_components_for_pages(options: list, custom_id, placeholder, fields_for_one: int = 25,
+                                             category=None):
         fields_for_one -= 1
         components = []
         generated_options = []
@@ -214,10 +217,10 @@ class BotUtils:
         if not options:
             return [components]
 
-        def append_components():
+        def append_components(page: int = 1):
             components.append([
-                disnake.ui.Select(options=generated_options, custom_id=custom_id, placeholder=placeholder)])
-
+                disnake.ui.Select(options=generated_options, custom_id=f'{custom_id};{category};{page}', placeholder=placeholder)])
+        c = 1
         for i, option in enumerate(options, 1):
             generated_options.append(disnake.SelectOption(
                 label=option['label'],
@@ -226,10 +229,11 @@ class BotUtils:
                 description=option['description']
             ))
             if i % (fields_for_one + 1) == 0:
-                append_components()
+                append_components(c)
                 generated_options = []
+                c += 1
         if generated_options:
-            append_components()
+            append_components(c)
         else:
             components.append([])
         return components
@@ -239,40 +243,35 @@ class BotUtils:
         list_res = []
         for item_id in items_to_convert:
             if type(items_to_convert[item_id]) == dict:
-                list_res.append(f'{Func.generate_prefix(Inventory.get_item_emoji(item_id))}{Inventory.get_item_name(item_id, lang)} x{items_to_convert[item_id]["amount"]}')
+                if items_to_convert[item_id]["amount"] > 0:
+                    list_res.append(
+                        f'{Func.generate_prefix(Item.get_emoji(item_id))}{Item.get_name(item_id, lang)} x{items_to_convert[item_id]["amount"]}')
             else:
-                list_res.append(
-                    f'{Func.generate_prefix(Inventory.get_item_emoji(item_id))}{Inventory.get_item_name(item_id, lang)} x{items_to_convert[item_id]}')
+                if items_to_convert[item_id] > 0:
+                    list_res.append(
+                        f'{Func.generate_prefix(Item.get_emoji(item_id))}{Item.get_name(item_id, lang)} x{items_to_convert[item_id]}')
         return '\n'.join(list_res)
 
     @staticmethod
-    def get_rarest_item(items_):
-        rarest = 1
-        for item_id in items_:
-            rarity = Inventory.get_item_rarity(item_id)
-            if int(rarity) > rarest:
-                rarest = int(rarity)
-        return rarest
-
-    @staticmethod
-    async def generate_list_embeds(inter, _items, lang, empty_desc='Empty', basic_info=None, title=None,
-                                   prefix: str = '📦', description='', fields_for_one: int = 7, list_type: str = None,
-                                   select_item_component_id: str = 'inventory_item_select', sort=True,
-                                   thumbnail_url: str = None,
-                                   cat_as_title=False, show_amount_in_field_value=False, not_include_if_amount_0=True,
-                                   client=None):
-        if basic_info is None:
-            basic_info = []
+    async def generate_items_list_embeds(inter, _items, lang, empty_desc='Empty', title=None,
+                                         prefix: str = '📦', description='', fields_for_one_page: int = 7,
+                                         list_type: str = 'inventory', tradable_items_only: bool = False,
+                                         select_item_component_id: str = 'item_select;inventory', sort=True,
+                                         cat_as_title=False, client=None):
         complete_embeds = {}
-        new_items = {}
-        try:
-            if list(list(_items.values())[0])[0] in items:
-                if sort:
-                    for cat in _items:
-                        new_items[cat] = dict(sorted(_items[cat].items(), key=lambda x: items[x[0]]['type']))
-                    _items = new_items.copy()
-        except:
-            pass
+        if sort:
+            sorted_items = {}
+            for cat in _items:
+                if list_type == 'inventory':
+                    sorted_items[cat] = sorted(_items[cat], key=lambda x: Item.get_type(x))
+                elif list_type == 'wardrobe':
+                    sorted_items[cat] = sorted(_items[cat], key=lambda x: Item.get_skin_type(x))
+            if sorted_items:
+                _items = sorted_items.copy()
+            # elif list_type == 'shop':
+            #     for cat in _items:
+            #         sorted_items[cat] = sorted(_items[cat], key=lambda x: Item.get_market_price(x))
+            #     _items = sorted_items.copy()
         if client is None:
             client = inter.client
         for cat, v in _items.items():
@@ -281,44 +280,43 @@ class BotUtils:
             complete_embeds[cat] = {'embeds': []}
             select_item_placeholder = Locales.Inventory.select_item_placeholder[lang]
             for item in v:
-                item_label_without_prefix = item
+                item_label_without_prefix = 'Unknown'
                 option_desc = None
                 emoji = None
                 field_value = '----'
-                if list(list(_items.values())[0])[0] in items:
-                    field_value = ''
-                    if not_include_if_amount_0 and Inventory.get_item_amount(inter.author.id, item) <= 0:
+                if list_type in ['inventory', 'wardrobe']:
+                    if tradable_items_only and not Item.is_tradable(item):
                         continue
-                    for i, element in enumerate(basic_info):
-                        if 'amount' in element:
-                            field_value += f'{Locales.Global.amount[lang]}: {Inventory.get_item_amount(inter.author.id, item)}\n'
+                    if Item.exists(item):
+                        field_value = ''
+                        if Item.get_amount(item, inter.author.id) <= 0:
                             continue
-                        if 'price' in element:
-                            field_value += f'{Locales.Global.price[lang]}: {Inventory.get_item_shop_price(item)} 🪙\n'
-                            continue
-                        if 'cost' in element:
-                            cost = Inventory.get_item_cost(item)
-                            if cost is not None:
-                                field_value += f'{Locales.Global.cost_per_item[lang]}: {cost} 🪙\n'
-                                continue
-                        if 'type' in element:
-                            field_value += f'{Locales.Global.type[lang]}: {Inventory.get_item_type(item, lang)}\n'
-                            continue
-                        if 'rarity' in element:
-                            field_value += f'{Locales.Global.rarity[lang]}: {Inventory.get_item_rarity(item, lang)}\n'
-                    field_value = f'```{field_value}```'
-                    after_prefix = f" x{Inventory.get_item_amount(inter.author.id, item)}" if show_amount_in_field_value else ''
-                    item_label_without_prefix = f'{Func.cut_text(Inventory.get_item_name(item, lang), 15)}{after_prefix}'
-                    emoji = Inventory.get_item_emoji(item)
-                    option_desc = Func.cut_text(Inventory.get_item_description(item, lang), 100)
+                        if list_type == 'inventory':
+                            field_value += f'{Locales.Global.rarity[lang]}: {Item.get_rarity(item, lang)}\n'
+                            if Item.is_salable(item):
+                                field_value += f'{Locales.Global.cost_per_item[lang]}: {Item.get_sell_price(item)} {Item.get_emoji(Item.get_sell_price_currency(item))}'
+                            else:
+                                field_value += f'{Locales.Global.type[lang]}: {Item.get_type(item, lang)}'
+                        elif list_type == 'wardrobe':
+                            field_value += f'{Locales.Global.type[lang]}: {Item.get_skin_type(item, lang)}\n' \
+                                           f'{Locales.Global.rarity[lang]}: {Item.get_rarity(item, lang)}'
+                        field_value = f'```{field_value}```'
+                        after_prefix = f" x{Item.get_amount(item, inter.author.id)}"
+                        item_label_without_prefix = f'{Func.cut_text(Item.get_name(item, lang), 15)}{after_prefix}'
+                        emoji = Item.get_emoji(item)
+                        option_desc = Func.cut_text(Item.get_description(item, lang), 100)
+                elif list_type == 'shop':
+                    field_value = f'```{Locales.Global.price[lang]}: {Item.get_market_price(item)} {Item.get_emoji(Item.get_market_price_currency(item))}\n' \
+                                  f'{Locales.Global.rarity[lang]}: {Item.get_rarity(item, lang)}```'
+                    after_prefix = f" x{Item.get_amount(item)}"
+                    item_label_without_prefix = f'{Func.cut_text(Item.get_name(item, lang), 15)}{after_prefix if Item.get_amount(item) > 1 else ""}'
+                    emoji = Item.get_emoji(item)
+                    option_desc = Func.cut_text(Item.get_description(item, lang), 100)
                 elif list_type == 'family_members':
                     member = await User.get_user(client, item)
                     item_label_without_prefix = f'{member.display_name}'
                     emoji = '👤'
                     select_item_placeholder = Locales.ViewFamily.select_member_placeholder[lang]
-                    thumbnail_url = Family.get_image(cat)
-                    if not thumbnail_url.startswith('http://') or not thumbnail_url.startswith('https://'):
-                        thumbnail_url = None
                     role = Family.get_member_role(cat, member.id)
                     if role is not None:
                         option_desc = Locales.FamilyRoles[role][lang]
@@ -347,51 +345,48 @@ class BotUtils:
             page_embeds = BotUtils.generate_embeds_list_from_fields(item_fields,
                                                                     description=description if item_fields else empty_desc,
                                                                     title=f'{Func.generate_prefix(prefix)}{title if not cat_as_title else cat}',
-                                                                    fields_for_one=fields_for_one,
-                                                                    thumbnail_url=thumbnail_url)
+                                                                    fields_for_one=fields_for_one_page,
+                                                                    footer=Func.generate_footer(inter),
+                                                                    footer_url=Func.generate_footer_url('user_avatar',
+                                                                                                        inter.author))
             page_components = BotUtils.generate_select_components_for_pages(options, select_item_component_id,
-                                                                            select_item_placeholder,
-                                                                            fields_for_one=fields_for_one)
+                                                                            select_item_placeholder, category=cat,
+                                                                            fields_for_one=fields_for_one_page)
+            # for i in page_components:
             for i, embed in enumerate(page_embeds):
                 complete_embeds[cat]['embeds'].append({'embed': embed, 'components': page_components[i]})
         return complete_embeds
 
     @staticmethod
-    def generate_item_selected_embed(inter, lang, title=None, item_description='', thumbnail_file=None,
-                                     prefix: str = '📕', embed_color: str = utils_config.main_color,
-                                     item_id=None, basic_info=None) -> disnake.Embed:
-        if basic_info is None:
-            basic_info = []
+    def generate_item_selected_embed(inter, lang, item_id, _type: str) -> disnake.Embed:
         footer = Func.generate_footer(inter, second_part=item_id if item_id is not None else '')
         footer_url = Func.generate_footer_url('user_avatar', inter.author)
         basic_info_desc = ''
-        if item_id in items:
-            title = Inventory.get_item_name(item_id, lang)
-            item_description = Inventory.get_item_description(item_id, lang)
-            prefix = Func.generate_prefix(Inventory.get_item_emoji(item_id))
-            embed_color = utils_config.rarity_colors[Inventory.get_item_rarity(item_id)]
-            if Inventory.is_skin(item_id):
-                skin_type = Inventory.get_item_skin_type(item_id)
-                preview_options = utils_config.default_pig['skins'].copy()
-                preview_options[skin_type] = item_id
-                thumbnail_file = BotUtils.build_pig(tuple(preview_options.items()),
-                                                    tuple(utils_config.default_pig['genetic'].items()))
-            elif Inventory.get_item_image_file(item_id) is not None:
-                thumbnail_file = Inventory.get_item_image_file(item_id)
-        for i, element in enumerate(basic_info):
-            match element:
-                case 'amount':
-                    basic_info_desc += f'{Locales.Global.amount[lang]}: **{Inventory.get_item_amount(inter.author.id, item_id)}**\n'
-                case 'price':
-                    basic_info_desc += f'{Locales.Global.price[lang]}: **{Inventory.get_item_shop_price(item_id)}** 🪙\n'
-                case 'type':
-                    basic_info_desc += f'{Locales.Global.type[lang]}: **{Inventory.get_item_type(item_id, lang)}**\n'
-                case 'rarity':
-                    basic_info_desc += f'{Locales.Global.rarity[lang]}: **{Inventory.get_item_rarity(item_id, lang)}**\n'
-                case 'cost':
-                    cost = Inventory.get_item_cost(item_id)
-                    if cost is not None:
-                        basic_info_desc += f'{Locales.Global.cost_per_item[lang]}: **{cost}** 🪙\n'
+        title = Item.get_name(item_id, lang)
+        item_description = Item.get_description(item_id, lang)
+        prefix = Func.generate_prefix(Item.get_emoji(item_id))
+        embed_color = utils_config.rarity_colors[Item.get_rarity(item_id)]
+        thumbnail_file = None
+        if Item.get_type(item_id) == 'skin':
+            skin_type = Item.get_skin_type(item_id)
+            preview_options = utils_config.default_pig['skins'].copy()
+            preview_options[skin_type] = item_id
+            thumbnail_file = BotUtils.build_pig(tuple(preview_options.items()),
+                                                tuple(utils_config.default_pig['genetic'].items()))
+        elif Item.get_image_file_path(item_id) is not None:
+            thumbnail_file = Item.get_image_file_path(item_id)
+        if _type in ['inventory', 'wardrobe']:
+            basic_info_desc += f'{Locales.Global.amount[lang]}: **{Item.get_amount(item_id, inter.author.id)}**\n'
+            basic_info_desc += f'{Locales.Global.type[lang]}: **{Item.get_skin_type(item_id, lang) if Item.get_type(item_id) == "skin" else Item.get_type(item_id, lang)}**\n'
+            basic_info_desc += f'{Locales.Global.rarity[lang]}: **{Item.get_rarity(item_id, lang)}**'
+            if Item.is_salable(item_id):
+                basic_info_desc += f'\n{Locales.Global.cost_per_item[lang]}: **{Item.get_sell_price(item_id)} {Item.get_emoji(Item.get_sell_price_currency(item_id))}**'
+        elif _type == 'shop':
+            if Item.get_amount(item_id) > 1:
+                basic_info_desc += f'{Locales.Global.amount[lang]}: **{Item.get_amount(item_id)}**\n'
+            basic_info_desc += f'{Locales.Global.price[lang]}: **{Item.get_market_price(item_id)} {Item.get_emoji(Item.get_market_price_currency(item_id))}**\n'
+            basic_info_desc += f'{Locales.Global.type[lang]}: **{Item.get_skin_type(item_id, lang) if Item.get_type(item_id) == "skin" else Item.get_type(item_id, lang)}**\n'
+            basic_info_desc += f'{Locales.Global.rarity[lang]}: **{Item.get_rarity(item_id, lang)}**'
         embed = generate_embed(
             title=title,
             description=basic_info_desc,
@@ -411,6 +406,7 @@ class BotUtils:
                          lang: str,
                          embeds,
                          timeout: int = 180,
+                         embed_thumbnail_url: str = None,
                          embed_thumbnail_file: str = None,
                          ctx_message: bool = False,
                          everyone_can_click: bool = False,
@@ -418,20 +414,30 @@ class BotUtils:
                          arrows: bool = True,
                          categories: bool = False,
                          ephemeral=False,
-                         edit_original_message=True):
+                         edit_original_message=True,
+                         init_category=None,
+                         init_page=1):
         if return_if_starts_with is None:
-            return_if_starts_with = ['back_to_inventory', 'inventory_item_select', 'shop_item_select']
+            return_if_starts_with = ['back_to_inventory', 'item_select']
         complete_embeds = {}
-        current_page = 1
+        current_page = init_page
         current_cat = None
 
-        def set_thumbnail_file_if_not_none():
+        def set_thumbnail_if_not_none():
             if embed_thumbnail_file is not None:
                 get_current_embed()['embed'].set_thumbnail(
                     file=disnake.File(fp=embed_thumbnail_file))
+            elif embed_thumbnail_url is not None:
+                if embed_thumbnail_url.startswith('http://') or embed_thumbnail_url.startswith('https://'):
+                    get_current_embed()['embed'].set_thumbnail(url=embed_thumbnail_url)
 
         def is_categorised_pages():
             try:
+                # print(embeds)
+                # print(type(embeds) == dict)
+                # print(type(list(embeds.values())[0]) == dict)
+                # print('embeds' in list(embeds.values())[0])
+                # print(list(embeds.values())[0]['embeds'][0])
                 return type(embeds) == dict and type(list(embeds.values())[0]) == dict and \
                     'embeds' in list(embeds.values())[0] and 'embed' in list(embeds.values())[0]['embeds'][0]
             except:
@@ -447,7 +453,7 @@ class BotUtils:
             options = [disnake.SelectOption(label=j, value=str(i)) for i, j in enumerate(embeds)]
             if is_categorised_pages():
                 options = [disnake.SelectOption(label=i, value=str(i)) for i in embeds]
-            return [disnake.ui.StringSelect(custom_id='choose_category',
+            return [disnake.ui.StringSelect(custom_id='in;choose_category',
                                             placeholder=Locales.Global.choose_category[lang],
                                             options=options
                                             )]
@@ -456,17 +462,19 @@ class BotUtils:
             return [disnake.ui.Button(
                 style=disnake.ButtonStyle.primary,
                 emoji='◀',
-                custom_id='previous',
+                custom_id='in;previous',
             ),
                 disnake.ui.Button(
                     style=disnake.ButtonStyle.primary,
                     emoji='▶',
-                    custom_id='next',
+                    custom_id='in;next',
                 )
             ]
 
         if is_categorised_pages():
             current_cat = list(embeds)[0]
+            if init_category is not None and init_category in embeds:
+                current_cat = init_category
             if len(embeds) > 1:
                 for cat in embeds.copy():
                     for embed in embeds[cat]['embeds']:
@@ -511,7 +519,13 @@ class BotUtils:
                     element['embed'].set_footer(
                         text=f'📚 {Locales.Global.page[lang]}: {i + 1}',
                         icon_url=Func.generate_footer_url('user_avatar', inter.author))
-        set_thumbnail_file_if_not_none()
+        if is_categorised_pages():
+            if len(embeds[current_cat]['embeds']) < current_page:
+                current_page = 1
+        else:
+            if len(embeds) < current_page:
+                current_page = 1
+        set_thumbnail_if_not_none()
         message = await send_callback(inter, embed=get_current_embed()['embed'],
                                       components=get_current_embed()['components'],
                                       ctx_message=ctx_message, ephemeral=ephemeral,
@@ -521,6 +535,7 @@ class BotUtils:
                 message = await inter.original_message()
             except:
                 pass
+
         def check(interaction):
             if message is not None and type(interaction) == disnake.MessageInteraction:
                 right_message = message.id == interaction.message.id
@@ -545,7 +560,7 @@ class BotUtils:
                     continue
             except asyncio.exceptions.TimeoutError as e:
                 try:
-                    set_thumbnail_file_if_not_none()
+                    set_thumbnail_if_not_none()
                     await message.edit(components=[BotUtils.generate_hide_button()])
                 except:
                     pass
@@ -554,23 +569,25 @@ class BotUtils:
                 return
             if type(interaction) != disnake.interactions.message.MessageInteraction:
                 continue
-            if interaction.component.custom_id in ['next', 'previous', 'hide', 'choose_category']:
+            if interaction.component.custom_id in ['in;next', 'in;previous', 'hide', 'in;choose_category']:
                 try:
                     if not ephemeral:
+                        print(1)
                         await interaction.response.defer(ephemeral=True)
+                        print(2)
                 except disnake.errors.HTTPException:
                     return
-            if interaction.component.custom_id == 'next':
+            if interaction.component.custom_id == 'in;next':
                 embeds_num = len(embeds)
                 if is_categorised_pages():
                     embeds_num = len(embeds[current_cat]['embeds'])
                 current_page = Func.get_changed_page_number(embeds_num, current_page, 1)
-            elif interaction.component.custom_id == 'previous':
+            elif interaction.component.custom_id == 'in;previous':
                 embeds_num = len(embeds)
                 if is_categorised_pages():
                     embeds_num = len(embeds[current_cat]['embeds'])
                 current_page = Func.get_changed_page_number(embeds_num, current_page, -1)
-            elif interaction.component.custom_id == 'choose_category':
+            elif interaction.component.custom_id == 'in;choose_category':
                 if not is_categorised_pages():
                     current_page = int(interaction.values[0]) + 1
                 else:
@@ -584,10 +601,11 @@ class BotUtils:
                 continue
             embed = get_current_embed()['embed']
             components = get_current_embed()['components']
-            set_thumbnail_file_if_not_none()
+            set_thumbnail_if_not_none()
             await send_callback(interaction if not ctx_message else message,
                                 embed=embed,
-                                components=components)
+                                components=components
+                                )
 
     @staticmethod
     def generate_hide_button():
@@ -597,6 +615,83 @@ class BotUtils:
             custom_id='hide',
         )
         return hide_button
+
+    @staticmethod
+    def get_not_compatible_skins(user_id, item_id):
+        """Returns skins worn by the user that are not compatible with item_id"""
+        pig = User.get_pig(user_id)
+        not_compatible_skins = []
+        for _skin in pig['skins']:
+            _skin = pig['skins'][_skin]
+            if _skin is None:
+                continue
+            if Item.get_not_compatible_skins(item_id) is not None and (
+                    item_id in Item.get_not_compatible_skins(item_id) or Item.get_skin_type(
+                item_id) in Item.get_not_compatible_skins(item_id)):
+                not_compatible_skins.append(_skin)
+            elif Item.get_not_compatible_skins(item_id) is not None and Item.get_skin_type(
+                    _skin) in Item.get_not_compatible_skins(item_id):
+                not_compatible_skins.append(_skin)
+        return not_compatible_skins
+
+    @staticmethod
+    async def send_notification(inter, user: disnake.User, title: str, description: str,
+                                prefix: str = None, url_label: str = None, url: str = None, send_to_dm: bool = True,
+                                create_command_notification: bool = False, notification_id: str = None,
+                                guild=None):
+        """
+        :type user: object
+            User who will receive notification
+        :param title:
+            Title of notification
+        :param description:
+            Description of notification
+        :param prefix:
+            The prefix before title
+        :param url_label:
+            The button label containing url
+        :param url:
+            The URL that will be placed in the button below the message
+        :param send_to_dm:
+            If true it will try to send notification to user's dm
+        :param create_command_notification:
+            If true it will show notification next time when user will use the bot command
+            (will not work if sending notification to dm was successful)
+        :param notification_id:
+            Needed for create_command_notification. If not specified, a random ID will be generated.
+        :param guild:
+            The notification will not be sent if both users are not in the specified guild
+        """
+        lang = User.get_language(user.id)
+        embed = generate_embed(
+            title=title,
+            description=description,
+            prefix=Func.generate_prefix(prefix),
+            footer_url=Func.generate_footer_url('user_avatar', inter.client.user),
+            footer=Func.generate_footer(inter, user=inter.client.user)
+        )
+        components = []
+        if url is not None:
+            components.append(
+                disnake.ui.Button(style=disnake.ButtonStyle.url,
+                                  label=translate(url_label, lang),
+                                  url=url)
+            )
+        dm_message = None
+        if send_to_dm:
+            if guild is None or (guild.get_member(inter.author.id) is not None and guild.get_member(user.id) is not None):
+                dm_message = await send_callback(inter, embed=embed, components=components, send_to_dm=user)
+        if create_command_notification:
+            if dm_message is None:
+                Events.add(user.id, title=title,
+                           description=description, expires_in=100 * 3600,
+                           event_id=notification_id)
+        return
+
+    @staticmethod
+    def users_have_mutual_guilds(user1, user2) -> bool:
+        """Will return true if user1 and user2 have any mutual guilds"""
+        return bool(set(user1.mutual_guilds).intersection(set(user2.mutual_guilds)))
 
     @staticmethod
     def check_if_right_user(interaction, except_users: list = None):
@@ -617,84 +712,81 @@ class BotUtils:
         return commission
 
     @staticmethod
+    def get_amount_with_commission_to_remove(amount, commission):
+        amount_with_commission = round(amount + amount * (commission / 100))
+        return amount_with_commission
+
+    @staticmethod
     def get_amount_with_commission(amount, commission):
         amount_with_commission = round(amount + amount * (commission / 100))
         return amount_with_commission
 
     @staticmethod
     def generate_user_pig(user_id, eye_emotion: str = None):
-        return BotUtils.build_pig(tuple(Pig.get_skin(user_id, 'all').items()),
+        user_skin = Pig.get_skin(user_id, 'all')
+        for k, v in user_skin.items():
+            if Item.get_amount(v, user_id) <= 0:
+                user_skin[k] = None
+        return BotUtils.build_pig(tuple(user_skin.items()),
                                   tuple(Pig.get_genetic(user_id, 'all').items()),
-                                  eye_emotion=eye_emotion, user_id=user_id)
+                                  eye_emotion=eye_emotion)
 
     @staticmethod
     @cached(TTLCache(maxsize=1000, ttl=60))
-    def build_pig(skins: tuple, genetic: tuple = None, output_filename: str = None, output_path: str = None,
-                  eye_emotion: str = None, user_id=None):
+    def build_pig(skins: tuple, genetic: tuple = None, output_path: str = None,
+                  eye_emotion: str = None):
         skins = dict(skins)
         if genetic is None:
             genetic = utils_config.default_pig['genetic']
         else:
             genetic = dict(genetic)
-        skin_types = ['body', 'tattoo', 'makeup', 'eyes', 'pupils',
+        skin_types = ['body', 'tattoo', 'makeup', 'mouth', 'eyes', 'pupils',
                       'glasses', 'nose', '_nose', 'piercing_nose',
                       'face',
-                      'piercing_ear', 'suit', 'hat', 'legs', 'tie']
-        for i in skin_types:
-            if i not in skins and i not in 'nose':
-                skins[i] = None
-        if 'eye_emotion' not in skins:
-            skins['eye_emotion'] = None
+                      'piercing_ear', 'back', 'suit', 'hat', 'legs', 'tie']
         eye_emotion = skins['eye_emotion'] if eye_emotion is None else eye_emotion
         not_draw = []
         not_draw_raw = {}
-        print(skins)
-        for item in skins.values():
-            if item is not None and item in items and 'not_draw' in items[item]:
-                not_draw_raw[items[item]['type'].split(':')[1]] = items[item]['not_draw']
-        for i, key in enumerate(skin_types):
-            if key in skins and user_id is not None and Inventory.get_item_amount(user_id, skins[key]) == 0 and skins[
-                key] is not None:
-                skins[key] = None
-                if key in not_draw_raw:
-                    not_draw_raw.pop(key)
-        print(not_draw_raw)
+        for item_id in skins.values():
+            if Item.exists(item_id) and Item.get_not_draw_skins(item_id) is not None:
+                not_draw_raw[Item.get_skin_type(item_id)] = Item.get_not_draw_skins(item_id)
         for k, v in not_draw_raw.copy().items():
             for i in v:
-                if i not in skin_types and i not in items:
+                if i not in skin_types and not Item.exists(i):
                     continue
                 skin_type = i
-                if i in items:
-                    skin_type = Inventory.get_item_skin_type(i)
+                if i in Tech.get_all_items():
+                    skin_type = Item.get_skin_type(i)
                 if skin_type in not_draw_raw and skin_types.index(skin_type) < skin_types.index(k):
                     not_draw_raw.pop(skin_type)
         for v in not_draw_raw.values():
             not_draw += v
         if skins['hat'] is not None:
             not_draw += ['piercing_ear']
-        if 'paint' in not_draw:
-            skins['body'] = None
-        if output_filename is None:
-            output_filename = random.randrange(10000000)
-        skins_path = 'bin/pig_skins'
+        # if 'paint' in not_draw:
+        #     skins['body'] = None
+        # if output_filename is None:
+        #     output_filename = f'pig_{Func.get_current_timestamp()}_{random.randrange(10000000)}'
         for i, key in enumerate(skin_types):
-            if key in not_draw or (key in skins and skins[key] in items and skins[key] in not_draw):
+            if key in not_draw or (key in skins and Item.exists(skins[key]) and skins[key] in not_draw):
                 continue
-            folder_of_skin = key
             if key == 'nose':
-                folder_of_skin = 'nose'
                 key = 'body'
-            part = skins[key]
+            item_id = skins[key]
             if skins[key] is None and key in genetic:
-                part = genetic[key]
+                item_id = genetic[key]
             elif skins[key] is None and key not in genetic:
                 continue
-            part_path = f'{skins_path}/{folder_of_skin}/{part}.png'
-            if i == 0:
-                built_pig_img = Image.open(part_path)
+            if skin_types[i] == 'nose':
+                image_path = Item.get_image_file_2_path(item_id)
             else:
-                img_to_paste = Image.open(part_path)
-                if key == 'eyes':
+                print(0, item_id)
+                image_path = Item.get_image_file_path(item_id)
+            if i == 0:
+                built_pig_img = Image.open(image_path)
+            else:
+                img_to_paste = Image.open(image_path)
+                if key in ['eyes', 'pupils']:
                     if eye_emotion in utils_config.emotions_erase_cords:
                         draw = ImageDraw.Draw(img_to_paste)
                         for cords in utils_config.emotions_erase_cords[eye_emotion]:
@@ -708,7 +800,7 @@ class BotUtils:
                                 draw.polygon(cords, fill=img_to_paste.getpixel((0, 0)))
                 built_pig_img = Image.alpha_composite(built_pig_img, img_to_paste)
         if output_path is None:
-            output_path = f'bin/pigs/{output_filename}.png'
+            output_path = Func.generate_temp_path('pig')
         built_pig_img.save(output_path)
         return output_path
 
@@ -728,33 +820,34 @@ class BotUtils:
             user = inter.author
         description = ''
         if 'user' in info:
-            description += Locales.Profile.user_profile_desc[lang].format(balance=User.get_money(user.id),
-                                                                          likes=len(User.get_likes(user.id))) + '\n\n'
+            rating_status = ''
+            rating_number = User.get_rating_total_number(user.id)
+            if rating_number > 0:
+                rating_status = '💚'
+            elif rating_number < 0:
+                 rating_status = '⚠️'
+            description += translate(Locales.Profile.user_profile_desc, lang,
+                                     format_options={'coins': Item.get_amount('coins', user.id),
+                                                     'hollars': Item.get_amount('hollars', user.id),
+                                                     'likes': rating_number,
+                                                     'rating_status': rating_status}) + '\n\n'
         if 'pig' in info:
-            description += Locales.Profile.pig_profile_desc[lang].format(pig_name=Pig.get_name(user.id),
-                                                                         weight=Pig.get_weight(user.id),
-                                                                         age=Pig.age(user.id, lang)) + '\n\n'
+            description += translate(Locales.Profile.pig_profile_desc, lang,
+                                     format_options={'pig_name': Pig.get_name(user.id),
+                                                     'weight': Pig.get_weight(user.id),
+                                                     'age': Pig.age(user.id, lang)}) + '\n\n'
         if 'family' in info:
             family_id = User.get_family(user.id)
-            description += Locales.Profile.family_profile_desc[lang].format(role=Family.get_member_role(
-                family_id, user.id, lang))
+            description += translate(Locales.Profile.family_profile_desc, lang, format_options={'role': Family.get_member_role(
+                family_id, user.id, lang)})
         embed = generate_embed(
-            title=Locales.Profile.profile_title[lang].format(user=user.display_name),
+            title=translate(Locales.Profile.profile_title, lang, {'user': user.display_name}),
             description=description,
             prefix=Func.generate_prefix('🐽'),
             thumbnail_file=BotUtils.generate_user_pig(user.id),
             inter=inter,
-            # fields=[{'name': Locales.Profile.pig_field_title[lang],
-            #          'value': Locales.Profile.pig_field_value[lang].format(
-            #              pig_name=Pig.get_name(user.id),
-            #              weight=Pig.get_weight(user.id))}]
         )
         return embed
-
-    @staticmethod
-    def raise_if_language_not_supported(user_id, lang: str = 'en'):
-        if User.get_language(user_id) == lang:
-            raise LanguageNotSupported
 
     @staticmethod
     def bool_command_choice():
@@ -775,7 +868,7 @@ class BotUtils:
     #             disnake.ui.TextInput(
     #                 label=Locales.InventoryItemSellModal.label[lang],
     #                 placeholder=Locales.InventoryItemSellModal.placeholder[lang].format(
-    #                     max_amount=Inventory.get_item_amount(inter.author.id, item_id)),
+    #                     max_amount=Item.get_amount(inter.author.id, item_id)),
     #                 custom_id="amount",
     #                 style=disnake.TextInputStyle.short,
     #                 max_length=10,
@@ -799,7 +892,7 @@ class BotUtils:
     #             disnake.ui.TextInput(
     #                 label=Locales.InventoryItemCookModal.label[lang],
     #                 placeholder=Locales.InventoryItemCookModal.placeholder[lang].format(
-    #                     max_amount=Inventory.get_item_amount(inter.author.id, item_id)),
+    #                     max_amount=Item.get_amount(inter.author.id, item_id)),
     #                 custom_id="amount",
     #                 style=disnake.TextInputStyle.short,
     #                 max_length=10,
@@ -816,7 +909,7 @@ class BotUtils:
 
     # @staticmethod
     # def raise_error_if_no_item(user_id, item_id):
-    #     if Inventory.get_item_amount(interaction.author.id, item_id) == 0:
+    #     if Item.get_amount(interaction.author.id, item_id) == 0:
     #         await modules.errors.callbacks.no_item(interaction)
     #     else:
     #         await modules.inventory.callbacks.inventory_item_used(interaction, item_id)

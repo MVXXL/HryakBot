@@ -87,7 +87,7 @@ def commands_stats(inter, lang) -> disnake.Embed:
 
 def sell_stats(inter, lang) -> disnake.Embed:
     commands_stats = Stats.get_items_sold_stats(inter.author.id)
-    description = '\n'.join([f'{Inventory.get_item_emoji(i)} {Inventory.get_item_name(i, lang)}: {j}' for i, j in
+    description = '\n'.join([f'{Item.get_emoji(i)} {Item.get_name(i, lang)}: {j}' for i, j in
                              Func.sort_by_values(commands_stats, reverse=True).items()])
     embed = generate_embed(title=Locales.Stats.sell_stats[lang],
                            description=f"```{Locales.Stats.sell_stats_desc[lang] if description else Locales.Stats.no_stats[lang]}\n{description}```",
@@ -148,12 +148,12 @@ def reset_join_message(inter, lang) -> disnake.Embed:
 
 
 def wardrobe_item_preview(inter, item_id, lang) -> disnake.Embed:
-    skin_type = Inventory.get_item_skin_type(item_id)
+    skin_type = Item.get_skin_type(item_id)
     preview_options = Pig.get_skin(inter.author.id, 'all')
     preview_options[skin_type] = item_id
     embed = generate_embed(
-        title=Locales.WardrobeItemPreview.title[lang].format(item=Inventory.get_item_name(item_id, lang)),
-        description=Locales.WardrobeItemPreview.desc[lang].format(item=Inventory.get_item_name(item_id, lang)),
+        title=Locales.WardrobeItemPreview.title[lang].format(item=Item.get_name(item_id, lang)),
+        description=Locales.WardrobeItemPreview.desc[lang].format(item=Item.get_name(item_id, lang)),
         prefix=Func.generate_prefix('👁️'),
         inter=inter,
         thumbnail_file=BotUtils.build_pig(tuple(preview_options.items()),

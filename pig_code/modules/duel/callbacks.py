@@ -8,24 +8,35 @@ async def duel(inter, opponent, bet):
     await BotUtils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
     User.register_user_if_not_exists(opponent.id)
-    Pig.create_pig_if_no_pig(opponent.id)
     if opponent == inter.author:
-        await error_callbacks.cant_play_with_yourself_duel(inter)
+        await error_callbacks.default_error_callback(inter, translate(
+            Locales.ErrorCallbacks.cant_play_with_yourself_duel_title, lang),
+                                                     translate(Locales.ErrorCallbacks.cant_play_with_yourself_duel_desc,
+                                                               lang))
         return
     if opponent.bot is True:
-        await error_callbacks.bot_as_opponent_duel(inter)
+        await error_callbacks.default_error_callback(inter,
+                                                     translate(Locales.ErrorCallbacks.bot_as_opponent_duel_title, lang),
+                                                     translate(Locales.ErrorCallbacks.bot_as_opponent_duel_desc, lang))
         return
     message = await send_callback(inter,
-                                  embed=embeds.personal_duel_invite(inter, lang, opponent, bet),
+                                  embed=generate_embed(
+                                      title=translate(Locales.Duel.invite_title, lang),
+                                      description=translate(Locales.Duel.personal_invite_desc, lang).format(
+                                          opponent=opponent.display_name,
+                                          user=inter.author.display_name, bet=bet),
+                                      prefix=Func.generate_prefix('⚔️'),
+                                      inter=inter,
+                                  ),
                                   components=components.invite_components(lang))
-    dm_message = await send_callback(inter, send_to_dm=opponent,
-                                     components=components.duel_message_url(lang,
-                                                                            message.jump_url) if message is not None else None,
-                                     embed=embeds.personal_dm_duel_invite(inter, lang, bet))
-    if dm_message is None:
-        message = await send_callback(inter, opponent.mention,
-                                      embed=embeds.personal_duel_invite(inter, lang, opponent, bet),
-                                      components=components.invite_components(lang))
+    await BotUtils.send_notification(inter, opponent,
+                                     translate(Locales.Duel.invite_title, User.get_language(opponent.id)),
+                                     translate(Locales.Duel.personal_invite_dm_desc, User.get_language(opponent.id),
+                                               format_options={'user': inter.author.display_name, 'bet': bet}),
+                                     prefix='⚔️',
+                                     url_label=translate(Locales.Global.message, User.get_language(opponent.id)),
+                                     url=message.jump_url if message is not None else None, send_to_dm=True, create_command_notification=False,
+                                     guild=inter.guild)
 
     def check(interaction):
         if message is not None:
@@ -35,17 +46,21 @@ async def duel(inter, opponent, bet):
     try:
         interaction = await inter.client.wait_for('button_click', check=check, timeout=120)
     except asyncio.exceptions.TimeoutError:
-        await send_callback(message, embed=embeds.duel_canceled(inter, lang, opponent, 'no_response'))
+        await error_callbacks.default_error_callback(inter, translate(Locales.Duel.duel_canceled_title, lang),
+                                                     translate(Locales.Duel.no_response_desc, lang,
+                                                               format_options={'user': opponent.display_name}))
         return
-    if interaction.component.custom_id == 'in:accept':
+    if interaction.component.custom_id == 'in;accept':
         await interaction.response.defer(ephemeral=True)
-        if User.get_money(inter.author.id) < bet:
-            await send_callback(interaction,
-                                embed=embeds.duel_canceled(inter, lang, inter.author, 'no_money_for_bet'))
+        if Item.get_amount('coins', inter.author.id) < bet:
+            await error_callbacks.default_error_callback(inter, translate(Locales.Duel.duel_canceled_title, lang),
+                                                         translate(Locales.Duel.no_money_for_bet_desc, lang,
+                                                                   format_options={'user': inter.author.display_name}))
             return
-        if User.get_money(opponent.id) < bet:
-            await send_callback(interaction,
-                                embed=embeds.duel_canceled(inter, lang, opponent, 'no_money_for_bet'))
+        if Item.get_amount('coins', opponent.id) < bet:
+            await error_callbacks.default_error_callback(inter, translate(Locales.Duel.duel_canceled_title, lang),
+                                                         translate(Locales.Duel.no_money_for_bet_desc, lang,
+                                                                   format_options={'user': opponent.display_name}))
             return
         chances = {}
         for member in [inter.author, opponent]:
@@ -55,10 +70,13 @@ async def duel(inter, opponent, bet):
                 chances[member] += 20
         chances = Func.calculate_probabilities(chances, 1)
         winner = Func.random_choice_with_probability(chances)
-        money_earned = int(round(bet * 1.7))
-        User.add_money(inter.author.id, -bet)
-        User.add_money(opponent.id, -bet)
-        User.add_money(winner.id, money_earned)
+        chances_copy = chances.copy()
+        chances_copy.pop(winner)
+        loser = list(chances_copy)[0]
+        money_earned = int(round(bet * 1.9))
+        User.remove_item(winner.id, 'coins', bet)
+        User.remove_item(loser.id, 'coins', bet)
+        User.add_item(winner.id, 'coins', money_earned)
         for i in range(7):
             await send_callback(interaction, embed=embeds.fight_is_starting(inter, lang, opponent, 7 - i,
                                                                             list(chances.values())))
@@ -68,5 +86,7 @@ async def duel(inter, opponent, bet):
         await asyncio.sleep(11)
         await send_callback(interaction, embed=embeds.user_won(inter, lang, winner, money_earned,
                                                                random.choice(utils_config.win_gifs)))
-    elif interaction.component.custom_id == 'in:reject':
-        await send_callback(interaction, embed=embeds.duel_canceled(inter, lang, opponent, 'opponent_reject'))
+    elif interaction.component.custom_id == 'in;reject':
+        await error_callbacks.default_error_callback(inter, translate(Locales.Duel.duel_canceled_title, lang),
+                                                     translate(Locales.Duel.opponent_reject_desc, lang,
+                                                               format_options={'user': opponent.display_name}))

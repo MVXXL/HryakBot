@@ -10,27 +10,27 @@ async def create_family(inter, name, description, image_url, private, ask_to_joi
     family_id = User.get_family(inter.author.id)
     if family_id is not None and Family.exists(family_id):
         await error_callbacks.default_error_callback(inter,
-                                                     title=Locales.Family.already_in_family_title[lang],
-                                                     description=Locales.Family.already_in_family_desc[lang],
+                                                     title=translate(Locales.Family.already_in_family_title, lang),
+                                                     description=translate(Locales.Family.already_in_family_desc, lang),
                                                      prefix='👨‍👩‍🧒')
         return
-    if User.get_money(inter.author.id) < 500:
-        await error_callbacks.not_enough_money(inter, 500, False, True)
+    if Item.get_amount('coins', inter.author.id) < 500:
+        await error_callbacks.not_enough_money(inter, 500, True, False)
         return
     Family.create(name, inter.author.id, description, image_url, private, ask_to_join)
-    User.add_money(inter.author.id, -500)
-    await send_callback(inter, embed=generate_embed(Locales.CreateFamily.scd_title[lang],
-                                                    Locales.CreateFamily.scd_desc[lang].format(family=name),
+    User.remove_item(inter.author.id, 'coins', 500)
+    await send_callback(inter, embed=generate_embed(translate(Locales.CreateFamily.scd_title, lang),
+                                                    translate(Locales.CreateFamily.scd_desc, lang, format_options={'family': name}),
                                                     prefix=Func.generate_prefix('👨‍👩‍🧒'),
                                                     inter=inter))
 
 
-async def view_family(inter, family_id=None, just_edit: bool = False, lang=None, client=None):
-    if not just_edit:
+async def view_family(inter, family_id=None, edit_only: bool = False, lang=None, client=None):
+    if not edit_only:
         await BotUtils.pre_command_check(inter)
     if lang is None:
         lang = User.get_language(inter.author.id)
-    if not just_edit:
+    if not edit_only:
         if not Family.exists(family_id) and family_id is not None:
             await error_callbacks.default_error_callback(inter, Locales.Family.not_exist_title[lang],
                                                          Locales.Family.not_exist_desc[lang], prefix='🤔')
@@ -47,13 +47,14 @@ async def view_family(inter, family_id=None, just_edit: bool = False, lang=None,
     if family_description is not None and family_description:
         description += f'> {Family.get_description(family_id)}\n'
     await BotUtils.pagination(inter, lang,
-                              embeds=await BotUtils.generate_list_embeds(inter, members, lang,
-                                                                         description=description,
-                                                                         fields_for_one=7,
-                                                                         select_item_component_id='view_family_profile',
-                                                                         title=Family.get_name(family_id),
-                                                                         client=client,
-                                                                         list_type='family_members', prefix=''))
+                              embeds=await BotUtils.generate_items_list_embeds(inter, members, lang,
+                                                                               description=description,
+                                                                               fields_for_one_page=7,
+                                                                               select_item_component_id='family;view_profile',
+                                                                               title=Family.get_name(family_id),
+                                                                               client=client,
+                                                                               list_type='family_members', prefix=''),
+                              embed_thumbnail_url=Family.get_image(family_id))
 
 
 # async def public_families(inter):
@@ -241,16 +242,16 @@ async def family_requests(inter, just_edit: bool = False, family_id=None, lang=N
                                                          description=Locales.FamilyRequests.not_owner_desc[lang],
                                                          prefix='👑')
             return
-    await BotUtils.pagination(inter, lang, embed_thumbnail_file='bin/images/invite.png',
-                              embeds=await BotUtils.generate_list_embeds(inter,
-                                                                         {family_id: list(
+    await BotUtils.pagination(inter, lang, embed_thumbnail_file=Func.get_image_path_from_link(utils_config.image_links['invite']),
+                              embeds=await BotUtils.generate_items_list_embeds(inter,
+                                                                               {family_id: list(
                                                                              Family.get_requests(family_id))},
-                                                                         lang,
-                                                                         empty_desc=Locales.FamilyRequests.empty[lang],
-                                                                         select_item_component_id=f'view_profile_family_requests',
-                                                                         title=f'',
-                                                                         list_type='family_requests', prefix='',
-                                                                         client=client))
+                                                                               lang,
+                                                                               empty_desc=Locales.FamilyRequests.empty[lang],
+                                                                               select_item_component_id=f'family;join_requests;view_profile',
+                                                                               title=f'',
+                                                                               list_type='family_requests', prefix='',
+                                                                               client=client))
 
 
 async def family_profile(inter, user_id):
@@ -262,10 +263,10 @@ async def family_profile(inter, user_id):
         'owner']:
         profile_components = [disnake.ui.Button(label=Locales.Global.kick[lang],
                                                 style=disnake.ButtonStyle.red,
-                                                custom_id=f'family_member_kick:{user_id}:{family_id}'),
+                                                custom_id=f'family;kick_user;{user_id};{family_id}'),
                               disnake.ui.Button(label=Locales.Global.ban[lang],
                                                 style=disnake.ButtonStyle.red,
-                                                custom_id=f'family_member_ban:{user_id}:{family_id}')]
+                                                custom_id=f'family;ban_user;{user_id};{family_id}')]
     await send_callback(inter,
                         embed=BotUtils.profile_embed(inter, lang, await User.get_user(inter.client, user_id), ['user', 'pig', 'family']),
                         components=profile_components,
@@ -280,11 +281,11 @@ async def family_member_kick(inter, user_id, family_id):
                                              Locales.FamilyMemberKick.scd_desc[lang].format(
                                                  user=await User.get_name(inter.client, user_id)),
                                              inter=inter, prefix=Func.generate_prefix('🦵'),
-                                             thumbnail_file=BotUtils.BotUtils.generate_user_pig(user_id, eye_emotion='sad')),
+                                             thumbnail_file=BotUtils.generate_user_pig(user_id, eye_emotion='sad')),
                         edit_original_message=True, ephemeral=True)
     message = await inter.original_response()
     if message.reference is not None:
-        await view_family(message.reference.cached_message, just_edit=True, family_id=family_id, lang=lang,
+        await view_family(message.reference.cached_message, edit_only=True, family_id=family_id, lang=lang,
                           client=inter.client)
 
 
@@ -296,11 +297,11 @@ async def family_member_ban(inter, user_id, family_id):
                                              Locales.FamilyMemberBan.scd_desc[lang].format(
                                                  user=await User.get_name(inter.client, user_id)),
                                              inter=inter, prefix=Func.generate_prefix('🔨'),
-                                             thumbnail_file=BotUtils.BotUtils.generate_user_pig(user_id, eye_emotion='angry')),
+                                             thumbnail_file=BotUtils.generate_user_pig(user_id, eye_emotion='angry')),
                         edit_original_message=True, ephemeral=True)
     message = await inter.original_response()
     if message.reference is not None:
-        await view_family(message.reference.cached_message, just_edit=True, family_id=family_id, lang=lang,
+        await view_family(message.reference.cached_message, edit_only=True, family_id=family_id, lang=lang,
                           client=inter.client)
 
 
@@ -312,7 +313,7 @@ async def accept_user_to_family(inter, user_id, family_id, ephemeral: bool = Fal
                                                     Locales.Family.accept_user_desc[lang].format(
                                                         user=await User.get_name(inter.client, user_id)),
                                                     inter=inter, prefix=Func.generate_prefix('🐷'),
-                                                    thumbnail_file=BotUtils.BotUtils.generate_user_pig(user_id)),
+                                                    thumbnail_file=BotUtils.generate_user_pig(user_id)),
                         edit_original_message=True, ephemeral=ephemeral)
     message = await inter.original_response()
     if message.reference is not None:
@@ -327,7 +328,7 @@ async def reject_user_to_family(inter, user_id, family_id, ephemeral: bool = Tru
                                                     Locales.Family.reject_user_desc[lang].format(
                                                         user=await User.get_name(inter.client, user_id)),
                                                     inter=inter, prefix=Func.generate_prefix('🐷'),
-                                                    thumbnail_file=BotUtils.BotUtils.generate_user_pig(user_id)),
+                                                    thumbnail_file=BotUtils.generate_user_pig(user_id)),
                         edit_original_message=True, ephemeral=ephemeral, )
     message = await inter.original_response()
     if message.reference is not None:

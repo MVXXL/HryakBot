@@ -6,9 +6,7 @@ from . import components
 
 async def breed(inter, partner):
     await BotUtils.pre_command_check(inter)
-    BotUtils.raise_if_language_not_supported(inter.author.id)
     User.register_user_if_not_exists(partner.id)
-    Pig.create_pig_if_no_pig(partner.id)
     BotUtils.check_pig_breed_cooldown(inter.author)
     BotUtils.check_pig_breed_cooldown(partner)
     lang = User.get_language(inter.author.id)

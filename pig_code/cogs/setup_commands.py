@@ -16,6 +16,7 @@ class SetupCommands(commands.Cog):
 
     @commands.has_guild_permissions(administrator=True)
     @commands.slash_command()
+    @commands.guild_only()
     async def join_message(self, inter):
         pass
 
@@ -42,6 +43,7 @@ class SetupCommands(commands.Cog):
         pass
 
     @settings.sub_command(description=Localized(data=Locales.SettingsSay.description))
+    @commands.guild_only()
     async def say(self, inter,
                   allow: str = commands.Param(
                       name=Localized(data=Locales.SettingsSay.allow_var_name),

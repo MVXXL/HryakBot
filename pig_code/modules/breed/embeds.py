@@ -4,7 +4,7 @@ from ...utils import *
 def pig_breed_ok(inter, lang, became_pregnant, mini_pig) -> disnake.Embed:
     embed = generate_embed(
         title='OK',
-        description=f'{became_pregnant.display_name}, {Inventory.get_item_name(mini_pig, lang)}',
+        description=f'{became_pregnant.display_name}, {Item.get_name(mini_pig, lang)}',
         prefix=Func.generate_prefix('🐷'),
         thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
         inter=inter,

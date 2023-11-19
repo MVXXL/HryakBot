@@ -1,14 +1,26 @@
+import shutil
+
+import requests
+
 from ..core import *
 
 
-class Func:
+def translate(locales, lang, format_options: dict = None):
+    translated_text = 'translation_error'
+    if type(locales) == dict:
+        if lang not in locales:
+            lang = 'en'
+        if lang not in locales:
+            lang = list(locales)[0]
+        translated_text = locales[lang]
+    elif type(locales) == str:
+        translated_text = locales
+    if format_options is not None:
+        for k, v in format_options.items():
+            translated_text = translated_text.replace('{'+k+'}', str(v))
+    return translated_text
 
-    @staticmethod
-    def correct_dict_id_order(my_dict: dict):
-        new_dict = {}
-        for i, key in enumerate(my_dict.keys()):
-            new_dict[str(i)] = my_dict[key]
-        return new_dict
+class Func:
 
     @staticmethod
     def random_choice_with_probability(dictionary):
@@ -22,10 +34,6 @@ class Func:
                 return key
 
     @staticmethod
-    def sort_by_values(dictionary, reverse: bool = False):
-        return {k: v for k, v in sorted(dictionary.items(), key=lambda x: x[1], reverse=reverse)}
-
-    @staticmethod
     def calculate_probabilities(dictionary, round_to: int = 2):
         total = sum(dictionary.values())
         probabilities = {}
@@ -35,6 +43,37 @@ class Func:
             probabilities[key] = round(probability, round_to)
 
         return probabilities
+
+    @staticmethod
+    def speed_test(func, **kwargs):
+        start = datetime.datetime.now().timestamp()
+        func(**kwargs)
+        final = datetime.datetime.now().timestamp() - start
+        return final
+
+    @staticmethod
+    def clear_cache(cache_id, params: tuple = None):
+        if cache_id not in utils_config.db_caches:
+            return
+        if params is None:
+            utils_config.db_caches[cache_id].clear()
+            return
+        try:
+            utils_config.db_caches[cache_id].pop(params)
+        except KeyError:
+            pass
+
+    @staticmethod
+    def generate_temp_path(key_word: str, file_extension: str = 'png'):
+        while True:
+            path = f'{config.TEMP_FOLDER_PATH}/{key_word}_{Func.get_current_timestamp()}_{random.randrange(10000)}.{file_extension}'
+            if not os.path.exists(path):
+                break
+        return path
+
+    @staticmethod
+    def sort_by_values(dictionary, reverse: bool = False):
+        return {k: v for k, v in sorted(dictionary.items(), key=lambda x: x[1], reverse=reverse)}
 
     @staticmethod
     def add_log(log_type, **kwargs):
@@ -90,16 +129,25 @@ class Func:
         return True if target.lower() in ['✅ true', 'true', '✅', 'yes', 'да', 'так'] else False
 
     @staticmethod
-    def get_item_index_by_id_from_inventory(inventory, item):
-        for i, element in enumerate(inventory):
-            if element['item']['id'] == item:
-                return i
+    def str_to_dict(target):
+        if target is None:
+            return None
+        try:
+            return json.loads(target.replace("'", '"'))
+        except json.JSONDecodeError:
+            return
 
     @staticmethod
-    def get_index_by_item(inventory, item):
-        for i, element in enumerate(inventory):
-            if element['item'] == item:
-                return i
+    def clear_folder(path):
+        for filename in os.listdir(path):
+            file_path = os.path.join(path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
 
     @staticmethod
     def generate_footer(inter, first_part: str = 'user', second_part: str = '', user: disnake.User = None):
@@ -127,23 +175,6 @@ class Func:
             return None
         return footer_url
 
-    @staticmethod
-    def generate_shop_daily_items():
-        daily_items = Func.get_items_by_key(items, 'method_of_obtaining', 'shop:daily')
-        new_daily_items = []
-        for key in utils_config.daily_shop_items_number.keys():
-            if key == 'other':
-                new_daily_items += Func.select_random_items(
-                    Func.get_items_by_types(daily_items,
-                                            not_include=Func.remove_keys(utils_config.daily_shop_items_number.copy(),
-                                                                         [key])),
-                    utils_config.daily_shop_items_number[key])
-            else:
-                new_daily_items += Func.select_random_items_by_key('type', f'skin:{key}',
-                                                                   utils_config.daily_shop_items_number[key],
-                                                                   items_dict=daily_items)
-            daily_items = Func.remove_keys(daily_items, new_daily_items)
-        return new_daily_items
 
     @staticmethod
     def generate_prefix(prefix: str = 'scd', sep: str = '・', backticks: bool = False):
@@ -173,6 +204,13 @@ class Func:
         return missing_perms
 
     @staticmethod
+    def common_elements(list_of_lists):
+        common_set = set(list_of_lists[0])
+        for lst in list_of_lists[1:]:
+            common_set = common_set.intersection(lst)
+        return list(common_set)
+
+    @staticmethod
     def numerate_list_as_text(elements_list: list, bold_number: bool = True) -> str:
         text = ''
         if len(elements_list) == 1:
@@ -186,8 +224,18 @@ class Func:
         return text
 
     @staticmethod
-    def convert_hours_to_seconds(hours):
-        return hours * 60 ** 2
+    @cached(TTLCache(maxsize=10000, ttl=86400))
+    def get_image_path_from_link(link: str, name: str = None):
+        if name is None:
+            name = random.randrange(10000, 99999)
+        file_extension = 'png'
+        if len(link.split('.')) > 1:
+            if link.split('.')[-1] in ['png', 'webp', 'gif', 'jpg']:
+                file_extension = link.split('.')[-1]
+        path = Func.generate_temp_path(name, file_extension=file_extension)
+        with open(path, 'wb') as f:
+            f.write(requests.get(link).content)
+        return path
 
     @staticmethod
     def get_changed_page_number(total_pages, cur_page, differ):
@@ -238,13 +286,6 @@ class Func:
         return False
 
     @staticmethod
-    def select_random_items_by_key(key: str, value: str, num: int, items_dict: dict = None):
-        if items_dict is None:
-            items_dict = items
-        result = Func.get_items_by_key(items_dict, key, value)
-        return Func.select_random_items(result, num)
-
-    @staticmethod
     def select_random_items(items_dict, num: int):
         result = list(items_dict)
         if num >= len(result):
@@ -252,31 +293,15 @@ class Func:
         return random.sample(sorted(result), num)
 
     @staticmethod
-    def remove_keys(dict1: dict, keys: list):
+    def remove_keys(_dict: dict, keys: list):
         for key in keys:
-            if key in dict1:
-                del dict1[key]
-        return dict1
+            if key in _dict:
+                del _dict[key]
+        return _dict
 
     @staticmethod
     def get_current_timestamp():
         return round(datetime.datetime.now().timestamp())
-
-    @staticmethod
-    def get_items_by_key(items_, key, include_only: str = None, not_include: str = None,
-                         one_element_if_key_is_list: bool = True):
-        result = {}
-        for item_name, item_data in items_.items():
-            if key not in items[item_name]:
-                continue
-            item_type = items[item_name][key]
-            if include_only is not None:
-                if include_only in item_type or item_type == include_only:
-                    result[item_name] = item_data
-            elif not_include is not None:
-                if not_include not in item_type and not item_type == not_include:
-                    result[item_name] = item_data
-        return result
 
     @staticmethod
     def field_inline_alternation(fields: list):
@@ -287,17 +312,6 @@ class Func:
     # @staticmethod
     # def get_items_by_type(items_dict, include_only: str = None, not_include: str = None):
     #     return Func.get_items_by_key(items_dict, 'type', include_only, not_include)
-
-    @staticmethod
-    def get_items_by_types(items_dict, include_only: list = None, not_include: list = None):
-        result = items_dict
-        if include_only is not None:
-            for i in include_only:
-                result = Func.get_items_by_key(result, 'type', include_only=i)
-        if not_include is not None:
-            for i in not_include:
-                result = Func.get_items_by_key(result, 'type', not_include=i)
-        return result
 
     # @staticmethod
     # def check_consecutive_timestamps(timestamps: list, n: int, time: float = 5, start_time: int = 4) -> int:
@@ -373,7 +387,7 @@ class Func:
 
     @staticmethod
     def send_data_to_boticord(servers):
-        requests.post('https://api.boticord.top/1102273144733049003/stats',
+        requests.post('https://api.boticord.top/bots/1102273144733049003/stats',
                       headers={'Authorization': f'Bot {config.BOTICORD_TOKEN}'},
                       json={'servers': servers})
 

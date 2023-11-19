@@ -20,7 +20,7 @@ class Stats:
         stats = Stats.get_stats(user_id)
         if stats is None:
             stats = {}
-        for key, value in utils_config.stats.items():
+        for key, value in utils_config.user_stats.items():
             if key not in stats:
                 stats[key] = value
         Stats.set_stats(user_id, stats)

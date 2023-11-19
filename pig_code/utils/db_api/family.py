@@ -1,12 +1,12 @@
 import random
 
 from .connection import Connection
-from .tech import Tech
 from .user import User
 from .pig import Pig
 from ..functions import Func
 from ...core import *
 from ...core.config import families_schema
+from ..functions import translate
 
 
 class Family:
@@ -70,7 +70,7 @@ class Family:
         member = Family.get_member(int(family_id), user_id)
         if member is not None:
             if lang is not None:
-                return Locales.FamilyRoles[member['role']][lang]
+                return translate(Locales.FamilyRoles[member['role']], lang)
             return member['role']
 
     @staticmethod

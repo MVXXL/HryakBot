@@ -6,6 +6,7 @@ from .user import User
 from ..functions import Func
 from ...core import *
 from ...core.config import users_schema
+from .item import Item
 
 
 class Pig:
@@ -125,9 +126,9 @@ class Pig:
         return pig['name']
 
     @staticmethod
-    def set_skin(user_id, skin):
+    def set_skin(user_id, item_id):
         pig = User.get_pig(user_id)
-        pig['skins'][items[skin]['type'].split(':')[1]] = skin
+        pig['skins'][Item.get_skin_type(item_id)] = item_id
         Pig.update_pig(user_id, pig)
 
     @staticmethod
@@ -283,7 +284,6 @@ class Pig:
         Pig.update_pig(user_id, pig)
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_weight(user_id):
         if type(user_id) != list:
             pig = User.get_pig(user_id)
@@ -309,51 +309,51 @@ class Pig:
         else:
             return Locales.PigAges[max_age][lang]
 
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def make_pregnant(user_id, pregnant_by_id, pregnant_with_id):
-        pig = User.get_pig(user_id)
-        pig['pregnant_time'] = Func.get_current_timestamp()
-        pig['pregnant_with'] = pregnant_with_id
-        pig['pregnant_by'] = pregnant_by_id
-        pig['pregnancy_duration'] = items[pregnant_with_id]['pregnancy_duration']
-        Pig.update_pig(user_id, pig)
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def pregnant_by(user_id):
-        pig = User.get_pig(user_id)
-        return pig['pregnant_by']
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def pregnant_time(user_id):
-        pig = User.get_pig(user_id)
-        return pig['pregnant_time']
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def pregnant_with(user_id):
-        pig = User.get_pig(user_id)
-        return pig['pregnant_with']
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def pregnancy_duration(user_id):
-        pig = User.get_pig(user_id)
-        return pig['pregnancy_duration']
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def disable_pregnant(user_id):
-        pig = User.get_pig(user_id)
-        pig['pregnant_time'] = None
-        Pig.update_pig(user_id, pig)
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def is_pregnant(user_id):
-        pig = User.get_pig(user_id)
-        if pig['pregnant_time'] is not None:
-            return True
-        return False
+    # @staticmethod
+    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    # def make_pregnant(user_id, pregnant_by_id, pregnant_with_id):
+    #     pig = User.get_pig(user_id)
+    #     pig['pregnant_time'] = Func.get_current_timestamp()
+    #     pig['pregnant_with'] = pregnant_with_id
+    #     pig['pregnant_by'] = pregnant_by_id
+    #     pig['pregnancy_duration'] = items[pregnant_with_id]['pregnancy_duration']
+    #     Pig.update_pig(user_id, pig)
+    #
+    # @staticmethod
+    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    # def pregnant_by(user_id):
+    #     pig = User.get_pig(user_id)
+    #     return pig['pregnant_by']
+    #
+    # @staticmethod
+    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    # def pregnant_time(user_id):
+    #     pig = User.get_pig(user_id)
+    #     return pig['pregnant_time']
+    #
+    # @staticmethod
+    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    # def pregnant_with(user_id):
+    #     pig = User.get_pig(user_id)
+    #     return pig['pregnant_with']
+    #
+    # @staticmethod
+    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    # def pregnancy_duration(user_id):
+    #     pig = User.get_pig(user_id)
+    #     return pig['pregnancy_duration']
+    #
+    # @staticmethod
+    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    # def disable_pregnant(user_id):
+    #     pig = User.get_pig(user_id)
+    #     pig['pregnant_time'] = None
+    #     Pig.update_pig(user_id, pig)
+    #
+    # @staticmethod
+    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    # def is_pregnant(user_id):
+    #     pig = User.get_pig(user_id)
+    #     if pig['pregnant_time'] is not None:
+    #         return True
+    #     return False

@@ -5,20 +5,23 @@ from ..db_api import *
 
 
 def default_error_embed(inter, title, description, prefix: str = '❌', timestamp: bool = True,
-                        color: str = utils_config.error_color) -> disnake.Embed:
+                        color: str = utils_config.error_color, thumbnail_file=None) -> disnake.Embed:
     embed = generate_embed(
         title=title,
         description=description,
         prefix=Func.generate_prefix(prefix),
         inter=inter,
-        color=color
+        color=color,
+        thumbnail_file=thumbnail_file
     )
     return embed
 
 
 async def default_error_callback(inter, title, description, prefix: str = '❌', timestamp: bool = True,
-                                 color: str = utils_config.error_color):
-    await send_callback(inter, embed=default_error_embed(inter, title, description, prefix, timestamp, color))
+                                 color: str = utils_config.error_color, thumbnail_file=None,
+                                 edit_original_message: bool = True, ephemeral: bool = False):
+    await send_callback(inter, embed=default_error_embed(inter, title, description, prefix, timestamp, color, thumbnail_file),
+                        edit_original_message=edit_original_message, ephemeral=ephemeral)
 
 
 async def error(error, inter):
@@ -75,10 +78,6 @@ async def error(error, inter):
         await send_callback(inter, embed=default_error_embed(inter,
                                                              Locales.ErrorCallbacks.not_enough_money_title[lang],
                                                              Locales.ErrorCallbacks.not_enough_money_desc[lang]))
-    elif type(error) == PlayWithYourselfDuel:
-        await cant_play_with_yourself_duel(inter)
-    elif type(error) == BotAsOpponentDuel:
-        await bot_as_opponent_duel(inter)
     elif type(error) == BreedWithYourself:
         await cant_breed_with_yourself(inter)
     elif type(error) == BotAsPartnerBreed:
@@ -100,6 +99,10 @@ async def error(error, inter):
                                                              Locales.ErrorCallbacks.not_allowed_to_use_command_title[
                                                                  lang],
                                                              Locales.ErrorCallbacks.not_owner_desc[lang]))
+    elif type(error) == commands.errors.NoPrivateMessage:
+        await default_error_callback(inter, Locales.ErrorCallbacks.not_allowed_to_use_command_title[
+                                                                 lang],
+                                     Locales.ErrorCallbacks.not_owner_desc[lang])
     elif type(error) == commands.errors.NSFWChannelRequired:
         await send_callback(inter, embed=default_error_embed(inter,
                                                              Locales.ErrorCallbacks.nsfw_required_title[
@@ -113,12 +116,12 @@ async def error(error, inter):
                             edit_original_message=error.edit_original_message,
                             embed=default_error_embed(inter,
                                                       Locales.ErrorCallbacks.no_item_title[lang].format(
-                                                          item=Inventory.get_item_name(error.item,
+                                                          item=Item.get_name(error.item,
                                                                                        lang).lower()),
                                                       desc,
                                                       timestamp=True,
                                                       color=utils_config.main_color,
-                                                      prefix=Inventory.get_item_emoji(error.item)))
+                                                      prefix=Item.get_emoji(error.item)))
     elif type(error) == commands.errors.BotMissingPermissions:
         perms = Func.translate_permissions(error.missing_permissions, lang)
         await send_callback(inter,
@@ -228,25 +231,57 @@ async def bot_as_partner_breed(inter):
 #     await send_callback(inter, embed=embeds.cant_play_with_yourself_duel(inter, lang))
 
 
-async def not_enough_money(inter, minimum_money=None, ephemeral: bool = True, edit_original_message: bool = False):
+async def not_enough_money(inter, minimum_money: float = None, edit_original_message: bool = False, ephemeral: bool = True):
     lang = User.get_language(inter.author.id)
     desc = Locales.ErrorCallbacks.not_enough_money_desc[lang]
     if minimum_money is not None:
         desc += f'\n\n*{Locales.Global.need[lang]}: **{minimum_money}** 🪙*'
+    await default_error_callback(inter,
+                                 title=Locales.ErrorCallbacks.not_enough_money_title[lang],
+                                 description=desc,
+                                 prefix='💸',
+                                 ephemeral=ephemeral, edit_original_message=edit_original_message)
+
+async def not_compatible_skin(inter, item_id, not_compatible_skins, message: disnake.Message = None):
+    lang = User.get_language(inter.author.id)
+    await send_callback(inter if message is None else message,
+                        embed=default_error_embed(
+                            inter,
+                            Locales.WardrobeItemNotCompatible.title[lang],
+                            Locales.WardrobeItemNotCompatible.desc[lang].format(
+                                skin1=Item.get_name(item_id, lang),
+                                skin2=Item.get_name(not_compatible_skins[0], lang))
+                        ),
+                        edit_original_message=False,
+                        ephemeral=True
+                        )
+
+
+async def no_item(inter, item, user = None):
+    lang = User.get_language(inter.author.id)
+    title = Locales.ErrorCallbacks.no_item_title[lang].format(item=Item.get_name(item, lang).lower())
+    description = f"{Locales.ErrorCallbacks.no_item_desc[lang]}"
     await send_callback(inter, embed=generate_embed(
-        title=Locales.ErrorCallbacks.not_enough_money_title[lang],
-        description=desc,
-        prefix=Func.generate_prefix('💸'),
+        title=title,
+        description=description,
+        prefix=Func.generate_prefix('❌'),
         inter=inter,
         color=utils_config.error_color
-    ), ephemeral=ephemeral, edit_original_message=edit_original_message)
+    ), ephemeral=True,
+                        edit_original_message=False)
 
-
-async def no_item(inter, item):
+async def not_enough_item(inter, item, user = None):
     lang = User.get_language(inter.author.id)
+    if user is None:
+        title = Locales.ErrorCallbacks.not_enough_item_title[lang].format(item=Item.get_name(item, lang).lower())
+        description = f"{Locales.ErrorCallbacks.not_enough_item_desc[lang]}"
+    else:
+        title = Locales.ErrorCallbacks.user_not_enough_item_title[lang].format(
+            user=user.display_name, item=Item.get_name(item, lang).lower())
+        description = f"{Locales.ErrorCallbacks.user_not_enough_item_desc[lang].format(user=user.display_name)}"
     await send_callback(inter, embed=generate_embed(
-        title=Locales.ErrorCallbacks.no_item_title[lang].format(item=Inventory.get_item_name(item, lang)),
-        description=f"{Locales.ErrorCallbacks.no_item_desc[lang]}",
+        title=title,
+        description=description,
         prefix=Func.generate_prefix('❌'),
         inter=inter,
         color=utils_config.error_color

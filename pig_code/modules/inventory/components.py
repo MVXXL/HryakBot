@@ -1,46 +1,40 @@
-from ...other.item_components.item_components import item_components
+from ...core.items.item_components.item_components import item_components
 from ...utils import *
 
 
-def inventory_item_selected(user_id, item_id, lang) -> list:
+def inventory_item_selected(user_id, item_id, lang, _type, category: str = None, page: int = 1) -> list:
     components = []
     if item_id in item_components:
         for component_id, component in item_components[item_id].items():
             components.append(disnake.ui.Button(
                 style=disnake.ButtonStyle.primary if 'color' not in component else component['color'],
                 label=component['label'][lang],
-                custom_id=f'{component_id}:{item_id}',
+                custom_id=f'{component_id};{item_id};{category};{page}',
             ))
 
-    if Inventory.is_skin(item_id):
-        if Pig.get_skin(user_id, Inventory.get_item_skin_type(item_id)) != item_id:
+    if _type == 'wardrobe':
+        if Pig.get_skin(user_id, Item.get_skin_type(item_id)) != item_id:
             components.append(disnake.ui.Button(
                 style=disnake.ButtonStyle.primary,
                 label=Locales.Global.wear[lang],
-                custom_id=f'wear_skin:{item_id}',
+                custom_id=f'wear_skin;{item_id};{category};{page}',
             ))
             components.append(disnake.ui.Button(
                 style=disnake.ButtonStyle.primary,
                 label=Locales.Global.preview[lang],
-                custom_id=f'preview_skin:{item_id}',
+                custom_id=f'preview_skin;{item_id};{category};{page}',
             ))
         else:
             components.append(disnake.ui.Button(
                 style=disnake.ButtonStyle.primary,
                 label=Locales.Global.remove_cloth[lang],
-                custom_id=f'remove_skin:{item_id}',
+                custom_id=f'remove_skin;{item_id};{category};{page}',
             ))
-        components.append(disnake.ui.Button(
-            style=disnake.ButtonStyle.grey,
-            label='↩️',
-            custom_id=f'back_to_inventory:wardrobe',
-        ))
-    else:
-        components.append(disnake.ui.Button(
-            style=disnake.ButtonStyle.grey,
-            label='↩️',
-            custom_id=f'back_to_inventory:inventory',
-        ))
+    components.append(disnake.ui.Button(
+        style=disnake.ButtonStyle.grey,
+        label='↩️',
+        custom_id=f'back_to_inventory;{_type};{category};{page}',
+    ))
     return components
 
 # def skins_category_choose_components(user_id, lang) -> list:
@@ -51,7 +45,7 @@ def inventory_item_selected(user_id, item_id, lang) -> list:
 #     inventory = Func.get_items_by_types(inventory, ['skin'])
 #     types = set()
 #     for item_id in inventory:
-#         types.add(Inventory.get_item_type(item_id))
+#         types.add(Item.get_type(item_id))
 #     generated_options.append(disnake.SelectOption(
 #         label=Locales.Global.all_skins[lang],
 #         value='skin:all',

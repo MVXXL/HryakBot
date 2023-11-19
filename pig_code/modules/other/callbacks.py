@@ -6,7 +6,7 @@ from ...utils import User, send_callback
 
 
 async def profile(inter, user: disnake.User = None, pre_command_check: bool = True,
-                  edit_original_message: bool = True, ephemeral: bool = False, additional_components: list = None,
+                  edit_original_message: bool = True, ephemeral: bool = False, _components: list = None,
                   info: list = None):
     if pre_command_check:
         await BotUtils.pre_command_check(inter, ephemeral=ephemeral)
@@ -16,24 +16,20 @@ async def profile(inter, user: disnake.User = None, pre_command_check: bool = Tr
     if user is None:
         user = inter.author
     User.register_user_if_not_exists(user.id)
-    Pig.create_pig_if_no_pig(user.id)
-    _components = []
-    if not User.have_like_by(user.id, inter.author.id):
+    if _components is None:
+        _components = []
         _components += [disnake.ui.Button(
-            # label=Locales.Global.like[lang],
-            emoji='🤍',
-            custom_id=f'like:{user.id}',
-            style=disnake.ButtonStyle.green
-        ),
-            # disnake.ui.Button(
-            #     # label=Locales.Global.like[lang],
-            #     emoji='🤍',
-            #     custom_id=f'like:{user.id}',
-            #     style=disnake.ButtonStyle.green
-            # )
+            emoji='👍',
+            custom_id=f'like;{user.id}',
+            style=disnake.ButtonStyle.blurple,
+            disabled=True if User.get_rate_number(user.id, inter.author.id) == 1 else False),
+            disnake.ui.Button(
+                emoji='👎',
+                custom_id=f'dislike;{user.id}',
+                style=disnake.ButtonStyle.blurple,
+                disabled=True if User.get_rate_number(user.id, inter.author.id) == -1 else False
+            )
         ]
-    if additional_components is not None:
-        _components += additional_components
     await send_callback(inter, embed=BotUtils.profile_embed(inter, lang, user, info), ephemeral=ephemeral,
                         edit_original_message=edit_original_message, components=_components)
 
@@ -44,7 +40,6 @@ async def view(inter, user: disnake.User = None):
     if user is None:
         user = inter.author
     User.register_user_if_not_exists(user.id)
-    Pig.create_pig_if_no_pig(user.id)
     await send_callback(inter, embed=generate_embed(timestamp=False,
                                                     image_file=BotUtils.generate_user_pig(user.id)))
 
@@ -78,13 +73,13 @@ async def promocode(inter, code):
     # if PromoCode.get_user_used_times(code, inter.author.id) > 0:
     #     await send_callback(inter, embed=embeds.user_used_promocode(inter, lang))
     #     return
-    if User.is_blocked_promocodes(inter.author.id) and PromoCode.can_use(code) == 'everyone_except_blocked':
-        await send_callback(inter, embed=embeds.cant_use_promocode(inter, lang))
-        return
+    # if User.is_blocked_promocodes(inter.author.id) and PromoCode.can_use(code) == 'everyone_except_blocked':
+    #     await send_callback(inter, embed=embeds.cant_use_promocode(inter, lang))
+    #     return
     prise = PromoCode.get_prise(code)
     for item in prise:
         if item == 'coins':
-            User.add_money(inter.author.id, prise[item])
+            User.add_item(inter.author.id, 'coins', prise[item])
         elif item == 'weight':
             Pig.add_weight(inter.author.id, prise[item])
         else:
@@ -93,15 +88,14 @@ async def promocode(inter, code):
     await send_callback(inter, embed=embeds.promo_code_used(inter, lang, prise))
 
 
-async def transfer_money(inter, user, amount, message=None):
+async def send_money(inter, user, amount, message=None):
     await BotUtils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
     User.register_user_if_not_exists(user.id)
-    Pig.create_pig_if_no_pig(user.id)
     amount = abs(amount)
     commission = BotUtils.get_commission(inter.author, user)
-    amount_with_commission = BotUtils.get_amount_with_commission(amount, commission)
-    if amount_with_commission > User.get_money(inter.author.id):
+    amount_with_commission = BotUtils.get_amount_with_commission_to_remove(amount, commission)
+    if amount_with_commission > Item.get_amount('coins', inter.author.id):
         raise NoMoney
     confirmation = await BotUtils.confirm_message(inter, lang,
                                                   description=Locales.TransferMoney.confirm_description[
@@ -111,20 +105,25 @@ async def transfer_money(inter, user, amount, message=None):
     if not confirmation:
         await send_callback(inter, embed=embeds.cancel_sending_money(inter, lang))
         return
-    User.add_money(user.id, amount)
-    User.add_money(inter.author.id, -amount_with_commission)
-    title = f'{Func.generate_prefix("💸")}{Locales.TransferMoney.event_title[lang]}'
-    description = Locales.TransferMoney.event_desc[lang].format(user=inter.author.display_name, money=amount)
+    User.add_item(user.id, 'coins', amount)
+    User.add_item(inter.author.id, 'coins', -amount_with_commission)
+    title = f'{translate(Locales.TransferMoney.event_title, lang)}'
+    description = translate(Locales.TransferMoney.event_desc, lang,
+                            format_options={'user': inter.author.display_name, 'money': amount})
     if message is not None:
         description += f'\n\n> {Locales.Global.message[lang]}: *{message}*'
-    dm_message = await send_callback(inter, send_to_dm=user,
-                                     embed=generate_embed(title, description,
-                                                          inter=inter))
-    if dm_message is None:
-        Events.add(user.id, title=title,
-                   description=description, expires_in=100 * 3600,
-                   description_format={'user': inter.author.display_name, 'money': amount},
-                   event_id='money_transfer')
+    await BotUtils.send_notification(inter, user, title, description,
+                                     prefix='💸', send_to_dm=True, create_command_notification=True,
+                                     notification_id='money_transfer')
+    # await send_callback(inter, user.mention, ctx_message=True)
+    # dm_message = await send_callback(inter, send_to_dm=user,
+    #                                  embed=generate_embed(title, description,
+    #                                                       inter=inter))
+    # if dm_message is None:
+    #     Events.add(user.id, title=title,
+    #                description=description, expires_in=100 * 3600,
+    #                description_format={'user': inter.author.display_name, 'money': amount},
+    #                event_id='money_transfer')
     await send_callback(inter, embed=embeds.transfer_money(inter, lang, user, amount))
 
 
@@ -153,9 +152,10 @@ async def idea(inter, description, anonymous):
         # files=[attachment.to_file()]
     )
     await send_callback(inter, embed=generate_embed(title=Locales.Idea.title[lang],
-                           description=f"{Locales.Idea.desc[lang]}",
-                           prefix=Func.generate_prefix('scd'),
-                           inter=inter))
+                                                    description=f"{Locales.Idea.desc[lang]}",
+                                                    prefix=Func.generate_prefix('scd'),
+                                                    inter=inter))
+
 
 async def say(inter, text):
     await BotUtils.pre_command_check(inter, ephemeral=True)
@@ -196,6 +196,7 @@ async def reset_join_message(inter):
     Guild.set_join_message(inter.guild.id, None)
     await send_callback(inter, embed=embeds.reset_join_message(inter, lang))
 
+
 async def settings_say(inter, allow: bool):
     await BotUtils.pre_command_check(inter, language_check=False)
     lang = User.get_language(inter.author.id)
@@ -208,6 +209,11 @@ async def settings_say(inter, allow: bool):
 
 async def skin_preview(inter, item_id, message: disnake.Message = None):
     lang = User.get_language(inter.author.id)
+    item_id = Item.clean_id(item_id)
+    not_compatible_skins = BotUtils.get_not_compatible_skins(inter.author.id, item_id)
+    if not_compatible_skins:
+        await error_callbacks.not_compatible_skin(inter, item_id, not_compatible_skins, message)
+        return
     await send_callback(inter if message is None else message,
                         embed=embeds.wardrobe_item_preview(inter, item_id, lang),
                         edit_original_message=False,

@@ -160,9 +160,10 @@ class Locales:
         not_exist_desc = {'en': "*It seems that such a family does not exist. It's a pity...*",
                           'ru': '*Кажется, такой семьи не существует. Жаль...*'}
         user_banned_title = {'en': "You are banned",
-                           'ru': 'Вы забанены'}
-        user_banned_desc = {'en': "*Oops, looks like you've been kicked out of this family forever. What have you done?*",
-                          'ru': '*Упс, кажется вас навсегда выгнали с этой семьи . Что же вы такого натворили?*'}
+                             'ru': 'Вы забанены'}
+        user_banned_desc = {
+            'en': "*Oops, looks like you've been kicked out of this family forever. What have you done?*",
+            'ru': '*Упс, кажется вас навсегда выгнали с этой семьи . Что же вы такого натворили?*'}
 
     class ViewFamily:
         description = {Locale.en_US: 'Look at your family',
@@ -214,13 +215,13 @@ class Locales:
         not_owner_desc = {'en': "*You cannot invite someone to your family because you do not have rights*",
                           'ru': '*Вы не можете пригласить кого-то в семью, так как не имеете прав*'}
         invite_code_title = {'en': 'Invitation code',
-                     'ru': 'Код на приглашение'}
-        invite_code_desc = {'en': 'A user can join your family using this code: **{code}**\n' 
-                                  'The user you want to invite must use the **/family join** command\n\n' 
+                             'ru': 'Код на приглашение'}
+        invite_code_desc = {'en': 'A user can join your family using this code: **{code}**\n'
+                                  'The user you want to invite must use the **/family join** command\n\n'
                                   'You may also have to issue the **/family requests** command to accept the user',
-                    'ru': '*Пользователь может присоединиться к вашей семье используя данный код: **{code}**\n'
-                          'Пользователь которого вы хотите пригласить должен использовать команду **/family join**\n\n'
-                          'Также возможно вам прийдётся вызвать команду **/family requests** чтобы принять пользователя*'}
+                            'ru': '*Пользователь может присоединиться к вашей семье используя данный код: **{code}**\n'
+                                  'Пользователь которого вы хотите пригласить должен использовать команду **/family join**\n\n'
+                                  'Также возможно вам прийдётся вызвать команду **/family requests** чтобы принять пользователя*'}
 
     class ChangeFamilySettings:
         description = {Locale.en_US: 'Change family settings',
@@ -237,7 +238,6 @@ class Locales:
                      'ru': 'Настройки изменены'}
         scd_desc = {'en': '*You have changed your family settings*',
                     'ru': '*Вы изменили настройки своей семьи*'}
-
 
     class JoinFamily:
         description = {Locale.en_US: 'Join the family',
@@ -328,26 +328,24 @@ class Locales:
                         Locale.ru: 'ставка'}
         bet_var_desc = {Locale.en_US: 'The number of coins you want to bet',
                         Locale.ru: 'Количество монет, которое хотите поставить'}
-        user_app_name = {Locale.en_US: 'Challenge to a duel',
-                         Locale.ru: 'Вызвать на дуэль'}
         invite_title = {'en': 'Invitation to a duel',
                         'ru': 'Приглашение на дуэль'}
-        personal_invite_desc = {'en': '**{opponent}** was invited to duel with **{user}**\n\n'
+        personal_invite_desc = {'en': '***{opponent}** was invited to duel with **{user}***\n\n'
                                       '- Bet: **{bet}** 🪙',
-                                'ru': '**{opponent}** был приглашен на дуэль с **{user}**\n\n'
+                                'ru': '***{opponent}** был приглашен на дуэль с **{user}***\n\n'
                                       '- Ставка: **{bet}** 🪙'}
-        personal_invite_dm_desc = {'en': '**You** were invited to duel with **{user}**\n\n'
+        personal_invite_dm_desc = {'en': '***You** were invited to duel with **{user}***\n\n'
                                          '- Bet: **{bet}** 🪙',
-                                   'ru': '**Вы** были приглашены на дуэль с **{user}**\n\n'
+                                   'ru': '***Вы** были приглашены на дуэль с **{user}***\n\n'
                                          '- Ставка: **{bet}** 🪙\n'}
         duel_canceled_title = {'en': 'Duel was canceled',
                                'ru': 'Дуэль была отменена'}
-        opponent_reject_desc = {'en': '- **{user}** declined duel invitation',
-                                'ru': '- **{user}** отклонил приглашение на дуэль'}
-        no_money_for_bet_desc = {'en': "- **{user}** is so poor that he didn't have enough money to bet",
-                                 'ru': '- **{user}** настолько бедный, что ему не хватило денег на ставку'}
-        no_response_desc = {'en': "- **{user}** did not come to the duel",
-                            'ru': '- **{user}** не пришёл на дуэль'}
+        opponent_reject_desc = {'en': '***{user}** declined duel invitation*',
+                                'ru': '***{user}** отклонил приглашение на дуэль*'}
+        no_money_for_bet_desc = {'en': "***{user}** is so poor that he didn't have enough money to bet*",
+                                 'ru': '***{user}** настолько бедный, что ему не хватило денег на ставку*'}
+        no_response_desc = {'en': "***{user}** did not come to the duel*",
+                            'ru': '***{user}** не пришёл на дуэль*'}
         fight_will_start_in = {'en': 'Duel will start in {time_to_start} s',
                                'ru': 'Дуэль начнётся через {time_to_start} с'}
         fight_starting_field_value = {'en': '```Weight: {weight} kg\n'
@@ -362,8 +360,6 @@ class Locales:
                                   '- **{user}** won **{money_earned}** 🪙',
                             'ru': '# {user} выиграл дуэль\n'
                                   '- **{user}** получил **{money_earned}** 🪙'}
-        message_url_btn = {'en': 'Message',
-                           'ru': 'Сообщение'}
 
     class Trade:
         description = {Locale.en_US: 'Trade with user',
@@ -372,40 +368,18 @@ class Locales:
                          Locale.ru: 'пользователь'}
         user_var_desc = {Locale.en_US: 'The user you want to trade with',
                          Locale.ru: 'Пользователь с которым вы хотите торговать'}
-        # invite_title = {'en': 'Invitation to a duel',
-        #                 'ru': 'Приглашение на дуэль'}
-        # personal_invite_desc = {'en': '**{opponent}** was invited to duel with **{user}**\n\n'
-        #                               '- Bet: **{bet}** 🪙',
-        #                         'ru': '**{opponent}** был приглашен на дуэль с **{user}**\n\n'
-        #                               '- Ставка: **{bet}** 🪙'}
-        # personal_invite_dm_desc = {'en': '**You** were invited to duel with **{user}**\n\n'
-        #                                  '- Bet: **{bet}** 🪙',
-        #                            'ru': '**Вы** были приглашены на дуэль с **{user}**\n\n'
-        #                                  '- Ставка: **{bet}** 🪙\n'}
-        # duel_canceled_title = {'en': 'Duel was canceled',
-        #                        'ru': 'Дуэль была отменена'}
-        # opponent_reject_desc = {'en': '- **{user}** declined duel invitation',
-        #                         'ru': '- **{user}** отклонил приглашение на дуэль'}
-        # no_money_for_bet_desc = {'en': "- **{user}** is so poor that he didn't have enough money to bet",
-        #                          'ru': '- **{user}** настолько бедный, что ему не хватило денег на ставку'}
-        # no_response_desc = {'en': "- **{user}** did not come to the duel",
-        #                     'ru': '- **{user}** не пришёл на дуэль'}
-        # fight_will_start_in = {'en': 'Duel will start in {time_to_start} s',
-        #                        'ru': 'Дуэль начнётся через {time_to_start} с'}
-        # fight_starting_field_value = {'en': '```Weight: {weight} kg\n'
-        #                                     'Win chance: {chance} %```',
-        #                               'ru': '```Вес: {weight} кг\n'
-        #                                     'Шанс на победу: {chance} %```'}
-        # fight_is_going_title = {'en': 'Duel is going...',
-        #                         'ru': 'Идёт дуэль...'}
-        # fight_ended_title = {'en': 'Duel ended',
-        #                      'ru': 'Дуэль окончена'}
-        # fight_ended_desc = {'en': '# {user} won the duel\n'
-        #                           '- **{user}** won **{money_earned}** 🪙',
-        #                     'ru': '# {user} выиграл дуэль\n'
-        #                           '- **{user}** получил **{money_earned}** 🪙'}
-        # message_url_btn = {'en': 'Message',
-        #                    'ru': 'Сообщение'}
+        scd_desc = {'en': '*Trading between **{user1}** and **{user2}** was successful*',
+                    'ru': '*Торговля между **{user1}** и **{user2}** прошла успешно*'}
+        add_item_placeholder = {'en': 'Add item',
+                                'ru': 'Добавить предмет'}
+        cancel_title = {'en': 'Trade canceled',
+                        'ru': 'Трэйд отменен'}
+        cancel_desc = {'en': 'The trade was canceled by **{user}**',
+                       'ru': '*Пользователю **{user}** не понравилась сделка*'}
+        trade_invitation_title = {'en': 'You have been invited to a trade',
+                                  'ru': 'Вы были приглашены на торговлю'}
+        trade_invitation_desc = {'en': '***{user}** invited you to trade*',
+                                 'ru': '***{user}** пригласил вас, чтобы поторговаться*'}
 
     class TransferMoney:
         description = {Locale.en_US: 'Transfer money to another user',
@@ -462,18 +436,18 @@ class Locales:
                          Locale.ru: 'Пользователь, у которого вы хотите посмотреть профиль'}
         profile_title = {'en': '{user}\'s profile',
                          'ru': 'Профиль {user}'}
-        user_profile_desc = {'en': '> Balance: **{balance}** 🪙'
-                                   '> Likes: **{likes}** ❤️',
-                        'ru': '> Баланс: **{balance}** 🪙\n'
-                              '> Лайки: **{likes}** ❤️'}
+        user_profile_desc = {'en': '> Balance: **{coins}** 🪙 **{hollars}** 💵\n'
+                                   '> Reputation: **{likes}** {rating_status}',
+                             'ru': '> Баланс: **{coins}** 🪙 **{hollars}** 💵\n'
+                                   '> Репутация: **{likes}** {rating_status}'}
         pig_profile_desc = {'en': '> Pig name: **{pig_name}**\n'
-                              '> Age: **{age}**\n'
-                              '> Weight: **{weight}** kg',
-                        'ru': '> Имя хряка: **{pig_name}**\n'
-                              '> Возраст: **{age}**\n'
-                              '> Вес: **{weight}** кг'}
+                                  '> Age: **{age}**\n'
+                                  '> Weight: **{weight}** kg',
+                            'ru': '> Имя хряка: **{pig_name}**\n'
+                                  '> Возраст: **{age}**\n'
+                                  '> Вес: **{weight}** кг'}
         family_profile_desc = {'en': '> Role: **{role}**',
-                        'ru': '> Роль: **{role}**'}
+                               'ru': '> Роль: **{role}**'}
         pig_field_title = {'en': 'Pig',
                            'ru': 'Свинтус'}
         pig_field_value = {'en': 'Pig name: **{pig_name}**\n'
@@ -489,17 +463,17 @@ class Locales:
         user_var_desc = {Locale.en_US: 'The user you want to see the pig of',
                          Locale.ru: 'Пользователь, у которого вы хотите посмотреть хряка'}
         title = {'en': '{user}\'s pig',
-                         'ru': 'Хряк {user}'}
+                 'ru': 'Хряк {user}'}
 
     class ProfileLike:
         scd_title = {'en': 'Liked',
-                         'ru': 'Лайк поставлен'}
+                     'ru': 'Лайк поставлен'}
         scd_desc = {'en': "*You liked **{user}'s** profile*",
-                        'ru': '*Вам понравился профиль **{user}***'}
+                    'ru': '*Вам понравился профиль **{user}***'}
         already_put_title = {'en': 'No no no',
-                         'ru': 'Эй, нельзя'}
+                             'ru': 'Эй, нельзя'}
         already_put_desc = {'en': "*You can't like 2 times*",
-                        'ru': '*Вы не можете поставить лайк 2 раза*'}
+                            'ru': '*Вы не можете поставить лайк 2 раза*'}
 
     class Stats:
         description = {Locale.en_US: 'View your stats',
@@ -528,24 +502,28 @@ class Locales:
     class Top:
         description = {Locale.en_US: 'Players top',
                        Locale.ru: 'Топ игроков'}
-        weight_top_title = {'en': 'Weight top',
-                            'ru': 'Топ по весу'}
-        weight_top_field_value = {'en': 'Pig name: {name}\n'
-                                        'Pig weight: {weight} kg',
-                                  'ru': 'Имя хряка: {name}\n'
-                                        'Вес хряка: {weight} кг'}
         server_var_name = {Locale.en_US: 'global',
                            Locale.ru: 'глобальный'}
         server_var_description = {Locale.en_US: 'Show global user top',
                                   Locale.ru: 'Показать глобальный топ пользователей'}
-        money_top_title = {'en': 'Money top',
-                           'ru': 'Топ богачей'}
-        likes_top_title = {'en': 'Likes top',
-                           'ru': 'Топ популярных'}
-        money_top_field_value = {'en': 'Balance: {money}',
-                                 'ru': 'Баланс: {money}'}
-        likes_top_field_value = {'en': 'Likes: {likes} ❤️',
-                                 'ru': 'Лайки: {likes} ❤️'}
+        best_of_the_bests = {'en': 'Best of the bests',
+                             'ru': 'Лучшие из лучших'}
+        also_not_bad = {'en': 'Also not bad',
+                        'ru': 'Тоже неплохи'}
+        weight_top_title = {'en': 'Weight top',
+                            'ru': 'Топ по весу'}
+        weight_top_description = {'en': '*Here we have the fattest Boars in the world*',
+                                  'ru': '*Здесь у нас самые жирные Хряки в мире*'}
+        coins_top_title = {'en': 'Money top',
+                           'ru': 'Монетный топ'}
+        coins_top_description = {'en': '*Here we have the richest coin millionaires*',
+                                 'ru': '*Здесь у нас самые богатые монетные миллионеры*'}
+        hollars_top_title = {'en': 'Dollar top',
+                           'ru': 'Долларовый топ'}
+        hollars_top_description = {'en': '*Here we have the richest dollar millionaires*',
+                                 'ru': '*Здесь у нас самые богатые долларовые миллионеры*'}
+        your_position = {'en': '*Your place: **{place}*** ',
+                                 'ru': '*Ваше место: **{place}***'}
         placeholder = {'en': 'View profile',
                        'ru': 'Посмотреть профиль'}
 
@@ -592,21 +570,22 @@ class Locales:
         user_var_description = {Locale.en_US: 'Speak for the user',
                                 Locale.ru: 'Говорить от лица пользователя'}
         not_allowed_title = {'en': 'Forbidden',
-                     'ru': 'Нельзя'}
-        not_allowed_desc = {'en': '*The `/say` command is disabled on this server. Ask the admin to enable it with `/settings say`*',
-                    'ru': '*Команда `/say` отключена на этом сервере. Попросите администрацию включить её при помощи `/settings say`*'}
+                             'ru': 'Нельзя'}
+        not_allowed_desc = {
+            'en': '*The `/say` command is disabled on this server. Ask the admin to enable it with `/settings say`*',
+            'ru': '*Команда `/say` отключена на этом сервере. Попросите администрацию включить её при помощи `/settings say`*'}
 
     class SettingsSay:
         description = {Locale.en_US: 'Configuring the say command',
                        Locale.ru: 'Настройка команды /say'}
         allow_var_name = {Locale.en_US: 'allow',
-                         Locale.ru: 'включить'}
+                          Locale.ru: 'включить'}
         allow_var_description = {Locale.en_US: 'Use "\\\\" to go to the next line',
-                                Locale.ru: 'Используйте "\\\\" для перехода на следующую строку'}
+                                 Locale.ru: 'Используйте "\\\\" для перехода на следующую строку'}
         scd_title = {'en': 'Great',
-                         'ru': 'Отлично'}
+                     'ru': 'Отлично'}
         scd_desc = {'en': '*Settings for `/say` command changed*',
-                                'ru': '*Настройки для команды `/say` изменены*'}
+                    'ru': '*Настройки для команды `/say` изменены*'}
 
     class Report:
         description = {Locale.en_US: 'Report bug',
@@ -630,17 +609,17 @@ class Locales:
         description = {Locale.en_US: 'Suggest your idea for updating the bot',
                        Locale.ru: 'Предложить свою идею для обновления бота'}
         title_var_name = {Locale.en_US: 'title',
-                         Locale.ru: 'заголовок'}
+                          Locale.ru: 'заголовок'}
         title_var_desc = {Locale.en_US: 'Idea title',
-                         Locale.ru: 'Заголовок идеи'}
+                          Locale.ru: 'Заголовок идеи'}
         description_var_name = {Locale.en_US: 'description',
-                         Locale.ru: 'описание'}
+                                Locale.ru: 'описание'}
         description_var_desc = {Locale.en_US: 'Describe your idea in all colors',
-                         Locale.ru: 'Опишите вашу идею во всех красках'}
+                                Locale.ru: 'Опишите вашу идею во всех красках'}
         anonymous_var_name = {Locale.en_US: 'anonymous',
-                         Locale.ru: 'анонимно'}
+                              Locale.ru: 'анонимно'}
         anonymous_var_desc = {Locale.en_US: 'Submit an idea anonymously',
-                         Locale.ru: 'Отправить идею анонимно'}
+                              Locale.ru: 'Отправить идею анонимно'}
         attachment_var_name = {Locale.en_US: 'attachment',
                                Locale.ru: 'картинка'}
         attachment_var_desc = {Locale.en_US: 'Attach a picture if required',
@@ -744,12 +723,28 @@ class Locales:
     class Global:
         page = {'en': 'Page',
                 'ru': 'Страница'}
+        message = {'en': 'Message',
+                   'ru': 'Сообщение'}
+        money = {'en': 'Money',
+                 'ru': 'Деньги'}
+        clear = {'en': 'Clear',
+                 'ru': 'Очистить'}
+        inventory = {'en': 'Inventory',
+                     'ru': 'Инвентарь'}
+        wardrobe = {'en': 'Wardrobe',
+                    'ru': 'Гардероб'}
+        no_items = {'en': 'No items',
+                    'ru': 'Нету предметов'}
+        successfully = {'en': 'Successfully',
+                        'ru': 'Успешно'}
+        trade = {'en': 'Trade',
+                 'ru': 'Торговля'}
         like = {'en': 'Like',
                 'ru': 'Нравится'}
         kick = {'en': 'Kick',
                 'ru': 'Выгнать'}
         ban = {'en': 'Ban',
-                'ru': 'Бан'}
+               'ru': 'Бан'}
         date = {'en': 'Date',
                 'ru': 'Дата'}
         requests = {'en': 'Requests',
@@ -780,6 +775,8 @@ class Locales:
                 'ru': 'Продать'}
         run_away = {'en': 'Run away',
                     'ru': 'Сбежать'}
+        kg = {'en': 'kg',
+              'ru': 'кг'}
         pay = {'en': 'Pay',
                'ru': 'Заплатить'}
         preview = {'en': 'Preview',
@@ -1046,6 +1043,14 @@ class Locales:
                          'ru': 'У вас нету предмета "{item}"'}
         no_item_desc = {'en': "*Unfortunately, you couldn't find this item in your storage*",
                         'ru': '*К сожалению, вы не смогли найти этот предмет у себя в хранилище*'}
+        not_enough_item_title = {'en': "You don't have enough {item}",
+                                 'ru': 'У вас не достаточное количество предмета "{item}"'}
+        not_enough_item_desc = {'en': "*Unfortunately, you couldn't find enough amount in your storage*",
+                                'ru': '*К сожалению, вы не смогли найти нужное количество у себя в хранилище*'}
+        user_not_enough_item_title = {'en': "{user} doesn't have enough {item}",
+                                      'ru': 'У {user} не достаточно предмета "{item}"'}
+        user_not_enough_item_desc = {'en': "*Unfortunately, **{user}** couldn't find enough amount in his storage*",
+                                     'ru': '*К сожалению, **{user}** не смог найти нужное количество у себя в хранилище*'}
         not_allowed_to_use_command_title = {'en': "You are not allowed to use this command",
                                             'ru': 'Вам не разрешено использовать эту команду'}
         not_allowed_to_use_command_desc = {'en': "*You need special permission to use the command*",
@@ -1054,6 +1059,10 @@ class Locales:
                                'ru': 'Это NSFW команда'}
         nsfw_required_desc = {'en': "*You need to be in an NSFW channel to use the command*",
                               'ru': '*Вам нужно находится в NSFW канале, чтобы использовать команду*'}
+        no_private_message_title = {'en': "Servers only",
+                                    'ru': 'Только для серверов'}
+        no_private_message_desc = {'en': "*You need to be on the server to use the command*",
+                                   'ru': '*Вам нужно находится на сервере, чтобы использовать команду*'}
         not_owner_desc = {'en': "*Only the bot owner can use this command*",
                           'ru': '*Только владелец бота может использовать эту команду*'}
         bot_as_opponent_duel_title = {'en': "Are you playing against a bot?",
@@ -1083,7 +1092,7 @@ class Locales:
             'en': "*What are you going to inject yourself? Like \"Hey Me, let me sell you 10 coins for 10 coins\"?*",
             'ru': '*Что ты себе впаривать собрался? Типо "Эй Я, давай я тебе продам 10 монет за 10 монет"?*'}
         bot_as_trade_user_title = {'en': "Can't trade with a bot",
-                                      'ru': 'Нельзя торговать с ботом'}
+                                   'ru': 'Нельзя торговать с ботом'}
         bot_as_trade_user_desc = {
             'en': "Hey, seriously. I'm already tired of reminding users that they can't interact with bots",
             'ru': '*Эй, ну серьезно. Мне уже надоело напоминать пользователям что они не могут взаимодействовать с ботами*'}
@@ -1126,38 +1135,49 @@ class Locales:
                  'ru': 'Скин'},
         'case': {'en': 'Case',
                  'ru': 'Кейс'},
-        'skin:hat': {'en': 'Headdress',
-                     'ru': 'Головной убор'},
-        'skin:glasses': {'en': 'Glasses',
-                         'ru': 'Очки'},
-        'skin:tie': {'en': 'Tie',
-                     'ru': 'Галстук'},
-        'skin:body': {'en': 'Skin color',
-                      'ru': 'Цвет кожи'},
-        'skin:pupils': {'en': 'Pupils',
-                        'ru': 'Зрачки'},
-        'skin:tattoo': {'en': 'Tattoo',
-                        'ru': 'Тату'},
-        'skin:legs': {'en': 'Legs',
-                      'ru': 'Ноги'},
-        'skin:nose': {'en': 'Nose',
-                      'ru': 'Нос'},
-        'skin:_nose': {'en': 'Nose',
-                       'ru': 'Нос'},
-        'skin:eyes': {'en': 'Eyes',
-                      'ru': 'Глаза'},
-        'skin:suit': {'en': 'Suit',
-                      'ru': 'Костюм'},
-        'skin:makeup': {'en': 'Makeup',
-                      'ru': 'Макияж'},
-        'skin:face': {'en': 'Face',
-                        'ru': 'Лицо'},
-        'skin:piercing_nose': {'en': 'Piercing - nose',
-                               'ru': 'Пирсинг - нос'},
-        'skin:piercing_ear': {'en': 'Piercing - ear',
-                              'ru': 'Пирсинг - ухо'},
-        'skin:eye_emotion': {'en': 'Eyes emotion',
-                             'ru': 'Эмоция глаз'},
+        'money': {'en': 'Money',
+                  'ru': 'Деньги'},
+        'weight': {'en': 'Weight',
+                   'ru': 'Вес'},
+    }
+
+    SkinTypes = {
+        'hat': {'en': 'Headdress',
+                'ru': 'Головной убор'},
+        'glasses': {'en': 'Glasses',
+                    'ru': 'Очки'},
+        'tie': {'en': 'Tie',
+                'ru': 'Галстук'},
+        'body': {'en': 'Skin color',
+                 'ru': 'Цвет кожи'},
+        'pupils': {'en': 'Pupils',
+                   'ru': 'Зрачки'},
+        'tattoo': {'en': 'Tattoo',
+                   'ru': 'Тату'},
+        'legs': {'en': 'Legs',
+                 'ru': 'Ноги'},
+        'nose': {'en': 'Nose',
+                 'ru': 'Нос'},
+        '_nose': {'en': 'Nose',
+                  'ru': 'Нос'},
+        'eyes': {'en': 'Eyes',
+                 'ru': 'Глаза'},
+        'suit': {'en': 'Suit',
+                 'ru': 'Костюм'},
+        'makeup': {'en': 'Makeup',
+                   'ru': 'Макияж'},
+        'face': {'en': 'Face',
+                 'ru': 'Лицо'},
+        'piercing_nose': {'en': 'Piercing - nose',
+                          'ru': 'Пирсинг - нос'},
+        'piercing_ear': {'en': 'Piercing - ear',
+                         'ru': 'Пирсинг - ухо'},
+        'eye_emotion': {'en': 'Eyes emotion',
+                        'ru': 'Эмоция глаз'},
+        'mouth': {'en': 'Accessory / Mouth',
+                  'ru': 'Аксессуар / Рот'},
+        'back': {'en': 'Back',
+                 'ru': 'Спина'},
     }
 
     ItemRarities = {
@@ -1311,11 +1331,8 @@ class Locales:
         laxative_desc = {
             'en': '**{pig}** will produce more manure on the next **{step}** feedings',
             'ru': '**{pig}** будет давать больше навоза следующие **{step}** кормёжек'}
-        case_title = {'en': 'You opened case',
-                      'ru': 'Вы открыли кейс'}
-        case_desc = {
-            'en': '## You got:\n```{items}```',
-            'ru': '## Вы получили:\n```{items}```'}
+        case_title = {'en': 'You got:',
+                      'ru': 'Вы получили:'}
 
     class Wardrobe:
         description = {Locale.en_US: 'Skins for your pig',
@@ -1332,6 +1349,12 @@ class Locales:
                  'ru': 'Вы надели {item}'}
         desc_list = {'en': ['*This **{item}** really suits you!*'],
                      'ru': ['*Этот **{item}** вам очень идёт!*']}
+
+    class WardrobeItemNotCompatible:
+        title = {'en': "Can't be worn",
+                 'ru': 'Нельзя надеть'}
+        desc = {'en': '***{skin1}** conflicts with **{skin2}**\n\n> Remove **{skin2}** to put on **{skin1}***',
+                'ru': '***{skin1}** конфликтует с **{skin2}**\n\n> Снимите **{skin2}**, чтобы надеть **{skin1}***'}
 
     class WardrobeItemRemove:
         title = {'en': 'You removed {item}',
@@ -1350,13 +1373,21 @@ class Locales:
                        Locale.ru: 'Заглянуть в магазин'}
         shop_empty_desc = {'en': '*Shop is empty now*',
                            'ru': '*Магазин сейчас пустой*'}
+        buy_hollars_description = {'en': '💵 | *You can buy **Hryak-Dollars** **[here](https://boosty.to/brevnoo.en)***',
+                                   'ru': '💵 | *Вы можете покупать **Хряк-Доллары** **[на этом сайте](https://boosty.to/brevnoo)***'}
         titles = {
             'daily_shop': {'en': 'Daily shop',
                            'ru': 'Ежедневный магазин'},
             'case_shop': {'en': 'Case shop',
                           'ru': 'Кейсы'},
             'static_shop': {'en': 'Shop',
-                            'ru': 'Магазин'}
+                            'ru': 'Магазин'},
+            'coins_shop': {'en': 'Coins',
+                           'ru': 'Монеты'},
+            'premium_skins_shop': {'en': 'Premium skins',
+                                   'ru': 'Премиум скины'},
+            'premium_shop': {'en': 'Premium',
+                             'ru': 'Донат'}
         }
 
     # 'pregnancy': {'description': {Locale.en_US: 'View boar pregnancy status',

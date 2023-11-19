@@ -1,4 +1,5 @@
 import aiohttp.client_exceptions
+import disnake.abc
 
 from ..functions import Func
 from ..db_api import *
@@ -24,7 +25,10 @@ async def send_callback(inter,
         if not send_to_dm:
             try:
                 if ctx_message:
-                    await inter.response.defer(ephemeral=ephemeral)
+                    try:
+                        await inter.response.defer(ephemeral=ephemeral)
+                    except Exception as e:
+                        pass
                     message = await inter.channel.send(content, embed=embed, components=components, files=files)
                 elif type(inter) in [disnake.Message, disnake.InteractionMessage]:
                     if edit_original_message:
@@ -46,16 +50,25 @@ async def send_callback(inter,
                                 extra_kwargs['embed'] = embed
                             message = await inter.response.send_message(content, ephemeral=ephemeral,
                                                                         components=components, files=files, **extra_kwargs)
-                    except disnake.HTTPException:
-                        # await inter.channel.send()
+                    except disnake.HTTPException as e:
+                        print(e)
                         message = await inter.response.send_message(content, embed=embed, ephemeral=ephemeral,
                                                                     components=components, files=files)
+
             except aiohttp.client_exceptions.ClientOSError as e:
                 print(e)
                 await asyncio.sleep(1)
                 continue
+            except ValueError as e:
+                if embed.thumbnail.url is not None and embed.thumbnail.url.startswith('attachment://'):
+                    if embed.thumbnail.url is not None:
+                        embed.set_thumbnail(file=disnake.File(f'{config.TEMP_FOLDER_PATH}/{embed.thumbnail.url.split("://")[1]}'))
+                    if embed.image.url is not None:
+                        embed.set_image(file=disnake.File(f'{config.TEMP_FOLDER_PATH}/{embed.thumbnail.url.split("://")[1]}'))
+                await asyncio.sleep(.5)
+                continue
             except Exception as e:
-                print(e)
+                print('-', e)
         else:
             try:
                 message = await send_to_dm.send(content, embed=embed, components=components, files=files)
@@ -128,3 +141,20 @@ async def send_webhook_embed(url: str, embed=None, content: str = None, username
             break
         else:
             await asyncio.sleep(webhook_ex.json()['retry_after'] / 1000 + .2)
+
+
+# def translate(locales, lang, format_options: dict = None):
+#     translated_text = 'translation_error'
+#     if type(locales) == dict:
+#         if lang not in locales:
+#             lang = 'en'
+#         if lang not in locales:
+#             lang = list(locales)[0]
+#         translated_text = locales[lang]
+#     elif type(locales) == str:
+#         translated_text = locales
+#     if format_options is not None:
+#         for k, v in format_options.items():
+#             translated_text = translated_text.replace('{'+k+'}', str(v))
+#     return translated_text
+

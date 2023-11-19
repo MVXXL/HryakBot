@@ -24,16 +24,15 @@ async def pig_feed(inter):
     pooped_poop = random.uniform(5 + round(pig_weight * .05), 20 + round(pig_weight * .15))
     for item_buff, number in Pig.get_buffs(inter.author.id).items():
         if number > 0:
-            buffs = Inventory.get_item_buffs(item_buff)
+            buffs = Item.get_buffs(item_buff)
             if item_buff in ['laxative']:
                 Pig.remove_buff(inter.author.id, item_buff)
-            pooped_poop *= buffs['pooping_boost']
-            weight_add *= buffs['weight_boost']
+            pooped_poop *= buffs['pooping']
+            weight_add *= buffs['weight']
     tf = Func.check_consecutive_timestamps(Pig.get_feed_history(inter.author.id)[-40:],
                                            6 * 3600, 4 * 3600
                                            # utils_config.pig_feed_cooldown * 1.5, utils_config.pig_feed_cooldown
                                            )
-    print(tf)
     if tf > len(utils_config.anti_bot_decreases) - 1:
         tf = len(utils_config.anti_bot_decreases) - 1
     weight_add *= 1 - utils_config.anti_bot_decreases[tf] / 100
@@ -50,7 +49,7 @@ async def meat(inter):
     await BotUtils.pre_command_check(inter)
     BotUtils.check_pig_meat_cooldown(inter.author)
     lang = User.get_language(inter.author.id)
-    if Inventory.get_item_amount(inter.author.id, 'knife') <= 0:
+    if Item.get_amount('knife', inter.author.id) <= 0:
         raise NoItemInInventory('knife', Locales.Meat.no_knife_desc)
     bacon_add = random.randrange(8, 16)
     User.add_item(inter.author.id, 'lard', bacon_add)
@@ -63,6 +62,9 @@ async def meat(inter):
 async def pig_rename(inter, name):
     await BotUtils.pre_command_check(inter)
     lang = User.get_language(inter.author.id)
-    name = name.replace('\'', '')
+    for i in ['*', '`']:
+        name = name.replace(i, '')
+    if not name:
+        name = 'Hryak'
     Pig.rename(inter.author.id, name)
     await send_callback(inter, embed=embeds.pig_rename(inter, lang))

@@ -5,53 +5,30 @@ import random
 import disnake
 
 from ...core import *
+from ...core import Locales
 from ...utils import *
+from ...utils import Trade, BotUtils, generate_embed, Func
 
 
-async def generate_fields(inter, users, top_type, lang):
-    fields = []
-    for i, user_id in enumerate(users):
-        field_value = 'None'
-        if top_type == 'weight':
-            field_value = Locales.Top.weight_top_field_value[lang].format(name=Pig.get_name(user_id),
-                                                                          weight=Pig.get_weight(user_id))
-        elif top_type == 'money':
-            field_value = Locales.Top.money_top_field_value[lang].format(money=User.get_money(user_id))
-        elif top_type == 'likes':
-            field_value = Locales.Top.likes_top_field_value[lang].format(likes=len(User.get_likes(user_id)))
-        fields.append({'name': f'{i + 1}. {await User.get_name(inter.client, user_id)}',
-                       'value': f'```{field_value}```', 'inline': True})
-    return fields
-
-
-async def weight_top(inter, lang, users) -> disnake.Embed:
-    fields = await generate_fields(inter, users, 'weight', lang)
-    embed = generate_embed(
-        title=Locales.Top.weight_top_title[lang],
-        prefix=Func.generate_prefix('🐷'),
-        inter=inter,
-        fields=fields,
-        # thumbnail_url=BotUtils.build_pig((('hat', 'cylinder'), ))
+async def trade_embed(inter, trade_id, lang):
+    user1 = await Trade.get_user(inter.client, trade_id, 0)
+    user2 = await Trade.get_user(inter.client, trade_id, 1)
+    user1_data = Trade.get_user_data(trade_id, user1.id)
+    user2_data = Trade.get_user_data(trade_id, user2.id)
+    user1_items_list = BotUtils.get_items_in_str_list(user1_data["items"], lang)
+    user2_items_list = BotUtils.get_items_in_str_list(user2_data["items"], lang)
+    return generate_embed(
+        Locales.Global.trade[lang],
+        # f'Торговля между {await User.get_name(inter.client, list(data)[0])} и '
+        # f'{await User.get_name(inter.client, list(data)[1])}',
+        fields=[{'name': user1.display_name,
+                 'value': f'```{Locales.Global.no_items[lang] if not user1_items_list else user1_items_list}```',
+                 'inline': True},
+                {'name': user2.display_name,
+                 'value': f'```{Locales.Global.no_items[lang] if not user2_items_list else user2_items_list}```',
+                 'inline': True}],
+        prefix=Func.generate_prefix("💰"),
+        thumbnail_file=Func.get_image_path_from_link(utils_config.image_links['trade']),
+        footer_url=inter.client.user.avatar.url,
+        footer='Hryak'
     )
-    return embed
-
-
-async def money_top(inter, lang, users) -> disnake.Embed:
-    fields = await generate_fields(inter, users, 'money', lang)
-    embed = generate_embed(
-        title=Locales.Top.money_top_title[lang],
-        prefix=Func.generate_prefix('💰'),
-        inter=inter,
-        fields=fields
-    )
-    return embed
-
-async def likes_top(inter, lang, users) -> disnake.Embed:
-    fields = await generate_fields(inter, users, 'likes', lang)
-    embed = generate_embed(
-        title=Locales.Top.likes_top_title[lang],
-        prefix=Func.generate_prefix('❤️'),
-        inter=inter,
-        fields=fields
-    )
-    return embed
