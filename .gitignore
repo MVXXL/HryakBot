@@ -4,5 +4,5 @@ logs.json
 test_logs.json
 reserve_logs
 /generated_logs.json
-/bin/pigs/
+/bin/temp/
 __pycache__/
