@@ -65,7 +65,10 @@ class Func:
 
     @staticmethod
     def generate_temp_path(key_word: str, file_extension: str = 'png'):
+        i = 0
         while True:
+            i += 1
+            print(f'path gen {i}')
             path = f'{config.TEMP_FOLDER_PATH}/{key_word}_{Func.get_current_timestamp()}_{random.randrange(10000)}.{file_extension}'
             if not os.path.exists(path):
                 break
@@ -89,7 +92,7 @@ class Func:
         if os.path.exists(log_file_path):
             with open(log_file_path, "r") as log_file:
                 try:
-                    log_data = json.load(log_file)
+                    log_data = json.loads(log_file.read())
                 except json.decoder.JSONDecodeError:
                     log_data = []
 
@@ -98,7 +101,7 @@ class Func:
             log_data = [log_entry]
 
         with open(log_file_path, "w") as log_file:
-            json.dump(log_data, log_file, indent=4, ensure_ascii=False)
+            log_file.write(json.dumps(log_data, indent=4, ensure_ascii=False))
 
     @staticmethod
     def get_command_name_and_options(ctx):
@@ -224,8 +227,9 @@ class Func:
         return text
 
     @staticmethod
-    @cached(TTLCache(maxsize=10000, ttl=86400))
-    def get_image_path_from_link(link: str, name: str = None):
+    @aiocache.cached(ttl=86400)
+    async def get_image_path_from_link(link: str, name: str = None):
+        print(link)
         if name is None:
             name = random.randrange(10000, 99999)
         file_extension = 'png'
@@ -233,8 +237,8 @@ class Func:
             if link.split('.')[-1] in ['png', 'webp', 'gif', 'jpg']:
                 file_extension = link.split('.')[-1]
         path = Func.generate_temp_path(name, file_extension=file_extension)
-        with open(path, 'wb') as f:
-            f.write(requests.get(link).content)
+        async with aiofiles.open(path, 'wb') as f:
+            await f.write(requests.get(link).content)
         return path
 
     @staticmethod
@@ -378,18 +382,18 @@ class Func:
         return num
 
     @staticmethod
-    def send_data_to_sdc(servers, shards: int = 1):
-        requests.post('https://api.server-discord.com/v2/bots/1102273144733049003/stats',
+    def send_data_to_sdc(client, shards: int = 1):
+        requests.post(f'https://api.server-discord.com/v2/bots/{client.user.id}/stats',
                       headers={'Authorization': f'SDC {config.SDC_TOKEN}'},
-                      json={'servers': servers,
+                      json={'servers': len(client.guilds),
                             'shards': shards
                             })
 
     @staticmethod
-    def send_data_to_boticord(servers):
-        requests.post('https://api.boticord.top/bots/1102273144733049003/stats',
+    def send_data_to_boticord(client):
+        requests.post(f'https://api.boticord.top/bots/{client.user.id}/stats',
                       headers={'Authorization': f'Bot {config.BOTICORD_TOKEN}'},
-                      json={'servers': servers})
+                      json={'servers': len(client.guilds)})
 
     @staticmethod
     def remove_empty_lists_from_list(lst):

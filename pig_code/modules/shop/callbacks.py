@@ -25,7 +25,7 @@ async def shop(inter, message=None, init_category: str = None, init_page: int = 
     await BotUtils.pagination(inter if message is None else message, lang,
                               embeds=embeds,
                               return_if_starts_with=['back_to_inventory', 'wardrobe_category_choose'],
-                              embed_thumbnail_file=Func.get_image_path_from_link(utils_config.image_links['shop']), arrows=False, categories=True,
+                              embed_thumbnail_file=await Func.get_image_path_from_link(utils_config.image_links['shop']), arrows=False, categories=True,
                               init_category=init_category, init_page=init_page)
 
 
@@ -60,5 +60,5 @@ async def shop_item_buy(inter, item_id):
 async def shop_item_selected(inter, item_id, message: disnake.Message = None, category: str = None, page: int = 1):
     lang = User.get_language(inter.author.id)
     await send_callback(inter if message is None else message,
-                        embed=BotUtils.generate_item_selected_embed(inter, lang, item_id=item_id, _type='shop'),
+                        embed=await BotUtils.generate_item_selected_embed(inter, lang, item_id=item_id, _type='shop'),
                         components=components.shop_item_selected(item_id, lang, category=category, page=page))

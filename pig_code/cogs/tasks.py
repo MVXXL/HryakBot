@@ -8,9 +8,19 @@ class Tasks(commands.Cog):
         self.client = client
         self.daily_shop_update.start()
         self.give_items.start()
+        self.test.start()
         if not config.TEST:
             self.monitoring_data_update.start()
             self.create_logs_copy.start()
+
+    @tasks.loop(seconds=10)
+    async def test(self):
+        print(1)
+        utils_config.profiler.dump_stats(f'output_file{"" if not config.TEST else "_test"}.prof')
+        utils_config.profiler.disable()
+        utils_config.profiler.enable()
+
+        # print(globals(), len(str(globals())))
 
     @tasks.loop(seconds=60)
     async def daily_shop_update(self):
@@ -67,17 +77,17 @@ class Tasks(commands.Cog):
         #         User.set_new_settings(k, v['settings'])
         await self.client.wait_until_ready()
         servers = len(self.client.guilds)
-        Func.send_data_to_sdc(servers)
-        Func.send_data_to_boticord(servers)
+        Func.send_data_to_sdc(self.client)
+        Func.send_data_to_boticord(self.client)
         await Func.send_data_to_stats_channel(self.client, servers)
 
     @tasks.loop(seconds=2 * 3600)
     async def create_logs_copy(self):
         try:
-            with open(config.RESERVE_LOGS_FOLDER_PATH + f'/logs_copy_{Func.get_current_timestamp()}.json', 'w') as f:
-                f.write(open(config.LOGS_PATH, 'r').read())
-            with open(config.LOGS_PATH, 'w') as f:
-                f.write('')
+            async with aiofiles.open(config.RESERVE_LOGS_FOLDER_PATH + f'/logs_copy_{Func.get_current_timestamp()}.json', 'w') as f:
+                await f.write(open(config.LOGS_PATH, 'r').read())
+            async with aiofiles.open(config.LOGS_PATH, 'w') as f:
+                await f.write('')
         except Exception as e:
             print(e)
 

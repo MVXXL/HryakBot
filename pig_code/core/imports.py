@@ -12,6 +12,10 @@ import os
 import difflib
 import random
 import re
+import aiofiles
+import win32api
+import win32con
+import win32process
 import mysql.connector
 import string
 from mysql.connector import pooling

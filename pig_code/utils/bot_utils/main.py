@@ -129,18 +129,25 @@ def generate_embed(title: str = None,
 
 
 async def send_webhook_embed(url: str, embed=None, content: str = None, username=None, avatar_url=None,
-                             file_content=None):
+                             file_name: str = 'webhook.txt', file_content=None, retries: int = 3):
     webhook = discord_webhook.DiscordWebhook(content=content, url=url, username=username, avatar_url=avatar_url)
     if file_content is not None:
-        webhook.add_file(filename='webhook.txt', file=file_content)
+        webhook.add_file(filename=file_name, file=file_content)
     if embed is not None:
         webhook.add_embed(embed)
-    while True:
-        webhook_ex = webhook.execute()
-        if webhook_ex.status_code == 200:
-            break
-        else:
-            await asyncio.sleep(webhook_ex.json()['retry_after'] / 1000 + .2)
+    for i in range(retries):
+        try:
+            webhook_ex = webhook.execute()
+            if webhook_ex.status_code == 200:
+                break
+            elif webhook_ex.status_code == 429:
+                await asyncio.sleep(webhook_ex.json()['retry_after'] / 1000 + .2)
+            else:
+                break
+        except requests.exceptions.SSLError as e:
+            print('Webhook send error', e)
+            await asyncio.sleep(1)
+            continue
 
 
 # def translate(locales, lang, format_options: dict = None):

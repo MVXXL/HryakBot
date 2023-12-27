@@ -147,7 +147,7 @@ def reset_join_message(inter, lang) -> disnake.Embed:
     return embed
 
 
-def wardrobe_item_preview(inter, item_id, lang) -> disnake.Embed:
+async def wardrobe_item_preview(inter, item_id, lang) -> disnake.Embed:
     skin_type = Item.get_skin_type(item_id)
     preview_options = Pig.get_skin(inter.author.id, 'all')
     preview_options[skin_type] = item_id
@@ -156,7 +156,7 @@ def wardrobe_item_preview(inter, item_id, lang) -> disnake.Embed:
         description=Locales.WardrobeItemPreview.desc[lang].format(item=Item.get_name(item_id, lang)),
         prefix=Func.generate_prefix('👁️'),
         inter=inter,
-        thumbnail_file=BotUtils.build_pig(tuple(preview_options.items()),
+        thumbnail_file=await BotUtils.build_pig(tuple(preview_options.items()),
                                       tuple(Pig.get_genetic(inter.author.id, 'all').items())),
     )
     return embed

@@ -1,3 +1,5 @@
+import disnake
+
 from .connection import Connection
 from ..functions import Func
 from ...core import *
@@ -21,8 +23,8 @@ class User:
         pig['name'] = random.choice(utils_config.pig_names)
         pig = json.dumps(pig)
         Connection.make_request(
-            f"INSERT INTO {users_schema} (id, pig, settings, inventory, stats, events, buy_history, rating) "
-            f"VALUES ('{user_id}', %s, %s, '{'{}'}', '{stats}', '{'{}'}', '[]', '{'{}'}')",
+            f"INSERT INTO {users_schema} (id, created, pig, settings, inventory, stats, events, buy_history, rating) "
+            f"VALUES ('{user_id}', '{Func.get_current_timestamp()}', %s, %s, '{'{}'}', '{stats}', '{'{}'}', '[]', '{'{}'}')",
             params=(pig, json.dumps(utils_config.user_settings))
         )
         User.add_item(user_id, 'common_case')
@@ -38,8 +40,8 @@ class User:
         return bool(result)
 
     @staticmethod
-    @aiocache.cached(ttl=6000)
-    async def get_user(client, user_id):
+    @aiocache.cached(ttl=86400)
+    async def get_user(client, user_id) -> disnake.User:
         user = client.get_user(int(user_id))
         if user is None:
             user = await client.fetch_user(int(user_id))
@@ -172,6 +174,19 @@ class User:
     def get_language(user_id):
         settings = User.get_settings(str(user_id))
         return settings['language']
+
+    @staticmethod
+    def get_registration_timestamp(user_id):
+        result = Connection.make_request(
+            f"SELECT created FROM {users_schema} WHERE id = {user_id}",
+            commit=False,
+            fetch=True
+        )
+        return int(result)
+
+    @staticmethod
+    def get_age(user_id):
+        return Func.get_current_timestamp() - User.get_registration_timestamp(user_id)
 
     @staticmethod
     def set_family(user_id, family_id: str):

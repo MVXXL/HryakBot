@@ -54,10 +54,10 @@ async def breed(inter, partner):
         Pig.set_last_breed(inter.author.id, Func.get_current_timestamp())
         Pig.set_last_breed(partner.id, Func.get_current_timestamp())
         if mini_pig == 'fail':
-            await send_callback(inter, embed=embeds.pig_breed_fail(inter, lang, partner))
+            await send_callback(inter, embed=await embeds.pig_breed_fail(inter, lang, partner))
         else:
             Pig.make_pregnant(partner.id, partner.id, mini_pig)
-            await send_callback(inter, embed=embeds.pig_breed_ok(inter, lang, partner, mini_pig))
+            await send_callback(inter, embed=await embeds.pig_breed_ok(inter, lang, partner, mini_pig))
     elif interaction.component.custom_id == 'in:reject':
         await send_callback(interaction, embed=embeds.breed_canceled(inter, lang, partner, 'partner_reject'))
 

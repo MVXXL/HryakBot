@@ -42,7 +42,7 @@ async def pig_feed(inter):
     User.add_item(inter.author.id, 'poop', pooped_poop)
     Pig.add_weight(inter.user.id, weight_add)
     Pig.set_last_feed(inter.author.id, Func.get_current_timestamp())
-    await send_callback(inter, embed=embeds.pig_feed(inter, lang, weight_add, pooped_poop))
+    await send_callback(inter, embed=await embeds.pig_feed(inter, lang, weight_add, pooped_poop))
 
 
 async def meat(inter):
@@ -56,7 +56,7 @@ async def meat(inter):
     weight_lost = round(random.uniform(.2, .7) * bacon_add, 1)
     Pig.add_weight(inter.user.id, -weight_lost)
     Pig.set_last_meat(inter.author.id, Func.get_current_timestamp())
-    await send_callback(inter, embed=embeds.pig_meat(inter, lang, bacon_add, weight_lost))
+    await send_callback(inter, embed=await embeds.pig_meat(inter, lang, bacon_add, weight_lost))
 
 
 async def pig_rename(inter, name):

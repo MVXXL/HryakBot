@@ -5,6 +5,7 @@ from disnake.ext import commands
 
 from pig_code.core import config
 from pig_code.utils.db_api.tech import *
+import cProfile
 
 
 class PigBot:
@@ -13,10 +14,11 @@ class PigBot:
         intents = disnake.Intents.default()
         intents.members = True
         if not config.TEST:
-            self.pig_bot = commands.AutoShardedInteractionBot(intents=intents, strict_localization=True, shard_count=2,
+            self.pig_bot = commands.AutoShardedInteractionBot(intents=intents, strict_localization=True, shard_count=3,
                                                               max_messages=10000,
-                                                          activity=disnake.Activity(type=disnake.ActivityType.watching,
-                                                                                    name=f'/help'))
+                                                              activity=disnake.Activity(
+                                                                  type=disnake.ActivityType.watching,
+                                                                  name=f'/help'))
         else:
             self.pig_bot = commands.InteractionBot(intents=intents, strict_localization=True)
 
@@ -30,6 +32,8 @@ class PigBot:
 pig_bot = PigBot()
 pig_bot.load_cogs()
 
-
-
 pig_bot.pig_bot.run(config.TOKEN)
+
+# Для запуска профайлера на всем боте
+# cProfile.run('i()', f'profile_output{"" if not config.TEST else "_test"}.txt')
+

@@ -30,7 +30,7 @@ async def profile(inter, user: disnake.User = None, pre_command_check: bool = Tr
                 disabled=True if User.get_rate_number(user.id, inter.author.id) == -1 else False
             )
         ]
-    await send_callback(inter, embed=BotUtils.profile_embed(inter, lang, user, info), ephemeral=ephemeral,
+    await send_callback(inter, embed=await BotUtils.profile_embed(inter, lang, user, info), ephemeral=ephemeral,
                         edit_original_message=edit_original_message, components=_components)
 
 
@@ -41,7 +41,7 @@ async def view(inter, user: disnake.User = None):
         user = inter.author
     User.register_user_if_not_exists(user.id)
     await send_callback(inter, embed=generate_embed(timestamp=False,
-                                                    image_file=BotUtils.generate_user_pig(user.id)))
+                                                    image_file=await BotUtils.generate_user_pig(user.id)))
 
 
 async def stats(inter):
@@ -51,7 +51,7 @@ async def stats(inter):
         Locales.Stats.base_stats[lang]: embeds.base_stats(inter, lang),
         Locales.Stats.commands_stats[lang]: embeds.commands_stats(inter, lang),
         Locales.Stats.sell_stats[lang]: embeds.sell_stats(inter, lang)
-    }, categories=True, arrows=False, embed_thumbnail_file=BotUtils.generate_user_pig(inter.author.id))
+    }, categories=True, arrows=False, embed_thumbnail_file=await BotUtils.generate_user_pig(inter.author.id))
 
 
 async def promocode(inter, code):
@@ -215,7 +215,7 @@ async def skin_preview(inter, item_id, message: disnake.Message = None):
         await error_callbacks.not_compatible_skin(inter, item_id, not_compatible_skins, message)
         return
     await send_callback(inter if message is None else message,
-                        embed=embeds.wardrobe_item_preview(inter, item_id, lang),
+                        embed=await embeds.wardrobe_item_preview(inter, item_id, lang),
                         edit_original_message=False,
                         ephemeral=True
                         )

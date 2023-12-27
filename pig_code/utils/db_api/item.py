@@ -54,6 +54,8 @@ class Item:
     @staticmethod
     @cached(utils_config.db_caches['item.get_data'])
     def get_data(item_id: str, column: str, convert_to_type: type = None):
+        if item_id is None:
+            return
         result = Connection.make_request(
             f"SELECT {column} FROM {items_schema} WHERE id = %s",
             commit=False,
@@ -131,12 +133,15 @@ class Item:
 
     @staticmethod
     def get_emoji(item_id: str):
-        while True:
+        for i in range(10):
+            print(f'get_emoji {i} - {item_id}')
             e = Item.get_data(item_id, 'emoji')
             if e not in ['?', '?️']:
                 break
             else:
                 Item.clear_get_data_cache((item_id, 'emoji'))
+        else:
+            e = '❓'
         return e
 
     @staticmethod
@@ -148,7 +153,6 @@ class Item:
         return Item.get_data(item_id, 'inventory_type')
 
     @staticmethod
-    @cached(TTLCache(maxsize=1000, ttl=600000))
     def get_rarity(item_id: str, lang: str = None):
         rarity = Item.get_data(item_id, 'rarity')
         if lang is not None:
@@ -157,18 +161,22 @@ class Item:
 
 
     @staticmethod
-    def get_image_file_path(item_id: str):
+    @aiocache.cached(ttl=86400)
+    async def get_image_file_path(item_id: str):
         path = Func.generate_temp_path('img')
-        with open(path, 'wb') as file:
-            file.write(Item.get_data(item_id, 'image_file'))
-        return path
+        if Item.get_data(item_id, 'image_file') is not None:
+            async with aiofiles.open(path, 'wb') as file:
+                await file.write(Item.get_data(item_id, 'image_file'))
+            return path
 
     @staticmethod
-    def get_image_file_2_path(item_id: str):
+    @aiocache.cached(ttl=86400)
+    async def get_image_file_2_path(item_id: str):
         path = Func.generate_temp_path('img2')
-        with open(path, 'wb') as file:
-            file.write(Item.get_data(item_id, 'image_file_2'))
-        return path
+        if Item.get_data(item_id, 'image_file_2') is not None:
+            async with aiofiles.open(path, 'wb') as file:
+                await file.write(Item.get_data(item_id, 'image_file_2'))
+            return path
 
 
     @staticmethod

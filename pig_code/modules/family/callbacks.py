@@ -242,7 +242,7 @@ async def family_requests(inter, just_edit: bool = False, family_id=None, lang=N
                                                          description=Locales.FamilyRequests.not_owner_desc[lang],
                                                          prefix='👑')
             return
-    await BotUtils.pagination(inter, lang, embed_thumbnail_file=Func.get_image_path_from_link(utils_config.image_links['invite']),
+    await BotUtils.pagination(inter, lang, embed_thumbnail_file=await Func.get_image_path_from_link(utils_config.image_links['invite']),
                               embeds=await BotUtils.generate_items_list_embeds(inter,
                                                                                {family_id: list(
                                                                              Family.get_requests(family_id))},
@@ -268,7 +268,7 @@ async def family_profile(inter, user_id):
                                                 style=disnake.ButtonStyle.red,
                                                 custom_id=f'family;ban_user;{user_id};{family_id}')]
     await send_callback(inter,
-                        embed=BotUtils.profile_embed(inter, lang, await User.get_user(inter.client, user_id), ['user', 'pig', 'family']),
+                        embed=await BotUtils.profile_embed(inter, lang, await User.get_user(inter.client, user_id), ['user', 'pig', 'family']),
                         components=profile_components,
                         edit_original_message=False, ephemeral=True)
 
@@ -281,7 +281,7 @@ async def family_member_kick(inter, user_id, family_id):
                                              Locales.FamilyMemberKick.scd_desc[lang].format(
                                                  user=await User.get_name(inter.client, user_id)),
                                              inter=inter, prefix=Func.generate_prefix('🦵'),
-                                             thumbnail_file=BotUtils.generate_user_pig(user_id, eye_emotion='sad')),
+                                             thumbnail_file=await BotUtils.generate_user_pig(user_id, eye_emotion='sad')),
                         edit_original_message=True, ephemeral=True)
     message = await inter.original_response()
     if message.reference is not None:
@@ -297,7 +297,7 @@ async def family_member_ban(inter, user_id, family_id):
                                              Locales.FamilyMemberBan.scd_desc[lang].format(
                                                  user=await User.get_name(inter.client, user_id)),
                                              inter=inter, prefix=Func.generate_prefix('🔨'),
-                                             thumbnail_file=BotUtils.generate_user_pig(user_id, eye_emotion='angry')),
+                                             thumbnail_file=await BotUtils.generate_user_pig(user_id, eye_emotion='angry')),
                         edit_original_message=True, ephemeral=True)
     message = await inter.original_response()
     if message.reference is not None:
@@ -313,7 +313,7 @@ async def accept_user_to_family(inter, user_id, family_id, ephemeral: bool = Fal
                                                     Locales.Family.accept_user_desc[lang].format(
                                                         user=await User.get_name(inter.client, user_id)),
                                                     inter=inter, prefix=Func.generate_prefix('🐷'),
-                                                    thumbnail_file=BotUtils.generate_user_pig(user_id)),
+                                                    thumbnail_file=await BotUtils.generate_user_pig(user_id)),
                         edit_original_message=True, ephemeral=ephemeral)
     message = await inter.original_response()
     if message.reference is not None:
@@ -328,7 +328,7 @@ async def reject_user_to_family(inter, user_id, family_id, ephemeral: bool = Tru
                                                     Locales.Family.reject_user_desc[lang].format(
                                                         user=await User.get_name(inter.client, user_id)),
                                                     inter=inter, prefix=Func.generate_prefix('🐷'),
-                                                    thumbnail_file=BotUtils.generate_user_pig(user_id)),
+                                                    thumbnail_file=await BotUtils.generate_user_pig(user_id)),
                         edit_original_message=True, ephemeral=ephemeral, )
     message = await inter.original_response()
     if message.reference is not None:

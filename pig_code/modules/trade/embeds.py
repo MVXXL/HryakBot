@@ -28,7 +28,7 @@ async def trade_embed(inter, trade_id, lang):
                  'value': f'```{Locales.Global.no_items[lang] if not user2_items_list else user2_items_list}```',
                  'inline': True}],
         prefix=Func.generate_prefix("💰"),
-        thumbnail_file=Func.get_image_path_from_link(utils_config.image_links['trade']),
+        thumbnail_file=await Func.get_image_path_from_link(utils_config.image_links['trade']),
         footer_url=inter.client.user.avatar.url,
         footer='Hryak'
     )

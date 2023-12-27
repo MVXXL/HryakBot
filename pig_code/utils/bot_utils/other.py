@@ -306,6 +306,8 @@ class BotUtils:
                         emoji = Item.get_emoji(item)
                         option_desc = Func.cut_text(Item.get_description(item, lang), 100)
                 elif list_type == 'shop':
+                    print(item)
+                    print(f'- {Item.get_market_price_currency(item)}')
                     field_value = f'```{Locales.Global.price[lang]}: {Item.get_market_price(item)} {Item.get_emoji(Item.get_market_price_currency(item))}\n' \
                                   f'{Locales.Global.rarity[lang]}: {Item.get_rarity(item, lang)}```'
                     after_prefix = f" x{Item.get_amount(item)}"
@@ -358,7 +360,7 @@ class BotUtils:
         return complete_embeds
 
     @staticmethod
-    def generate_item_selected_embed(inter, lang, item_id, _type: str) -> disnake.Embed:
+    async def generate_item_selected_embed(inter, lang, item_id, _type: str) -> disnake.Embed:
         footer = Func.generate_footer(inter, second_part=item_id if item_id is not None else '')
         footer_url = Func.generate_footer_url('user_avatar', inter.author)
         basic_info_desc = ''
@@ -371,10 +373,10 @@ class BotUtils:
             skin_type = Item.get_skin_type(item_id)
             preview_options = utils_config.default_pig['skins'].copy()
             preview_options[skin_type] = item_id
-            thumbnail_file = BotUtils.build_pig(tuple(preview_options.items()),
+            thumbnail_file = await BotUtils.build_pig(tuple(preview_options.items()),
                                                 tuple(utils_config.default_pig['genetic'].items()))
-        elif Item.get_image_file_path(item_id) is not None:
-            thumbnail_file = Item.get_image_file_path(item_id)
+        elif await Item.get_image_file_path(item_id) is not None:
+            thumbnail_file = await Item.get_image_file_path(item_id)
         if _type in ['inventory', 'wardrobe']:
             basic_info_desc += f'{Locales.Global.amount[lang]}: **{Item.get_amount(item_id, inter.author.id)}**\n'
             basic_info_desc += f'{Locales.Global.type[lang]}: **{Item.get_skin_type(item_id, lang) if Item.get_type(item_id) == "skin" else Item.get_type(item_id, lang)}**\n'
@@ -722,18 +724,18 @@ class BotUtils:
         return amount_with_commission
 
     @staticmethod
-    def generate_user_pig(user_id, eye_emotion: str = None):
+    async def generate_user_pig(user_id, eye_emotion: str = None):
         user_skin = Pig.get_skin(user_id, 'all')
         for k, v in user_skin.items():
             if Item.get_amount(v, user_id) <= 0:
                 user_skin[k] = None
-        return BotUtils.build_pig(tuple(user_skin.items()),
+        return await BotUtils.build_pig(tuple(user_skin.items()),
                                   tuple(Pig.get_genetic(user_id, 'all').items()),
                                   eye_emotion=eye_emotion)
 
     @staticmethod
-    @cached(TTLCache(maxsize=1000, ttl=60))
-    def build_pig(skins: tuple, genetic: tuple = None, output_path: str = None,
+    @aiocache.cached(ttl=86400)
+    async def build_pig(skins: tuple, genetic: tuple = None, output_path: str = None,
                   eye_emotion: str = None):
         skins = dict(skins)
         if genetic is None:
@@ -778,10 +780,9 @@ class BotUtils:
             elif skins[key] is None and key not in genetic:
                 continue
             if skin_types[i] == 'nose':
-                image_path = Item.get_image_file_2_path(item_id)
+                image_path = await Item.get_image_file_2_path(item_id)
             else:
-                print(0, item_id)
-                image_path = Item.get_image_file_path(item_id)
+                image_path = await Item.get_image_file_path(item_id)
             if i == 0:
                 built_pig_img = Image.open(image_path)
             else:
@@ -815,7 +816,7 @@ class BotUtils:
         return result
 
     @staticmethod
-    def profile_embed(inter, lang, user: disnake.User = None, info: list = None) -> disnake.Embed:
+    async def profile_embed(inter, lang, user: disnake.User = None, info: list = None) -> disnake.Embed:
         if user is None:
             user = inter.author
         description = ''
@@ -844,7 +845,7 @@ class BotUtils:
             title=translate(Locales.Profile.profile_title, lang, {'user': user.display_name}),
             description=description,
             prefix=Func.generate_prefix('🐽'),
-            thumbnail_file=BotUtils.generate_user_pig(user.id),
+            thumbnail_file=await BotUtils.generate_user_pig(user.id),
             inter=inter,
         )
         return embed

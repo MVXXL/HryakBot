@@ -21,6 +21,7 @@ BOTICORD_TOKEN = get_env('BOTICORD_TOKEN')
 VERSION = '1.0'
 TEST = True
 PUBLIC_TEST = False
+HOSTING_TYPE = 'pc'
 ADMIN_GUILDS = get_env('TEST_ADMIN_GUILDS', list) if TEST else get_env('ADMIN_GUILDS', list)
 TEST_GUILDS = get_env('TEST_GUILDS', list)
 PUBLIC_TEST_GUILDS = get_env('PUBLIC_TEST_GUILDS', list)
@@ -28,11 +29,13 @@ BOT_GUILD = int(get_env('BOT_GUILD'))
 BOT_STATS_CHANNEL = int(get_env('BOT_STATS_CHANNEL'))
 BOT_IDEAS_CHANNEL = int(get_env('BOT_IDEAS_CHANNEL'))
 BOT_HALYAVA_CHANNEL = int(get_env('BOT_HALYAVA_CHANNEL'))
+NOT_VERIFIED_ROLE = int(get_env('NOT_VERIFIED_ROLE'))
 LOGS_PATH = get_env('LOGS_PATH')
 TEST_LOGS_PATH = get_env('TEST_LOGS_PATH')
 RESERVE_LOGS_FOLDER_PATH = get_env('RESERVE_LOGS_FOLDER_PATH')
 LOGS_PATH = LOGS_PATH if not TEST else TEST_LOGS_PATH
 TEMP_FOLDER_PATH = get_env('TEMP_FOLDER_PATH')
+INIT_DATA_PATH = get_env('INIT_DATA_PATH') if not PUBLIC_TEST else get_env('TEST_INIT_DATA_PATH')
 
 # webhooks
 START_CHANNEL_WEBHOOK = get_env('START_CHANNEL_WEBHOOK')
@@ -55,6 +58,14 @@ promo_code_schema = 'promo_codes' if not TEST else 'test_promo_codes'
 trades_schema = 'trades' if not TEST else 'test_trades'
 families_schema = 'families' if not TEST else 'test_families'
 items_schema = 'items'
+
+# users_schema = 'users'
+# guilds_schema = 'guilds'
+# shop_schema = 'shop'
+# promo_code_schema = 'promo_codes'
+# trades_schema = 'trades'
+# families_schema = 'families'
+# items_schema = 'items'
 
 if PUBLIC_TEST:
     TOKEN = PUBLIC_TEST_TOKEN

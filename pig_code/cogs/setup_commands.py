@@ -11,6 +11,7 @@ class SetupCommands(commands.Cog):
     @commands.slash_command(description=Localized(data=Locales.SetLanguage.description))
     async def language(self, inter, language: str = commands.Param(
         name=Localized(data=Locales.SetLanguage.language_var_name),
+        description=Localized(data=Locales.SetLanguage.language_var_description),
         choices=[bot_locale.full_names[i] for i in bot_locale.valid_discord_locales])):
         await modules.other.callbacks.set_language(inter, language)
 

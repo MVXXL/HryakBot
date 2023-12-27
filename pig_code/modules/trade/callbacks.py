@@ -58,7 +58,7 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
         await send_callback(inter, embed=generate_embed(Locales.Global.successfully[lang],
                                                         description=Locales.Trade.scd_desc[lang].format(user1=user1.display_name, user2=user2.display_name),
                                                         prefix=Func.generate_prefix("scd"),
-                                                        thumbnail_file=Func.get_image_path_from_link(utils_config.image_links['trade']),
+                                                        thumbnail_file=await Func.get_image_path_from_link(utils_config.image_links['trade']),
                                                         footer_url=inter.client.user.avatar.url,
                                                         footer=inter.client.user.display_name
                                                         ))

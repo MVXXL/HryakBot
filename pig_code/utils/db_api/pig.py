@@ -172,13 +172,12 @@ class Pig:
     def _get_time_to_next_action(user_id, action):
         last_action = Pig._get_last_action(user_id, action)
         cooldown = 1000000
-        match action:
-            case 'feed':
-                cooldown = utils_config.pig_feed_cooldown
-            case 'meat':
-                cooldown = utils_config.pig_meat_cooldown
-            case 'breed':
-                cooldown = utils_config.pig_breed_cooldown
+        if action == 'feed':
+            cooldown = utils_config.pig_feed_cooldown
+        if action == 'meat':
+            cooldown = utils_config.pig_meat_cooldown
+        if action == 'breed':
+            cooldown = utils_config.pig_breed_cooldown
         # primal_cooldown = cooldown
         # cont = True
         # while cont:

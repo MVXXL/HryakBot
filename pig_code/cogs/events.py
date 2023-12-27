@@ -1,3 +1,10 @@
+import json
+import os
+import time
+
+import discord_webhook
+import disnake
+
 from ..core.items.item_components.item_components import item_components
 from ..utils import *
 from .. import modules
@@ -6,6 +13,22 @@ from .. import modules
 class Events(commands.Cog):
     def __init__(self, client):
         self.client = client
+        aiocache.Cache(Cache.MEMORY)
+        if not config.TEST or config.PUBLIC_TEST:
+            init_data = {'start': Func.get_current_timestamp()}
+            if config.HOSTING_TYPE == 'pc':
+                init_data['pid'] = os.getpid()
+            with open(config.INIT_DATA_PATH, 'w') as f:
+                f.write(json.dumps(init_data))
+        handle = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, True, os.getpid())
+        win32process.SetPriorityClass(handle, win32process.HIGH_PRIORITY_CLASS)
+        # Tech.create_user_table()
+        # Tech.create_shop_table()
+        # Tech.create_promo_code_table()
+        # Tech.create_guild_table()
+        # Tech.create_families_table()
+        # Tech.create_trades_table()
+        # Tech.create_items_table()
         if not config.TEST:
             Func.clear_folder(config.TEMP_FOLDER_PATH)
 
@@ -20,25 +43,28 @@ class Events(commands.Cog):
         Tech.create_trades_table()
         Tech.create_items_table()
         print('tables created')
-        await Pig.fix_pig_structure_for_all_users()
-        print('pig structure fixed')
-        await Stats.fix_stats_structure_for_all_users()
-        print('stats structure fixed')
-        await Tech.fix_settings_structure_for_all_users()
-        print('settings structure fixed')
-        await Guild.fix_settings_structure_for_all_guilds()
-        print('guild structure fixed')
-        for guild in self.client.guilds:
-            Guild.register_guild_if_not_exists(guild.id)
-            await asyncio.sleep(0.1)
+        Guild.register([guild.id for guild in self.client.guilds])
         print('guilds registered')
-
-        aiocache.Cache(Cache.MEMORY)
+        # await Pig.fix_pig_structure_for_all_users()
+        # print('pig structure fixed')
+        # await Stats.fix_stats_structure_for_all_users()
+        # print('stats structure fixed')
+        # await Tech.fix_settings_structure_for_all_users()
+        # print('settings structure fixed')
+        # await Guild.fix_settings_structure_for_all_guilds()
+        # print('guild structure fixed')
 
     @commands.Cog.listener()
     async def on_message_interaction(self, interaction):
         User.register_user_if_not_exists(interaction.author.id)
         custom_id_params = interaction.component.custom_id.split(';')
+        try:
+            Func.add_log('interaction',
+                         custom_id_params=custom_id_params,
+                         interaction_values=interaction.values,
+                         user=interaction.author.id)
+        except:
+            Func.add_log('fail_to_log_interaction')
         if custom_id_params[0] == 'in':
             return
         allowed_users = []
@@ -86,11 +112,13 @@ class Events(commands.Cog):
                 if action_object == 'inventory':
                     await modules.inventory.callbacks.inventory(interaction, pre_command_check=False,
                                                                 select_item_component_id=f'trade;add_item;{trade_id}',
-                                                                ephemeral=True, edit_original_message=False, tradable_items_only=True)
+                                                                ephemeral=True, edit_original_message=False,
+                                                                tradable_items_only=True)
                 if action_object == 'wardrobe':
                     await modules.inventory.callbacks.wardrobe(interaction, pre_command_check=False,
                                                                select_item_component_id=f'trade;add_item;{trade_id}',
-                                                               ephemeral=True, edit_original_message=False, tradable_items_only=True)
+                                                               ephemeral=True, edit_original_message=False,
+                                                               tradable_items_only=True)
             elif custom_id_params[1] in ['agree', 'cancel', 'clear', 'add_item']:
                 trade_id = custom_id_params[2]
                 user1_id = await Trade.get_user(interaction.client, trade_id, 0, fetch=False)
@@ -109,13 +137,15 @@ class Events(commands.Cog):
                                                                  translate(Locales.Trade.cancel_title, lang),
                                                                  translate(Locales.Trade.cancel_desc, lang).format(
                                                                      user=interaction.author.display_name),
-                                                                 thumbnail_file=Func.get_image_path_from_link(utils_config.image_links['trade']))
+                                                                 thumbnail_file=await Func.get_image_path_from_link(
+                                                                     utils_config.image_links['trade']))
                 elif custom_id_params[1] == 'clear':
                     await interaction.response.defer()
                     Trade.set_agree(trade_id, user1_id, False)
                     Trade.set_agree(trade_id, user2_id, False)
                     Trade.clear_items(trade_id, interaction.author.id)
-                    await modules.trade.callbacks.trade(interaction, await Trade.get_user(interaction.client, trade_id, 0),
+                    await modules.trade.callbacks.trade(interaction,
+                                                        await Trade.get_user(interaction.client, trade_id, 0),
                                                         await Trade.get_user(interaction.client, trade_id, 1),
                                                         trade_id=trade_id,
                                                         pre_command_check=False)
@@ -132,6 +162,7 @@ class Events(commands.Cog):
                                                             await Trade.get_user(interaction.client, trade_id, 1),
                                                             trade_id=trade_id,
                                                             pre_command_check=False)
+
                     await interaction.response.send_modal(
                         modals.GetItemAmountModal(interaction, action_object, add_item_and_update_trade,
                                                   f'Добавить {Item.get_name(action_object, lang)}', 'Трейд',
@@ -160,9 +191,11 @@ class Events(commands.Cog):
                                                               interaction.values[0],
                                                               User.get_family(interaction.author.id)))
                 elif custom_id_params[2] == 'accept':
-                    await modules.family.callbacks.accept_user_to_family(interaction, custom_id_params[3], custom_id_params[4])
+                    await modules.family.callbacks.accept_user_to_family(interaction, custom_id_params[3],
+                                                                         custom_id_params[4])
                 elif custom_id_params[2] == 'reject':
-                    await modules.family.callbacks.reject_user_to_family(interaction, custom_id_params[3], custom_id_params[4])
+                    await modules.family.callbacks.reject_user_to_family(interaction, custom_id_params[3],
+                                                                         custom_id_params[4])
             elif custom_id_params[1] == 'kick_user':
                 await modules.family.callbacks.family_member_kick(interaction, custom_id_params[2], custom_id_params[3])
             elif custom_id_params[1] == 'ban_user':
@@ -179,20 +212,26 @@ class Events(commands.Cog):
         if custom_id_params[0] == 'item_select':
             if custom_id_params[1] == 'inventory':
                 await modules.inventory.callbacks.inventory_item_selected(interaction, interaction.values[0],
-                                                                          category=custom_id_params[2], page=int(custom_id_params[3]))
+                                                                          category=custom_id_params[2],
+                                                                          page=int(custom_id_params[3]))
             elif custom_id_params[1] == 'wardrobe':
                 await modules.inventory.callbacks.wardrobe_item_selected(interaction, interaction.values[0],
-                                                                          category=custom_id_params[2], page=int(custom_id_params[3]))
+                                                                         category=custom_id_params[2],
+                                                                         page=int(custom_id_params[3]))
             elif custom_id_params[1] == 'shop':
                 await modules.shop.callbacks.shop_item_selected(interaction, interaction.values[0],
-                                                                          category=custom_id_params[2], page=int(custom_id_params[3]))
+                                                                category=custom_id_params[2],
+                                                                page=int(custom_id_params[3]))
         if custom_id_params[0] == 'back_to_inventory':
             if custom_id_params[1] == 'inventory':
-                await modules.inventory.callbacks.inventory(interaction, init_category=custom_id_params[2], init_page=int(custom_id_params[3]))
+                await modules.inventory.callbacks.inventory(interaction, init_category=custom_id_params[2],
+                                                            init_page=int(custom_id_params[3]))
             if custom_id_params[1] == 'wardrobe':
-                await modules.inventory.callbacks.wardrobe(interaction, init_category=custom_id_params[2], init_page=int(custom_id_params[3]))
+                await modules.inventory.callbacks.wardrobe(interaction, init_category=custom_id_params[2],
+                                                           init_page=int(custom_id_params[3]))
             if custom_id_params[1] == 'shop':
-                await modules.shop.callbacks.shop(interaction, init_category=custom_id_params[2], init_page=int(custom_id_params[3]))
+                await modules.shop.callbacks.shop(interaction, init_category=custom_id_params[2],
+                                                  init_page=int(custom_id_params[3]))
         # elif len(interaction.component.custom_id.split(';')) == 2:
         #     lang = User.get_language(interaction.author.id)
         #     action_object = interaction.component.custom_id.split(';')[1]
@@ -211,36 +250,46 @@ class Events(commands.Cog):
             await modules.shop.callbacks.shop_item_buy(interaction, custom_id_params[1])
         elif custom_id_params[0] == 'wear_skin':
             await modules.inventory.callbacks.wardrobe_item_wear(interaction, custom_id_params[1],
-                                                                          category=custom_id_params[2], page=int(custom_id_params[3]))
+                                                                 category=custom_id_params[2],
+                                                                 page=int(custom_id_params[3]))
         elif custom_id_params[0] == 'remove_skin':
             await modules.inventory.callbacks.wardrobe_item_remove(interaction, custom_id_params[1],
-                                                                          category=custom_id_params[2], page=int(custom_id_params[3]))
-        elif len(custom_id_params) > 1 and custom_id_params[1] in item_components and custom_id_params[0] in item_components[custom_id_params[1]]:
-            print(custom_id_params)
+                                                                   category=custom_id_params[2],
+                                                                   page=int(custom_id_params[3]))
+        elif len(custom_id_params) > 1 and custom_id_params[1] in item_components and custom_id_params[0] in \
+                item_components[custom_id_params[1]]:
             async def update_inventory():
                 if Item.get_amount(custom_id_params[1], interaction.author.id) == 0:
                     if Item.get_inventory_type(custom_id_params[1]) == 'wardrobe':
                         await modules.inventory.callbacks.wardrobe(interaction, interaction.message,
-                                                                          init_category=custom_id_params[2], init_page=int(custom_id_params[3]))
+                                                                   init_category=custom_id_params[2],
+                                                                   init_page=int(custom_id_params[3]))
                     elif Item.get_inventory_type(custom_id_params[1]) == 'inventory':
                         await modules.inventory.callbacks.inventory(interaction, interaction.message,
-                                                                          init_category=custom_id_params[2], init_page=int(custom_id_params[3]))
+                                                                    init_category=custom_id_params[2],
+                                                                    init_page=int(custom_id_params[3]))
                 else:
-                    await modules.inventory.callbacks.inventory_item_selected(interaction, custom_id_params[1], interaction.message)
+                    await modules.inventory.callbacks.inventory_item_selected(interaction, custom_id_params[1],
+                                                                              interaction.message)
 
             if Item.get_amount(custom_id_params[1], interaction.author.id) <= 0:
                 await error_callbacks.no_item(interaction, custom_id_params[1])
                 await update_inventory()
                 return
-            result = await item_components[custom_id_params[1]][custom_id_params[0]]['func'](interaction, custom_id_params[1],
-                                                                          update_inventory)
+            result = await item_components[custom_id_params[1]][custom_id_params[0]]['func'](interaction,
+                                                                                             custom_id_params[1],
+                                                                                             update_inventory)
             if result is None:
                 result = {}
             if 'callback' in item_components[custom_id_params[1]][custom_id_params[0]]:
                 embed = generate_embed(
-                    title=translate(item_components[custom_id_params[1]][custom_id_params[0]]['callback']['title'], lang),
-                    description=translate(item_components[custom_id_params[1]][custom_id_params[0]]['callback']['description'], lang, format_options=result),
-                    prefix=Func.generate_prefix(item_components[custom_id_params[1]][custom_id_params[0]]['callback']['prefix']),
+                    title=translate(item_components[custom_id_params[1]][custom_id_params[0]]['callback']['title'],
+                                    lang),
+                    description=translate(
+                        item_components[custom_id_params[1]][custom_id_params[0]]['callback']['description'], lang,
+                        format_options=result),
+                    prefix=Func.generate_prefix(
+                        item_components[custom_id_params[1]][custom_id_params[0]]['callback']['prefix']),
                     inter=interaction,
                 )
                 await send_callback(interaction, embed=embed,
@@ -257,7 +306,6 @@ class Events(commands.Cog):
     async def on_user_command_error(self, inter, error):
         await error_callbacks.error(error, inter)
 
-    #
     @commands.Cog.listener()
     async def on_application_command(self, inter):
         User.register_user_if_not_exists(inter.author.id)
@@ -295,7 +343,8 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if payload.channel_id == config.BOT_HALYAVA_CHANNEL:
-            if payload.emoji.name == '✅' and payload.member.id in [461480892188065792, 715575898388037676]:
+            if payload.emoji.name == '✅' and payload.member.id in [461480892188065792, 715575898388037676,
+                                                                   778291476073414656]:
                 money = random.randrange(80, 120)
                 if datetime.datetime.now().day in [1, 2, 3]:
                     money *= 2
@@ -312,13 +361,15 @@ class Events(commands.Cog):
                      members=guild.member_count)
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: disnake.Member):
         join_channel = Guild.join_channel(member.guild.id)
         join_channel = member.guild.get_channel(join_channel)
         if join_channel is not None:
             await join_channel.send(Guild.join_message(member.guild.id).format(user=member.mention))
         if member.guild.id == config.BOT_GUILD:
-            pass
+            if (Pig.get_weight(member.id) < 1.5 and User.get_age(member.id) < 3600) or \
+                    Func.get_current_timestamp() - member.created_at.timestamp() < 7 * 24 * 3600:
+                await member.add_roles(member.guild.get_role(config.NOT_VERIFIED_ROLE))
 
     @commands.Cog.listener()
     async def on_message(self, message):

@@ -1,18 +1,18 @@
 from ...utils import *
 
 
-def pig_breed_ok(inter, lang, became_pregnant, mini_pig) -> disnake.Embed:
+async def pig_breed_ok(inter, lang, became_pregnant, mini_pig) -> disnake.Embed:
     embed = generate_embed(
         title='OK',
         description=f'{became_pregnant.display_name}, {Item.get_name(mini_pig, lang)}',
         prefix=Func.generate_prefix('🐷'),
-        thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
+        thumbnail_file=await BotUtils.generate_user_pig(inter.author.id),
         inter=inter,
     )
     return embed
 
 
-def pig_breed_fail(inter, lang, partner) -> disnake.Embed:
+async def pig_breed_fail(inter, lang, partner) -> disnake.Embed:
     # print(123132, Pig.get_time_of_next_breed(inter.author.id), Func.get_current_timestamp())
     embed = generate_embed(
         title=Locales.Breed.fail_title[lang],
@@ -20,7 +20,7 @@ def pig_breed_fail(inter, lang, partner) -> disnake.Embed:
                                                          partner=Pig.get_name(partner.id),
                                                          retry=Pig.get_time_of_next_breed(inter.author.id)),
         prefix=Func.generate_prefix('🔞'),
-        thumbnail_file=BotUtils.generate_user_pig(inter.author.id, eye_emotion='sad'),
+        thumbnail_file=await BotUtils.generate_user_pig(inter.author.id, eye_emotion='sad'),
         inter=inter,
     )
     return embed

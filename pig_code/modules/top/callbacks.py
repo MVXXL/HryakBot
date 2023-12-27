@@ -13,19 +13,25 @@ async def top(inter, _global: bool = False):
     lang = User.get_language(inter.author.id)
     guild = None if _global else inter.guild
     exclude_users = utils_config.ignore_users_in_top
+    async def exclude_bots(l):
+        new_l = []
+        for i in l:
+            user = await User.get_user(inter.client, i)
+            if not user.bot:
+                new_l.append(i)
+        return new_l
     order_by = "JSON_EXTRACT(pig, '$.weight')"
-    weight_users = Tech.get_all_users(order_by=order_by, exclude_users=exclude_users,
-                                      guild=guild, limit=10)
+    weight_users = await exclude_bots(Tech.get_all_users(order_by=order_by, exclude_users=exclude_users,
+                                      guild=guild, limit=10))
     user_weight_position = Tech.get_user_position(inter.author.id, order_by=order_by, exclude_users=exclude_users, guild=guild)
     order_by = "JSON_EXTRACT(inventory, '$.coins.amount')"
-    coins_users = Tech.get_all_users(order_by=order_by, exclude_users=exclude_users,
-                                      guild=guild, limit=10)
+    coins_users = await exclude_bots(Tech.get_all_users(order_by=order_by, exclude_users=exclude_users,
+                                      guild=guild, limit=10))
     user_coins_position = Tech.get_user_position(inter.author.id, order_by=order_by, exclude_users=exclude_users, guild=guild)
     order_by = "JSON_EXTRACT(inventory, '$.hollars.amount')"
-    hollars_users = Tech.get_all_users(order_by=order_by, exclude_users=exclude_users,
-                                      guild=guild, limit=10)
+    hollars_users = await exclude_bots(Tech.get_all_users(order_by=order_by, exclude_users=exclude_users,
+                                      guild=guild, limit=10))
     user_hollars_position = Tech.get_user_position(inter.author.id, order_by=order_by, exclude_users=exclude_users, guild=guild)
-    print('============================')
     await BotUtils.pagination(inter, lang,
                               embeds={
                                   Locales.Top.weight_top_title[lang]: {
@@ -42,7 +48,7 @@ async def top(inter, _global: bool = False):
                                                                                                                     Locales.Global.kg,
                                                                                                                     lang)),
                                                                                prefix='🐖', user_position=user_weight_position,
-                                                                               thumbnail_file=Func.get_image_path_from_link(
+                                                                               thumbnail_file=await Func.get_image_path_from_link(
                                                                                    utils_config.image_links['top'])),
                                       'components': [await components.choose_user(inter, lang, weight_users)]},
                                   Locales.Top.coins_top_title[lang]: {
@@ -59,7 +65,7 @@ async def top(inter, _global: bool = False):
                                                                                                                     'item_id': 'coins'},
                                                                                                                 key_word='🪙'),
                                                                                prefix='💰', user_position=user_coins_position,
-                                                                               thumbnail_file=Func.get_image_path_from_link(
+                                                                               thumbnail_file=await Func.get_image_path_from_link(
                                                                                    utils_config.image_links['top'])),
                                       'components': [await components.choose_user(inter, lang, coins_users)]},
                                   Locales.Top.hollars_top_title[lang]: {
@@ -76,7 +82,7 @@ async def top(inter, _global: bool = False):
                                                                                                                     'item_id': 'hollars'},
                                                                                                                 key_word='💵'),
                                                                                prefix='💸', user_position=user_hollars_position,
-                                                                               thumbnail_file=Func.get_image_path_from_link(
+                                                                               thumbnail_file=await Func.get_image_path_from_link(
                                                                                    utils_config.image_links['top'])),
                                       'components': [await components.choose_user(inter, lang, hollars_users)]},
                               },

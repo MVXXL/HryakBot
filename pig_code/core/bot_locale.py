@@ -648,6 +648,10 @@ class Locales:
             Locale.en_US: 'language',
             Locale.ru: 'язык'
         }
+        language_var_description = {
+            Locale.en_US: 'The language that Hryak will speak',
+            Locale.ru: 'Язык, на котором Хряк будет хрюкать'
+        }
         scd_title = {
             'en': 'New bot language: **English**',
             'ru': 'Новый язык бота: **Русский**'

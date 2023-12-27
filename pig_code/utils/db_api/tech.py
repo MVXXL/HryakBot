@@ -27,7 +27,7 @@ class Tech:
     def create_user_table():
         columns = [
             'id varchar(32) PRIMARY KEY UNIQUE',
-            # 'money int DEFAULT 0',
+            'created int DEFAULT 0',
             "pig json",
             "inventory json",
             "stats json",

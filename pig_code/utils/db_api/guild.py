@@ -8,16 +8,28 @@ from ...core.config import guilds_schema
 class Guild:
 
     @staticmethod
+    def register_guilds(guilds: list):
+        Connection.make_request(f"INSERT IGNORE INTO {guilds_schema} (id) VALUES (%s)",
+                                params=tuple([(guild_id,) for guild_id in guilds]),
+                                executemany=True)
+
+    @staticmethod
     def register_guild_if_not_exists(guild_id):
         if not Guild.exists(guild_id):
             Guild.register(guild_id)
 
     @staticmethod
     def register(guild_id):
+        executemany = False
+        if type(guild_id) == list:
+            executemany = True
+            guild_id = tuple([(guild,) for guild in guild_id])
         settings = json.dumps(utils_config.guild_settings)
         Connection.make_request(
-            f"INSERT INTO {guilds_schema} (id, joined, settings) "
-            f"VALUES ('{guild_id}', '{Func.get_current_timestamp()}', '{settings}')"
+            f"INSERT{' IGNORE' if executemany else ''} INTO {guilds_schema} (id, joined, settings) "
+            f"VALUES (%s, '{Func.get_current_timestamp()}', '{settings}')",
+            params=guild_id,
+            executemany=executemany
         )
 
     @staticmethod

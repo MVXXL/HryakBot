@@ -2,7 +2,7 @@ from ...core import *
 from ...utils import *
 
 
-def inventory_item_selected(inter, item_id, lang,
+async def inventory_item_selected(inter, item_id, lang,
                             inventory_type='inventory') -> disnake.Embed:
     fields = [{'name': f"📋 ⟩ {Locales.Global.description[lang]}",
                'value': f"*{Item.get_description(item_id, lang)}*"}]
@@ -20,8 +20,8 @@ def inventory_item_selected(inter, item_id, lang,
                           f'{Locales.Global.type[lang]}: **{Item.get_type(item_id, lang)}**\n' \
                           f'{Locales.Global.rarity[lang]}: **{Item.get_rarity(item_id, lang)}**\n' \
                           f'{Locales.Global.cost_per_item[lang]}: **{Item.get_sell_price(item_id)}** 🪙'
-        if Item.get_image_file_path(item_id) is not None:
-            thumbnail_file = Item.get_image_file_path(item_id)
+        if await Item.get_image_file_path(item_id) is not None:
+            thumbnail_file = await Item.get_image_file_path(item_id)
     elif inventory_type == 'wardrobe' or (
             inventory_type == 'shop' and Item.get_type(item_id).startswith('skin')):
         skin_type = Item.get_skin_type(item_id)
@@ -31,7 +31,7 @@ def inventory_item_selected(inter, item_id, lang,
             description = f'{Locales.Global.amount[lang]}: **{Item.get_amount(item_id, inter.author.id)}**\n' \
                           f'{Locales.Global.type[lang]}: **{Item.get_type(item_id, lang)}**\n' \
                           f'{Locales.Global.rarity[lang]}: **{Item.get_rarity(item_id, lang)}**'
-        thumbnail_file = BotUtils.build_pig(tuple(preview_options.items()),
+        thumbnail_file = await BotUtils.build_pig(tuple(preview_options.items()),
                                         tuple(utils_config.default_pig['genetic'].items()))
     if inventory_type == 'shop':
         description = f'{Locales.Global.price[lang]}: **{Item.get_market_price(item_id)}** 🪙\n' \
@@ -52,7 +52,7 @@ def inventory_item_selected(inter, item_id, lang,
     return embed
 
 
-def wardrobe_item_wear(inter, item_id, lang) -> disnake.Embed:
+async def wardrobe_item_wear(inter, item_id, lang) -> disnake.Embed:
     skin_type = Item.get_skin_type(item_id)
     preview_options = Pig.get_skin(inter.author.id, 'all')
     preview_options[skin_type] = Pig.get_skin(inter.author.id, skin_type)
@@ -62,17 +62,17 @@ def wardrobe_item_wear(inter, item_id, lang) -> disnake.Embed:
             item=Item.get_name(item_id, lang)),
         prefix=Func.generate_prefix('scd'),
         inter=inter,
-        thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
+        thumbnail_file=await BotUtils.generate_user_pig(inter.author.id),
     )
     return embed
 
 
-def wardrobe_item_remove(inter, item_id, lang) -> disnake.Embed:
+async def wardrobe_item_remove(inter, item_id, lang) -> disnake.Embed:
     embed = generate_embed(
         title=Locales.WardrobeItemRemove.title[lang].format(item=Item.get_name(item_id, lang)),
         description=Locales.WardrobeItemRemove.desc[lang].format(item=Item.get_name(item_id, lang)),
         prefix=Func.generate_prefix('scd'),
         inter=inter,
-        thumbnail_file=BotUtils.generate_user_pig(inter.author.id),
+        thumbnail_file=await BotUtils.generate_user_pig(inter.author.id),
     )
     return embed

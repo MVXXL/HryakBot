@@ -32,7 +32,6 @@ async def generate_users_list(inter, users, func, func_kwargs: dict = None, key_
     if func_kwargs is None:
         func_kwargs = {}
     result = []
-    print(func_kwargs)
     for user_id in users:
         result.append((await User.get_name(inter.client, user_id), func(user_id=user_id, **func_kwargs), key_word))
     return result
@@ -84,7 +83,7 @@ async def weight_top(inter, lang, users) -> disnake.Embed:
         prefix=Func.generate_prefix('🐷'),
         inter=inter,
         fields=fields,
-        # thumbnail_url=BotUtils.build_pig((('hat', 'cylinder'), ))
+        # thumbnail_url=await BotUtils.build_pig((('hat', 'cylinder'), ))
     )
     return embed
 

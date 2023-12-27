@@ -16,19 +16,11 @@ class AdminCommands(commands.Cog):
     @commands.slash_command(guild_ids=config.ADMIN_GUILDS)
     @commands.is_owner()
     async def test(self, inter):
-        # await BotUtils.pre_command_check(inter)
-        embeds = [
-            generate_embed('hello'), generate_embed('buy'), generate_embed('qwe')
-        ]
-        message = await inter.channel.send(embeds=embeds)
-        await inter.response.defer(ephemeral=False)
-        message = await message.edit(embeds=embeds)
-
-        # await inter.response.send_message(embeds=[
-        #     generate_embed('hello'), generate_embed('buy'), generate_embed('qwe')
-        # ], ephemeral=True)
-        # await send_callback(inter, embed=generate_embed('hello', thumbnail_url=r'attachment://bin/images/duel.png'))
-        # await error_callbacks.default_error_callback(inter, 'error', 'pizdec')
+        await inter.response.defer()
+        for i in range(100000000):
+            Func.add_log('test', num=i)
+            await asyncio.sleep(.3)
+            print(i)
 
     @commands.slash_command(guild_ids=config.ADMIN_GUILDS)
     @commands.is_owner()
@@ -101,7 +93,7 @@ class AdminCommands(commands.Cog):
             skin_type = Item.get_skin_type(item_id)
             preview_options = utils_config.default_pig['skins'].copy()
             preview_options[skin_type] = item_id
-            image_file = BotUtils.build_pig(tuple(preview_options.items()),
+            image_file = await BotUtils.build_pig(tuple(preview_options.items()),
                                                 tuple(utils_config.default_pig['genetic'].items()))
             res = await BotUtils.confirm_message(inter, 'en', image_file=image_file)
             if not res:

@@ -1,3 +1,5 @@
+import cProfile
+
 from . import config
 from .imports import *
 
@@ -89,7 +91,8 @@ default_pig_eyes_genetic = ['white_eyes']
 user_stats = {'pig_fed': 0, 'money_earned': 0, 'commands_used': {}, 'items_used': {}, 'items_sold': {},
               'language_changed': False}
 guild_settings = {'join_channel': None, 'join_message': None, 'allow_say': False}
-user_settings = {'language': 'en', 'blocked': False, 'block_reason': None, 'isolated': False, 'family': None}
+user_settings = {'language': 'en', 'blocked': False, 'block_reason': None, 'isolated': False, 'family': None,
+                 'isolation_level': 0}
 emotions_erase_cords = {
     'sad': [(265, 254, 154, 387, 352, 324), (646, 433, 444, 321, 588, 285)],
     'happy': [(409, 487, 646, 487, 535, 679), (151, 461, 269, 555, 349, 473)],
@@ -146,6 +149,8 @@ db_caches = {
     'tech.__get_all_items': TTLCache(maxsize=1000, ttl=600000),
     'tech.get_all_items': TTLCache(maxsize=1000, ttl=600000)
 }
+profiler = cProfile.Profile()
+profiler.enable()
 
 pig_names = [
     "Bacon",

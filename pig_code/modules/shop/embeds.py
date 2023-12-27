@@ -16,7 +16,7 @@ from ...utils import *
 #         footer=Func.generate_footer(inter),
 #         footer_url=Func.generate_footer_url('user_avatar', inter.author),
 #         timestamp=True,
-#         thumbnail_file=BotUtils.build_pig(tuple(preview_options.items()),
+#         thumbnail_file=await BotUtils.build_pig(tuple(preview_options.items()),
 #                                       tuple(utils_config.default_pig['genetic'].items())),
 #         fields=[{'name': f"📋 ⟩ {Locales.Global.description[lang]}",
 #                  'value': f"*{Item.get_description(item_id, lang)}*"}]
@@ -75,7 +75,7 @@ def item_buy_cooldown(inter, item_id, lang) -> disnake.Embed:
 #             description = f'{Locales.Global.amount[lang]}: **{Item.get_amount(inter.author.id, item_id)}**\n' \
 #                           f'{Locales.Global.type[lang]}: **{Item.get_type(item_id, lang)}**\n' \
 #                           f'{Locales.Global.rarity[lang]}: **{Item.get_rarity(item_id, lang)}**'
-#         thumbnail_file = BotUtils.build_pig(tuple(preview_options.items()),
+#         thumbnail_file = await BotUtils.build_pig(tuple(preview_options.items()),
 #                                         tuple(utils_config.default_pig['genetic'].items()))
 #     if inventory_type == 'shop':
 #         description = f'{Locales.Global.price[lang]}: **{Item.get_market_price(item_id)}** 🪙\n' \

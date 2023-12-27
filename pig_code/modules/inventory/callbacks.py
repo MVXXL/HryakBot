@@ -11,7 +11,7 @@ async def wardrobe(inter, message=None, select_item_component_id: str = 'item_se
     lang = User.get_language(inter.author.id)
     _items = Tech.get_all_items((('inventory_type', 'wardrobe'),), user_id=inter.author.id)
     items_by_cats = {}
-    embed_thumbnail_file = BotUtils.generate_user_pig(inter.author.id)
+    embed_thumbnail_file = await BotUtils.generate_user_pig(inter.author.id)
     empty_desc = Locales.Wardrobe.wardrobe_empty_desc[lang]
     item_types = set()
     for item in _items:
@@ -46,14 +46,14 @@ async def inventory(inter, message=None, select_item_component_id: str = 'item_s
                                                                                title=Locales.Inventory.inventory_title[
                                                                                    lang],
                                                                                tradable_items_only=tradable_items_only),
-                              embed_thumbnail_file=Func.get_image_path_from_link(utils_config.image_links['inventory']), ephemeral=ephemeral,
+                              embed_thumbnail_file=await Func.get_image_path_from_link(utils_config.image_links['inventory']), ephemeral=ephemeral,
                               edit_original_message=edit_original_message, init_category=init_category, init_page=init_page)
 
 
 async def wardrobe_item_selected(inter, item_id, message: disnake.Message = None, category: str = None, page: int = 1):
     lang = User.get_language(inter.author.id)
     await send_callback(inter if message is None else message,
-                        embed=BotUtils.generate_item_selected_embed(inter, lang, item_id=item_id, _type='wardrobe'),
+                        embed=await BotUtils.generate_item_selected_embed(inter, lang, item_id=item_id, _type='wardrobe'),
                         components=components.inventory_item_selected(inter.author.id, item_id, lang, _type='wardrobe',
                                                                       category=category, page=page))
 
@@ -61,7 +61,7 @@ async def wardrobe_item_selected(inter, item_id, message: disnake.Message = None
 async def inventory_item_selected(inter, item_id, message: disnake.Message = None, category: str = None, page: int = 1):
     lang = User.get_language(inter.author.id)
     await send_callback(inter if message is None else message,
-                        embed=BotUtils.generate_item_selected_embed(inter, lang, item_id=item_id, _type='inventory'),
+                        embed=await BotUtils.generate_item_selected_embed(inter, lang, item_id=item_id, _type='inventory'),
                         components=components.inventory_item_selected(inter.author.id, item_id, lang, _type='inventory',
                                                                       category=category, page=page))
 
@@ -74,7 +74,7 @@ async def wardrobe_item_wear(inter, item_id, message: disnake.Message = None, ca
         return
     Pig.set_skin(inter.author.id, item_id)
     await send_callback(inter if message is None else message,
-                        embed=embeds.wardrobe_item_wear(inter, item_id, lang),
+                        embed=await embeds.wardrobe_item_wear(inter, item_id, lang),
                         edit_original_message=False,
                         ephemeral=True
                         )
@@ -85,7 +85,7 @@ async def wardrobe_item_remove(inter, item_id, message: disnake.Message = None, 
     lang = User.get_language(inter.author.id)
     Pig.remove_skin(inter.author.id, Item.get_skin_type(item_id))
     await send_callback(inter if message is None else message,
-                        embed=embeds.wardrobe_item_remove(inter, item_id, lang),
+                        embed=await embeds.wardrobe_item_remove(inter, item_id, lang),
                         edit_original_message=False,
                         ephemeral=True
                         )
