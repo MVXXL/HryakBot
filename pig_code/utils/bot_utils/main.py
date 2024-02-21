@@ -29,7 +29,11 @@ async def send_callback(inter,
                         await inter.response.defer(ephemeral=ephemeral)
                     except Exception as e:
                         pass
-                    message = await inter.channel.send(content, embed=embed, components=components, files=files)
+                    if type(inter) == disnake.TextChannel:
+                        channel = inter
+                    else:
+                        channel = inter.channel
+                    message = await channel.send(content, embed=embed, components=components, files=files)
                 elif type(inter) in [disnake.Message, disnake.InteractionMessage]:
                     if edit_original_message:
                         message = await inter.edit(content, embed=embed, components=components, files=files)
@@ -68,6 +72,7 @@ async def send_callback(inter,
                 await asyncio.sleep(.5)
                 continue
             except Exception as e:
+                raise e
                 print('-', e)
         else:
             try:

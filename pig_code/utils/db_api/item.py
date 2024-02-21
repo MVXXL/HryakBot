@@ -117,24 +117,123 @@ class Item:
         return _type
 
     @staticmethod
+    def set_skin_config(item_id: str, new_config):
+        new_config = json.dumps(new_config, ensure_ascii=False)
+        Connection.make_request(
+            f"UPDATE {items_schema} SET skin_config = %s WHERE id = '{item_id}'",
+            params=(new_config,)
+        )
+
+    @staticmethod
+    def get_skin_config(item_id: str):
+        return Item.get_data(item_id, 'skin_config', convert_to_type=dict)
+
+    @staticmethod
     def get_skin_type(item_id: str, lang: str = None):
-        skin_type = Item.get_data(item_id, 'skin_type')
+        skin_config = Item.get_skin_config(item_id)
+        skin_type = skin_config['type']
         if lang is not None:
             skin_type = translate(Locales.SkinTypes[skin_type], lang)
         return skin_type
 
     @staticmethod
     def get_not_compatible_skins(item_id: str):
-        return Item.get_data(item_id, 'not_compatible_skins', convert_to_type=dict)
+        skin_config = Item.get_skin_config(item_id)
+        if 'not_compatible_with' in skin_config:
+            return skin_config['not_compatible_with']
+        return []
 
     @staticmethod
-    def get_not_draw_skins(item_id: str):
-        return Item.get_data(item_id, 'not_draw_skins', convert_to_type=dict)
+    def get_skins_to_hide(item_id: str):
+        skin_config = Item.get_skin_config(item_id)
+        if 'hide' in skin_config:
+            return skin_config['hide']
+        return []
+
+    @staticmethod
+    def get_skin_layers(item_id: str):
+        skin_config = Item.get_skin_config(item_id)
+        layers = skin_config['layers']
+        return layers
+
+    @staticmethod
+    def get_skin_layer(item_id: str, layer):
+        layers = Item.get_skin_layers(item_id)
+        return layers[layer]
+
+    @staticmethod
+    async def get_skin_layer_image_path(item_id: str, layer: str, type_: str = 'image'):
+        layer = Item.get_skin_layer(item_id, layer)
+        image = layer[type_]
+        if type(image) == str:
+            image = await Func.get_image_path_from_link(image)
+        return image
+
+    @staticmethod
+    def get_skin_layer_shadow(item_id: str, layer):
+        layer = Item.get_skin_layer(item_id, layer)
+        if 'shadow' in layer:
+            return layer['shadow']
+
+    @staticmethod
+    def get_skin_layer_before(item_id: str, layer):
+        layer = Item.get_skin_layer(item_id, layer)
+        if 'before' in layer:
+            return layer['before']
+
+    @staticmethod
+    def get_skin_layer_after(item_id: str, layer):
+        layer = Item.get_skin_layer(item_id, layer)
+        if 'after' in layer:
+            return layer['after']
+
+    @staticmethod
+    def get_skin_color(item_id: str):
+        skin_config = Item.get_skin_config(item_id)
+        if 'color' in skin_config:
+            return skin_config['color']
+
+    @staticmethod
+    def get_skin_group(item_id: str):
+        skin_config = Item.get_skin_config(item_id)
+        if 'item_group' in skin_config:
+            return skin_config['item_group']
+
+    @staticmethod
+    def get_skin_right_ear_line(item_id: str, type_: str):
+        skin_config = Item.get_skin_config(item_id)
+        if f'right_ear_line_{type_}' in skin_config:
+            return skin_config[f'right_ear_line_{type_}']
+
+    @staticmethod
+    def get_skin_right_ear_line_type(item_id: str):
+        skin_config = Item.get_skin_config(item_id)
+        if f'right_ear_line' in skin_config:
+            return skin_config[f'right_ear_line']
+
+
+    @staticmethod
+    def get_skin_eyes_outline_hex_color(item_id: str):
+        skin_config = Item.get_skin_config(item_id)
+        if 'eyes_outline_hex_color' in skin_config:
+            return skin_config['eyes_outline_hex_color']
+
+    @staticmethod
+    def get_skin_right_eye_outline(item_id: str):
+        skin_config = Item.get_skin_config(item_id)
+        if 'right_eye_outline' in skin_config:
+            return skin_config['right_eye_outline']
+
+    @staticmethod
+    def get_skin_left_eye_outline(item_id: str):
+        skin_config = Item.get_skin_config(item_id)
+        if 'left_eye_outline' in skin_config:
+            return skin_config['left_eye_outline']
+
 
     @staticmethod
     def get_emoji(item_id: str):
         for i in range(10):
-            print(f'get_emoji {i} - {item_id}')
             e = Item.get_data(item_id, 'emoji')
             if e not in ['?', '?️']:
                 break
@@ -177,7 +276,6 @@ class Item:
             async with aiofiles.open(path, 'wb') as file:
                 await file.write(Item.get_data(item_id, 'image_file_2'))
             return path
-
 
     @staticmethod
     def get_cooked_item_id(item_id: str):

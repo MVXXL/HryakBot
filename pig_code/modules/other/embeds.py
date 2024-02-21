@@ -150,7 +150,7 @@ def reset_join_message(inter, lang) -> disnake.Embed:
 async def wardrobe_item_preview(inter, item_id, lang) -> disnake.Embed:
     skin_type = Item.get_skin_type(item_id)
     preview_options = Pig.get_skin(inter.author.id, 'all')
-    preview_options[skin_type] = item_id
+    preview_options = Pig.set_skin_to_options(preview_options, item_id)
     embed = generate_embed(
         title=Locales.WardrobeItemPreview.title[lang].format(item=Item.get_name(item_id, lang)),
         description=Locales.WardrobeItemPreview.desc[lang].format(item=Item.get_name(item_id, lang)),

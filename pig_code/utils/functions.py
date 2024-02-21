@@ -45,6 +45,13 @@ class Func:
         return probabilities
 
     @staticmethod
+    async def async_speed_test(func, **kwargs):
+        start = datetime.datetime.now().timestamp()
+        await func(**kwargs)
+        final = datetime.datetime.now().timestamp() - start
+        return final
+
+    @staticmethod
     def speed_test(func, **kwargs):
         start = datetime.datetime.now().timestamp()
         func(**kwargs)
@@ -68,7 +75,6 @@ class Func:
         i = 0
         while True:
             i += 1
-            print(f'path gen {i}')
             path = f'{config.TEMP_FOLDER_PATH}/{key_word}_{Func.get_current_timestamp()}_{random.randrange(10000)}.{file_extension}'
             if not os.path.exists(path):
                 break
@@ -228,18 +234,41 @@ class Func:
 
     @staticmethod
     @aiocache.cached(ttl=86400)
-    async def get_image_path_from_link(link: str, name: str = None):
-        print(link)
+    async def get_image_path_from_link(link: str, path: str = None, name: str = None):
         if name is None:
             name = random.randrange(10000, 99999)
+        if not link.startswith('http'):
+            return link
         file_extension = 'png'
         if len(link.split('.')) > 1:
             if link.split('.')[-1] in ['png', 'webp', 'gif', 'jpg']:
                 file_extension = link.split('.')[-1]
-        path = Func.generate_temp_path(name, file_extension=file_extension)
-        async with aiofiles.open(path, 'wb') as f:
-            await f.write(requests.get(link).content)
+        if path is None:
+            path = Func.generate_temp_path(name, file_extension=file_extension)
+        else:
+            path = f'{path}/{name}.{file_extension}'
+        for i in range(3):
+            try:
+                async with aiofiles.open(path, 'wb') as f:
+                    await f.write(requests.get(link).content)
+            except requests.exceptions.ConnectionError:
+                continue
         return path
+
+    @staticmethod
+    def upload_image_to_imgbb(image_path, name=None, expiration=None):
+        url = "https://api.imgbb.com/1/upload"
+        payload = {
+            'key': config.IMGBB_TOKEN,
+            'expiration': expiration,
+            'name': name
+        }
+        with open(image_path, 'rb') as image_file:
+            files = {
+                'image': image_file
+            }
+            response = requests.post(url, files=files, data=payload)
+        return response.json()
 
     @staticmethod
     def get_changed_page_number(total_pages, cur_page, differ):

@@ -17,10 +17,15 @@ class AdminCommands(commands.Cog):
     @commands.is_owner()
     async def test(self, inter):
         await inter.response.defer()
-        for i in range(100000000):
-            Func.add_log('test', num=i)
-            await asyncio.sleep(.3)
-            print(i)
+        r = await Func.async_speed_test(BotUtils.generate_user_pig, user_id=inter.author.id)
+        await send_callback(inter, r)
+
+    @commands.slash_command(guild_ids=config.ADMIN_GUILDS)
+    @commands.is_owner()
+    async def test2(self, inter):
+        await inter.response.defer()
+        components = [[disnake.ui.Button(label='-') for _ in range(5)] for _ in range(5)]
+        await send_callback(inter, components=components)
 
     @commands.slash_command(guild_ids=config.ADMIN_GUILDS)
     @commands.is_owner()
@@ -32,14 +37,13 @@ class AdminCommands(commands.Cog):
                           image_file_2_file: disnake.Attachment=None,
                           cooked_item_id=None,
                           market_price: int = None,
-                          market_price_currency=commands.Param(autocomp=autocomplete_items, default=None),
+                          market_price_currency: str = None,
                           salable: bool=False,
                           sell_price: int = None,
-                          sell_price_currency=commands.Param(autocomp=autocomplete_items, default=None),
+                          sell_price_currency: str = None,
                           tradable: bool=True,
                           rarity=commands.Param(choices=['1', '2', '3', '4', '5', '6']),
                           shop_category=commands.Param(choices=['always', 'daily', 'cases', 'premium_skins'], default=None),
-                          auto_case_add: bool=False,
                           inventory_type=commands.Param(choices=['inventory', 'wardrobe'])):
         await BotUtils.pre_command_check(inter)
         await send_callback(inter, '---------------------------\n'*5)
@@ -69,8 +73,8 @@ class AdminCommands(commands.Cog):
             data['image_file_2'] = await image_file_2_file.read()
         for k, v in {'name': '{"en": "Cool item", "ru": "Крутой предмет"}',
                   'description': '{"en": "Its so cool", "ru": "Это очень крутой предмет"}',
-                  'not_draw_skins': '["mouth", "blue_hat"]',
-                  'not_compatible_skins': '["mouth", "blue_hat"]',
+                  # 'not_draw_skins': '["mouth", "blue_hat"]',
+                  # 'not_compatible_skins': '["mouth", "blue_hat"]',
                   'requirements': '[[{"role": 1111, "guild": 1234}, '
                                        '{"role": 2222, "guild": 1234}], [{"guild": 4321}]]',
                   'case_drops': '[[{"items": ["coins"], "amount": [1, 5], "chance": 85}, {"items": ["hollars"], "amount": [1, 3], "chance": 15}], [{"items": ["red_hat"], "amount": [1, 1], "chance": 15}]]]',
@@ -89,41 +93,35 @@ class AdminCommands(commands.Cog):
                         continue
                     break
         Item.create(data)
-        if Item.get_type(item_id) == 'skin':
-            skin_type = Item.get_skin_type(item_id)
-            preview_options = utils_config.default_pig['skins'].copy()
-            preview_options[skin_type] = item_id
-            image_file = await BotUtils.build_pig(tuple(preview_options.items()),
-                                                tuple(utils_config.default_pig['genetic'].items()))
-            res = await BotUtils.confirm_message(inter, 'en', image_file=image_file)
-            if not res:
-                Item.delete(item_id)
-                await send_callback(inter, f'Deleted: {item_id}', ctx_message=True)
-            else:
-                await send_callback(inter, f'Added: {item_id}', ctx_message=True)
-            if auto_case_add:
-                rarity = Item.get_rarity(item_id)
-                drops = Item.get_case_drops('common_case')
-                try:
-                    drops[2][
-                        {"2": 0,
-                         "3": 1,
-                         "4": 2,
-                         "5": 3}[rarity]
-                    ]['items'].append(item_id)
-                    Item.edit('common_case', {'case_drops': json.dumps(drops)})
-                except IndexError:
-                    pass
-                drops = Item.get_case_drops('rare_case')
-                try:
-                    drops[2][
-                        {"3": 0,
-                         "4": 1,
-                         "5": 2}[rarity]
-                    ]['items'].append(item_id)
-                    Item.edit('rare_case', {'case_drops': json.dumps(drops)})
-                except IndexError:
-                    pass
+        await send_callback(inter, f'Added: {item_id}', ctx_message=True)
+
+    @commands.slash_command(guild_ids=config.ADMIN_GUILDS)
+    @commands.is_owner()
+    async def auto_add_to_cases(self, inter, item_id: str):
+        rarity = Item.get_rarity(item_id)
+        drops = Item.get_case_drops('common_case')
+        try:
+            drops[2][
+                {"2": 0,
+                 "3": 1,
+                 "4": 2,
+                 "5": 3}[rarity]
+            ]['items'].append(item_id)
+            Item.edit('common_case', {'case_drops': json.dumps(drops)})
+        except IndexError:
+            pass
+        drops = Item.get_case_drops('rare_case')
+        try:
+            drops[2][
+                {"3": 0,
+                 "4": 1,
+                 "5": 2}[rarity]
+            ]['items'].append(item_id)
+            Item.edit('rare_case', {'case_drops': json.dumps(drops)})
+        except IndexError:
+            pass
+        await send_callback(inter, f'Yep', ctx_message=True)
+
 
     @commands.slash_command(guild_ids=config.ADMIN_GUILDS)
     @commands.is_owner()
@@ -259,7 +257,7 @@ class AdminCommands(commands.Cog):
 
     @commands.slash_command(guild_ids=config.ADMIN_GUILDS + config.PUBLIC_TEST_GUILDS)
     async def _promocode(self, inter):
-        if inter.author.id not in [461480892188065792, 778291476073414656] + [inter.client.owner_id]:
+        if inter.author.id not in [1090715886056378398] + [inter.client.owner_id]:
             raise NotAllowedToUseCommand
 
     @_promocode.sub_command(description='Create promo code')
@@ -268,12 +266,8 @@ class AdminCommands(commands.Cog):
                      promo_code_code: str = commands.Param(description='Promo code name', name='name',
                                                            default=None),
                      expires_in: int = commands.Param(description='Promocode will expire in seconds',
-                                                      default=-1, large=True),
-                     can_use: str = commands.Param(description='Who can use promo code',
-                                                   default='everyone',
-                                                   choices=['everyone', 'everyone_except_blocked'])):
+                                                      default=-1, large=True)):
         await BotUtils.pre_command_check(inter)
-        # await server.leave()
         try:
             prise = json.loads(prise)
             if type(prise) == list:
@@ -291,7 +285,7 @@ class AdminCommands(commands.Cog):
                 return
         if PromoCode.exists(promo_code_code):
             PromoCode.delete(promo_code_code)
-        promo_code_code = PromoCode.create(max_uses, prise, expires_in=expires_in, can_use=can_use,
+        promo_code_code = PromoCode.create(max_uses, prise, expires_in=expires_in,
                                            code=promo_code_code)
         await send_callback(inter,
                             embed=generate_embed(title=f'Promo code "{promo_code_code}" created'))

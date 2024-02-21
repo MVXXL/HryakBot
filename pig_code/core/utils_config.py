@@ -16,29 +16,65 @@ default_pig = {'name': 'Hryak',
                    'laxative': 0
                },
                'genetic': {
+                   'tail': 'default_body',
+                   'left_ear': 'default_body',
+                   'left_eye': 'white_eyes',
+                   'right_eye': 'white_eyes',
+                   'left_pupil': 'black_pupils',
+                   'right_pupil': 'black_pupils',
+                   'right_ear': 'default_body',
+                   'nose': 'default_body',
                    'body': 'default_body',
                    'eyes': 'white_eyes',
                    'pupils': 'black_pupils',
                },
-               'skins': {
-                   'body': None,
-                   'tattoo': None,
-                   'makeup': None,
-                   'mouth': None,
-                   'eyes': None,
-                   'pupils': None,
-                   'glasses': None,
-                   '_nose': None,
-                   'eye_emotion': None,
-                   'piercing_nose': None,
-                   'face': None,
-                   'piercing_ear': None,
-                   'suit': None,
-                   'back': None,
-                   'hat': None,
-                   'legs': None,
-                   'tie': None,
-               }}
+               'skins': {'body': None,
+                         'tattoo': None,
+                         'tail': None,
+                         'left_ear': None,
+                         'makeup': None,
+                         'mouth': None,
+                         'left_eye': None,
+                         'right_eye': None,
+                         'left_pupil': None,
+                         'right_pupil': None,
+                         'middle_ear': None,
+                         'right_ear': None,
+                         'suit': None,
+                         'glasses': None,
+                         'nose': None,
+                         'piercing_nose': None,
+                         'face': None,
+                         'piercing_ear': None,
+                         'back': None,
+                         'hat': None,
+                         'legs': None,
+                         'tie': None}}
+skin_layers_rules = {
+    'mouth': {'before': [
+        'nose',
+    ]},
+    'glasses': {'before': [
+        'nose',
+    ]},
+    'nose': {'before': [
+    ],
+        'after': [
+            'left_eye',
+            'right_eye',
+            'left_pupil',
+            'right_pupil',
+        ]},
+    'piercing_nose': {'after': [
+            'nose'
+        ]},
+    'piercing_ear': {'after': [
+        'right_ear',
+    ]},
+'hat': {
+    'hide': ['middle_ear']
+}}
+
 pig_feed_cooldown = 4 * 60 ** 2 if not config.TEST else 5  # seconds
 premium_pig_feed_cooldown = 2 * 60 ** 2 if not config.TEST else 5  # seconds
 
@@ -93,13 +129,12 @@ user_stats = {'pig_fed': 0, 'money_earned': 0, 'commands_used': {}, 'items_used'
 guild_settings = {'join_channel': None, 'join_message': None, 'allow_say': False}
 user_settings = {'language': 'en', 'blocked': False, 'block_reason': None, 'isolated': False, 'family': None,
                  'isolation_level': 0}
-emotions_erase_cords = {
-    'sad': [(265, 254, 154, 387, 352, 324), (646, 433, 444, 321, 588, 285)],
-    'happy': [(409, 487, 646, 487, 535, 679), (151, 461, 269, 555, 349, 473)],
-    'angry': [(302, 249, 197, 329, 381, 416), (379, 421, 610, 335, 420, 273)],
-    'sus': [(380, 393, 634, 393, 509, 213)],
-    'dont_care': [(164, 387, 366, 391, 327, 222), (380, 393, 634, 393, 509, 213)]
-}
+emotions_erase_cords = {'sad': [(530, 508, 308, 774, 704, 648), (1292, 866, 888, 642, 1176, 570)],
+                        'happy': [(695, 970, 865, 970, 865, 1030, 695, 1030), (1115, 985, 900, 985, 900, 1030, 1110, 1030)],
+                        'angry': [(604, 498, 394, 658, 762, 832), (758, 842, 1220, 670, 840, 546)],
+                        'sus': [(760, 786, 1268, 786, 1018, 426)],
+                        'dont_care': [(328, 774, 732, 782, 654, 444),
+                                      (760, 786, 1268, 786, 1018, 426)]}
 
 ignore_users_in_top = [1102273144733049003, 932191352677097534, 715575898388037676]
 # anti_bot_decreases = [0, 0, 0, 0, 0, 0, 2, 5, 15, 20, 25, 45, 60, 80, 95, 96, 97, 98, 99]

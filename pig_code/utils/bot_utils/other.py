@@ -158,20 +158,20 @@ class BotUtils:
             image_file=image_file,
             inter=inter
         ), ctx_message=ctx_message,
-           components=[
-            disnake.ui.Button(
-                label=Locales.Global.yes[lang],
-                custom_id='in;yes',
-                # emoji='✅',
-                style=disnake.ButtonStyle.green
-            ),
-            disnake.ui.Button(
-                label=Locales.Global.no[lang],
-                custom_id='in;no',
-                # emoji='❌',
-                style=disnake.ButtonStyle.red
-            )
-        ])
+                                      components=[
+                                          disnake.ui.Button(
+                                              label=Locales.Global.yes[lang],
+                                              custom_id='in;yes',
+                                              # emoji='✅',
+                                              style=disnake.ButtonStyle.green
+                                          ),
+                                          disnake.ui.Button(
+                                              label=Locales.Global.no[lang],
+                                              custom_id='in;no',
+                                              # emoji='❌',
+                                              style=disnake.ButtonStyle.red
+                                          )
+                                      ])
 
         def check(interaction):
             if message is not None:
@@ -219,7 +219,9 @@ class BotUtils:
 
         def append_components(page: int = 1):
             components.append([
-                disnake.ui.Select(options=generated_options, custom_id=f'{custom_id};{category};{page}', placeholder=placeholder)])
+                disnake.ui.Select(options=generated_options, custom_id=f'{custom_id};{category};{page}',
+                                  placeholder=placeholder)])
+
         c = 1
         for i, option in enumerate(options, 1):
             generated_options.append(disnake.SelectOption(
@@ -306,8 +308,6 @@ class BotUtils:
                         emoji = Item.get_emoji(item)
                         option_desc = Func.cut_text(Item.get_description(item, lang), 100)
                 elif list_type == 'shop':
-                    print(item)
-                    print(f'- {Item.get_market_price_currency(item)}')
                     field_value = f'```{Locales.Global.price[lang]}: {Item.get_market_price(item)} {Item.get_emoji(Item.get_market_price_currency(item))}\n' \
                                   f'{Locales.Global.rarity[lang]}: {Item.get_rarity(item, lang)}```'
                     after_prefix = f" x{Item.get_amount(item)}"
@@ -370,11 +370,11 @@ class BotUtils:
         embed_color = utils_config.rarity_colors[Item.get_rarity(item_id)]
         thumbnail_file = None
         if Item.get_type(item_id) == 'skin':
-            skin_type = Item.get_skin_type(item_id)
+            # skin_type = Item.get_skin_type(item_id)
             preview_options = utils_config.default_pig['skins'].copy()
-            preview_options[skin_type] = item_id
+            preview_options = Pig.set_skin_to_options(preview_options, item_id.split('.')[0])
             thumbnail_file = await BotUtils.build_pig(tuple(preview_options.items()),
-                                                tuple(utils_config.default_pig['genetic'].items()))
+                                                      tuple(utils_config.default_pig['genetic'].items()))
         elif await Item.get_image_file_path(item_id) is not None:
             thumbnail_file = await Item.get_image_file_path(item_id)
         if _type in ['inventory', 'wardrobe']:
@@ -623,16 +623,14 @@ class BotUtils:
         """Returns skins worn by the user that are not compatible with item_id"""
         pig = User.get_pig(user_id)
         not_compatible_skins = []
+        print(65656, item_id, Item.get_not_compatible_skins(item_id))
         for _skin in pig['skins']:
             _skin = pig['skins'][_skin]
             if _skin is None:
                 continue
-            if Item.get_not_compatible_skins(item_id) is not None and (
-                    item_id in Item.get_not_compatible_skins(item_id) or Item.get_skin_type(
-                item_id) in Item.get_not_compatible_skins(item_id)):
+            if Item.get_not_compatible_skins(item_id) is not None and (item_id in Item.get_not_compatible_skins(_skin) or Item.get_skin_type(item_id) in Item.get_not_compatible_skins(_skin)):
                 not_compatible_skins.append(_skin)
-            elif Item.get_not_compatible_skins(item_id) is not None and Item.get_skin_type(
-                    _skin) in Item.get_not_compatible_skins(item_id):
+            elif Item.get_not_compatible_skins(item_id) is not None and (Item.get_skin_type(_skin) in Item.get_not_compatible_skins(item_id) or _skin in Item.get_not_compatible_skins(item_id)):
                 not_compatible_skins.append(_skin)
         return not_compatible_skins
 
@@ -681,7 +679,8 @@ class BotUtils:
             )
         dm_message = None
         if send_to_dm:
-            if guild is None or (guild.get_member(inter.author.id) is not None and guild.get_member(user.id) is not None):
+            if guild is None or (
+                    guild.get_member(inter.author.id) is not None and guild.get_member(user.id) is not None):
                 dm_message = await send_callback(inter, embed=embed, components=components, send_to_dm=user)
         if create_command_notification:
             if dm_message is None:
@@ -729,81 +728,399 @@ class BotUtils:
         for k, v in user_skin.items():
             if Item.get_amount(v, user_id) <= 0:
                 user_skin[k] = None
-        return await BotUtils.build_pig(tuple(user_skin.items()),
-                                  tuple(Pig.get_genetic(user_id, 'all').items()),
-                                  eye_emotion=eye_emotion)
+        final_pig = await BotUtils.build_pig(tuple(user_skin.items()),
+                                        tuple(Pig.get_genetic(user_id, 'all').items()),
+                                        eye_emotion=eye_emotion)
+        return final_pig
+
+    # @staticmethod
+    # @aiocache.cached(ttl=86400)
+    # async def build_pig(skins: tuple, genetic: tuple = None, output_path: str = None,
+    #               eye_emotion: str = None):
+    #     skins = dict(skins)
+    #     if genetic is None:
+    #         genetic = utils_config.default_pig['genetic']
+    #     else:
+    #         genetic = dict(genetic)
+    #     skin_types = ['body', 'tattoo', 'makeup', 'mouth', 'eyes', 'pupils',
+    #                   'glasses', 'nose', '_nose', 'piercing_nose',
+    #                   'face',
+    #                   'piercing_ear', 'back', 'suit', 'hat', 'legs', 'tie']
+    #     eye_emotion = skins['eye_emotion'] if eye_emotion is None else eye_emotion
+    #     not_draw = []
+    #     not_draw_raw = {}
+    #     for item_id in skins.values():
+    #         if Item.exists(item_id) and Item.get_skins_to_hide(item_id) is not None:
+    #             not_draw_raw[Item.get_skin_type(item_id)] = Item.get_skins_to_hide(item_id)
+    #     for k, v in not_draw_raw.copy().items():
+    #         for i in v:
+    #             if i not in skin_types and not Item.exists(i):
+    #                 continue
+    #             skin_type = i
+    #             if i in Tech.get_all_items():
+    #                 skin_type = Item.get_skin_type(i)
+    #             if skin_type in not_draw_raw and skin_types.index(skin_type) < skin_types.index(k):
+    #                 not_draw_raw.pop(skin_type)
+    #     for v in not_draw_raw.values():
+    #         not_draw += v
+    #     if skins['hat'] is not None:
+    #         not_draw += ['piercing_ear']
+    #     # if 'paint' in not_draw:
+    #     #     skins['body'] = None
+    #     # if output_filename is None:
+    #     #     output_filename = f'pig_{Func.get_current_timestamp()}_{random.randrange(10000000)}'
+    #     for i, key in enumerate(skin_types):
+    #         if key in not_draw or (key in skins and Item.exists(skins[key]) and skins[key] in not_draw):
+    #             continue
+    #         if key == 'nose':
+    #             key = 'body'
+    #         item_id = skins[key]
+    #         if skins[key] is None and key in genetic:
+    #             item_id = genetic[key]
+    #         elif skins[key] is None and key not in genetic:
+    #             continue
+    #         if skin_types[i] == 'nose':
+    #             image_path = await Item.get_image_file_2_path(item_id)
+    #         else:
+    #             image_path = await Item.get_image_file_path(item_id)
+    #         if i == 0:
+    #             built_pig_img = Image.open(image_path)
+    #         else:
+    #             img_to_paste = Image.open(image_path)
+    #             if key in ['eyes', 'pupils']:
+    #                 if eye_emotion in utils_config.emotions_erase_cords:
+    #                     draw = ImageDraw.Draw(img_to_paste)
+    #                     for cords in utils_config.emotions_erase_cords[eye_emotion]:
+    #                         if len(cords) == 3:
+    #                             x1 = cords[0] - cords[2]
+    #                             y1 = cords[1] - cords[2]
+    #                             x2 = cords[0] + cords[2]
+    #                             y2 = cords[1] + cords[2]
+    #                             draw.ellipse([(x1, y1), (x2, y2)], fill=img_to_paste.getpixel((0, 0)))
+    #                         else:
+    #                             draw.polygon(cords, fill=img_to_paste.getpixel((0, 0)))
+    #             built_pig_img = Image.alpha_composite(built_pig_img, img_to_paste)
+    #     if output_path is None:
+    #         output_path = Func.generate_temp_path('pig')
+    #     built_pig_img.save(output_path)
+    #     return output_path
+
+    @staticmethod
+    @cached(TTLCache(maxsize=1000, ttl=86400))
+    def remove_transparency(image_path):
+        with Image.open(image_path) as img:
+            bbox = img.getbbox()
+            img = img.crop(bbox)
+            img.save(image_path)
+        return image_path
 
     @staticmethod
     @aiocache.cached(ttl=86400)
-    async def build_pig(skins: tuple, genetic: tuple = None, output_path: str = None,
-                  eye_emotion: str = None):
+    async def build_pig(skins: tuple, genetic: tuple = None, eye_emotion: str = None):
         skins = dict(skins)
         if genetic is None:
             genetic = utils_config.default_pig['genetic']
         else:
             genetic = dict(genetic)
-        skin_types = ['body', 'tattoo', 'makeup', 'mouth', 'eyes', 'pupils',
-                      'glasses', 'nose', '_nose', 'piercing_nose',
-                      'face',
-                      'piercing_ear', 'back', 'suit', 'hat', 'legs', 'tie']
-        eye_emotion = skins['eye_emotion'] if eye_emotion is None else eye_emotion
         not_draw = []
         not_draw_raw = {}
         for item_id in skins.values():
-            if Item.exists(item_id) and Item.get_not_draw_skins(item_id) is not None:
-                not_draw_raw[Item.get_skin_type(item_id)] = Item.get_not_draw_skins(item_id)
+            if Item.exists(item_id) and Item.get_skins_to_hide(item_id) is not None:
+                not_draw_raw[Item.get_skin_type(item_id)] = Item.get_skins_to_hide(item_id)
         for k, v in not_draw_raw.copy().items():
             for i in v:
-                if i not in skin_types and not Item.exists(i):
+                if i not in utils_config.default_pig['skins'] and not Item.exists(i):
                     continue
                 skin_type = i
                 if i in Tech.get_all_items():
                     skin_type = Item.get_skin_type(i)
-                if skin_type in not_draw_raw and skin_types.index(skin_type) < skin_types.index(k):
+                if skin_type in not_draw_raw and list(utils_config.default_pig['skins']).index(skin_type) < list(utils_config.default_pig['skins']).index(k):
                     not_draw_raw.pop(skin_type)
         for v in not_draw_raw.values():
             not_draw += v
-        if skins['hat'] is not None:
-            not_draw += ['piercing_ear']
-        # if 'paint' in not_draw:
-        #     skins['body'] = None
-        # if output_filename is None:
-        #     output_filename = f'pig_{Func.get_current_timestamp()}_{random.randrange(10000000)}'
-        for i, key in enumerate(skin_types):
-            if key in not_draw or (key in skins and Item.exists(skins[key]) and skins[key] in not_draw):
+        ordered_layers = []
+        for skin_type in utils_config.default_pig['skins']:
+            print(skins)
+            print(utils_config.default_pig['skins'])
+            print(skins, skin_type)
+            skin = skins[skin_type]
+            if skin_type in not_draw:
                 continue
-            if key == 'nose':
-                key = 'body'
-            item_id = skins[key]
-            if skins[key] is None and key in genetic:
-                item_id = genetic[key]
-            elif skins[key] is None and key not in genetic:
+            if skin is None and skin_type in genetic:
+                skin = genetic[skin_type]
+            if skin is None or skin_type not in utils_config.default_pig['skins']:
                 continue
-            if skin_types[i] == 'nose':
-                image_path = await Item.get_image_file_2_path(item_id)
+            if skin_type in ['body', 'tail', 'left_ear', 'right_ear', 'nose', 'left_eye', 'right_eye', 'left_pupil',
+                             'right_pupil']:
+
+                for element in Item.get_skin_layer(skin, skin_type):
+                    if element == 'image':
+                        ordered_layers.append(f'{skin}.{skin_type}.{element}')
+                    elif element == 'shadow':
+                        ordered_layers.insert(0, f'{skin}.{skin_type}.{element}')
             else:
-                image_path = await Item.get_image_file_path(item_id)
-            if i == 0:
-                built_pig_img = Image.open(image_path)
+                for layer in Item.get_skin_layers(skin):
+                    for element in Item.get_skin_layer(skin, layer):
+                        if element == 'image':
+                            ordered_layers.append(f'{skin}.{layer}.{element}')
+                        elif element == 'shadow':
+                            ordered_layers.insert(0, f'{skin}.{layer}.{element}')
+        ordered_layers = [[i] for i in ordered_layers]
+        moved_layers = {}
+        def find_skin_type_from_ordered_layers_list(skin_type):
+            for group in ordered_layers:
+                for skin in group:
+                    layer_props = skin.split('.')
+                    item_id = layer_props[0]
+                    layer = layer_props[1]
+                    type_ = layer_props[2]
+                    if type_ == 'shadow':
+                        continue
+                    if layer in utils_config.default_pig['skins'] and layer == skin_type:
+                        return skin
+                    elif Item.get_skin_type(item_id) == skin_type:
+                        return skin
+            else:
+                for i in list(utils_config.default_pig['skins'])[:list(utils_config.default_pig['skins']).index(skin_type)][::-1]:
+                    for group in ordered_layers[::-1]:
+                        skin = group[0]
+                        layer_props = skin.split('.')
+                        item_id = layer_props[0]
+                        layer = layer_props[1]
+                        if Item.get_skin_type(item_id) == i or layer == i:
+                            return skin
+
+        def find_layer_in_grouped_layers(layer, return_index=True):
+            for n, i in enumerate(ordered_layers):
+                if layer in i:
+                    if return_index:
+                        return n
+                    else:
+                        return i
+
+        left_eye_outline = None
+        right_eye_outline = None
+        right_ear_line = None
+        while True:
+            for group in ordered_layers.copy()[::-1]:
+                skin = group[0]
+                layer_props = skin.split('.')
+                item_id = layer_props[0]
+                layer = layer_props[1]
+                type_ = layer_props[2]
+                if layer in utils_config.default_pig['skins']:
+                    skin_type = layer
+                else:
+                    skin_type = Item.get_skin_type(item_id)
+                print(11111, skin_type)
+                print(1111, ordered_layers)
+                print(11231, group)
+                if Item.get_skin_right_ear_line_type(item_id) == '1' and right_ear_line in [None, 2]:
+                    right_ear_line = '1'
+                elif Item.get_skin_right_ear_line_type(item_id) == '2' and right_ear_line is None:
+                    right_ear_line = '2'
+                if Item.get_skin_right_eye_outline(item_id) is not None and right_eye_outline is None:
+                    right_eye_outline = Item.get_skin_right_eye_outline(item_id)
+                if Item.get_skin_left_eye_outline(item_id) is not None and left_eye_outline is None:
+                    left_eye_outline = Item.get_skin_left_eye_outline(item_id)
+                if type_ == 'shadow':
+                    continue
+                before_list = []
+                after_list = []
+                if Item.get_skin_layer_before(item_id, layer) is not None:
+                    before_list = [Item.get_skin_layer_before(item_id, layer)]
+                if Item.get_skin_layer_after(item_id, layer) is not None:
+                    after_list = [Item.get_skin_layer_after(item_id, layer)]
+                if skin_type in utils_config.skin_layers_rules:
+                    if 'before' in utils_config.skin_layers_rules[skin_type]:
+                        before_list += utils_config.skin_layers_rules[skin_type]['before']
+                    if 'after' in utils_config.skin_layers_rules[skin_type]:
+                        after_list += utils_config.skin_layers_rules[skin_type]['after']
+
+                if before_list:
+                    layer_with_needed_before_type = None
+                    for before in before_list:
+                        layer_with_needed_before_type = find_skin_type_from_ordered_layers_list(before)
+                        if layer_with_needed_before_type is None:
+                            continue
+                        before_index = find_layer_in_grouped_layers(layer_with_needed_before_type)
+                        if before_index < find_layer_in_grouped_layers(skin):
+                            break
+                    if layer_with_needed_before_type is None:
+                        continue
+                    if before_index < find_layer_in_grouped_layers(skin):
+                        ordered_layers[before_index] = ordered_layers.pop(ordered_layers.index(group)) + ordered_layers[before_index]
+                        moved_layers[skin] = 'down'
+                        break
+                    elif skin in moved_layers and moved_layers[skin] in ['up', 'pulled.up']:
+                        ordered_layers[ordered_layers.index(group)] = ordered_layers.pop(before) + ordered_layers[
+                            ordered_layers.index(group)]
+                        moved_layers[layer_with_needed_before_type] = 'pulled.up'
+                        break
+                if after_list:
+                    layer_with_needed_after_type = None
+                    for after in after_list:
+                        layer_with_needed_after_type = find_skin_type_from_ordered_layers_list(after)
+                        if layer_with_needed_after_type is None:
+                            continue
+                        after_index = find_layer_in_grouped_layers(layer_with_needed_after_type)
+                        if after_index < find_layer_in_grouped_layers(skin):
+                            break
+                    if layer_with_needed_after_type is None:
+                        continue
+                    if after_index > find_layer_in_grouped_layers(skin):
+                        if ordered_layers[after_index].index(layer_with_needed_after_type) not in [0, len(ordered_layers[after_index])]:
+                            pass
+                        elif skin in moved_layers and moved_layers[skin] in ['down', 'pulled.down']:
+                            ordered_layers[ordered_layers.index(group)] = ordered_layers.pop(after_index) + ordered_layers[ordered_layers.index(group)]
+                            moved_layers[layer_with_needed_after_type] = 'pulled.down'
+                            break
+                        else:
+                            new_group = ordered_layers[after_index] + ordered_layers.pop(ordered_layers.index(group))
+                            ordered_layers[after_index - 1] = new_group
+                            moved_layers[skin] = 'up'
+                            break
+            else:
+                break
+        print(123, ordered_layers)
+        ordered_layers = [i for j in ordered_layers for i in j]
+        final_pig_img = await BotUtils.draw_pig_with_asyncio(tuple(ordered_layers), left_eye_outline=left_eye_outline, right_eye_outline=right_eye_outline, right_ear_line=right_ear_line, eye_emotion=eye_emotion)
+        output_path = Func.generate_temp_path('pig')
+        final_pig_img.save(output_path)
+        print(output_path)
+        # final_pig_img.save(r'C:\Users\boiko\PycharmProjects\HryakBot\tests\h.png/')
+        return BotUtils.remove_transparency(output_path)
+
+    @staticmethod
+    @aiocache.cached(ttl=86400)
+    async def draw_pig_with_asyncio(ordered_layers: tuple, left_eye_outline: str = None, right_eye_outline: str = None, right_ear_line: str = None, eye_emotion: str = None):
+        ordered_layers = list(ordered_layers)
+        copy_ordered_layers = ordered_layers.copy()
+        separated_ordered_layers = []
+        temp_list = []
+        for layer in copy_ordered_layers.copy():
+            layer_props = layer.split('.')
+            if layer_props[-1] == 'shadow':
+                temp_list.append(layer)
+                copy_ordered_layers.remove(layer)
+        separated_ordered_layers.append(temp_list)
+        while True:
+            separated_ordered_layers.append(copy_ordered_layers[:4])
+            copy_ordered_layers = copy_ordered_layers[4:]
+            if not copy_ordered_layers:
+                break
+        if [] in separated_ordered_layers:
+            separated_ordered_layers.remove([])
+        print(222, separated_ordered_layers)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(separated_ordered_layers)) as executor:
+            futures = [executor.submit(asyncio.run, BotUtils.combine_pig_layers(i, left_eye_outline=left_eye_outline, right_eye_outline=right_eye_outline, right_ear_line=right_ear_line, return_as_path=False, eye_emotion=eye_emotion)) for i in separated_ordered_layers]
+            # results = [future.result() for future in concurrent.futures.as_completed(futures)]
+            results = [future.result() for future in futures]
+        print(results)
+        return await BotUtils.combine_images(tuple(results), return_as_path=False)
+
+
+    @staticmethod
+    @aiocache.cached(ttl=86400)
+    async def combine_pig_layers(ordered_layers: tuple, left_eye_outline: str = None, right_eye_outline: str = None, right_ear_line: str = None, return_as_path=True, eye_emotion: str = None):
+        ordered_layers = list(ordered_layers)
+        pig_img = None
+        async def fix_img_to_paste(img):
+            if layer == 'right_ear' and type_ != 'shadow' and right_ear_line is not None:
+                right_ear_img = Image.open(await Func.get_image_path_from_link(Item.get_skin_right_ear_line(item_id, right_ear_line)))
+                img = Image.alpha_composite(img, right_ear_img)
+            if layer == 'body' and left_eye_outline is not None:
+                left_eye_outline_img = Image.open(await Func.get_image_path_from_link(left_eye_outline))
+                right_eye_outline_img = Image.open(await Func.get_image_path_from_link(right_eye_outline))
+                img = Image.alpha_composite(img, left_eye_outline_img)
+                img = Image.alpha_composite(img, right_eye_outline_img)
+            if layer in ['left_eye', 'right_eye']:
+                if eye_emotion in utils_config.emotions_erase_cords:
+                    draw = ImageDraw.Draw(img)
+                    for cords in utils_config.emotions_erase_cords[eye_emotion]:
+                        if len(cords) == 3:
+                            x1 = cords[0] - cords[2]
+                            y1 = cords[1] - cords[2]
+                            x2 = cords[0] + cords[2]
+                            y2 = cords[1] + cords[2]
+                            draw.ellipse([(x1, y1), (x2, y2)], fill=img.getpixel((0, 0)))
+                        else:
+                            draw.polygon(cords, fill=img.getpixel((0, 0)))
+            return img
+
+        for i, skin in enumerate(ordered_layers):
+            layer_props = skin.split('.')
+            item_id = layer_props[0]
+            layer = layer_props[1]
+            type_ = layer_props[2]
+            print(layer, left_eye_outline, right_eye_outline)
+            image_path = await Item.get_skin_layer_image_path(item_id, layer, type_)
+            if pig_img is None and i == 0:
+                pig_img = Image.open(image_path)
+                pig_img = await fix_img_to_paste(pig_img)
+                continue
+            img_to_paste = Image.open(image_path)
+            img_to_paste = await fix_img_to_paste(img_to_paste)
+            pig_img = Image.alpha_composite(pig_img, img_to_paste)
+        if return_as_path:
+            output_path = Func.generate_temp_path('pig_part')
+            pig_img.save(output_path)
+            return output_path
+        return pig_img
+
+
+    @staticmethod
+    # @aiocache.cached(ttl=86400)
+    async def draw_pig_with_recursion(ordered_layers: tuple, base_img=None, eyes_outline_hex_color: str = None, return_as_path=True, return_ordered_layers=True):
+        if not ordered_layers:
+            if return_as_path:
+                output_path = Func.generate_temp_path('pig')
+                base_img.save(output_path)
+                return output_path
+            return base_img
+        ordered_layers = list(ordered_layers)
+        print(3333, ordered_layers)
+        for i in range(2):
+            layer_props = ordered_layers[0].split('.')
+            item_id = layer_props[0]
+            layer = layer_props[1]
+            type_ = layer_props[2]
+            image_path = await Item.get_skin_layer_image_path(item_id, layer, type_)
+            print(item_id, layer, type_,  image_path)
+            if base_img is None and i == 0:
+                base_img = Image.open(image_path)
+                ordered_layers.pop(0)
+                if not ordered_layers:
+                    return await BotUtils.draw_pig_with_recursion(tuple(ordered_layers), base_img, eyes_outline_hex_color)
             else:
                 img_to_paste = Image.open(image_path)
-                if key in ['eyes', 'pupils']:
-                    if eye_emotion in utils_config.emotions_erase_cords:
-                        draw = ImageDraw.Draw(img_to_paste)
-                        for cords in utils_config.emotions_erase_cords[eye_emotion]:
-                            if len(cords) == 3:
-                                x1 = cords[0] - cords[2]
-                                y1 = cords[1] - cords[2]
-                                x2 = cords[0] + cords[2]
-                                y2 = cords[1] + cords[2]
-                                draw.ellipse([(x1, y1), (x2, y2)], fill=img_to_paste.getpixel((0, 0)))
-                            else:
-                                draw.polygon(cords, fill=img_to_paste.getpixel((0, 0)))
-                built_pig_img = Image.alpha_composite(built_pig_img, img_to_paste)
-        if output_path is None:
-            output_path = Func.generate_temp_path('pig')
-        built_pig_img.save(output_path)
-        return output_path
+        ordered_layers.pop(0)
+        built_img = Image.alpha_composite(base_img, img_to_paste)
+        final_pig_img = await BotUtils.draw_pig_with_recursion(tuple(ordered_layers), built_img, eyes_outline_hex_color)
+        return final_pig_img
+
+    @staticmethod
+    @aiocache.cached(ttl=86400)
+    async def combine_images(images: tuple, output: str = None, return_as_path=True):
+        images = list(images)
+        if type(images[0]) == str:
+            base_img = Image.open(images[0])
+        else:
+            base_img = images[0]
+        for image in images[1:]:
+            print(image)
+            if type(image) == str:
+                img_to_paste = Image.open(image)
+            else:
+                img_to_paste = image
+            base_img = Image.alpha_composite(base_img, img_to_paste)
+        if return_as_path:
+            if output is None:
+                output = Func.generate_temp_path('combined_image')
+            base_img.save(output)
+            return output
+        return base_img
+
 
     @staticmethod
     def filter_users(client, users, is_on_server: int):
@@ -826,7 +1143,7 @@ class BotUtils:
             if rating_number > 0:
                 rating_status = '💚'
             elif rating_number < 0:
-                 rating_status = '⚠️'
+                rating_status = '⚠️'
             description += translate(Locales.Profile.user_profile_desc, lang,
                                      format_options={'coins': Item.get_amount('coins', user.id),
                                                      'hollars': Item.get_amount('hollars', user.id),
@@ -839,8 +1156,9 @@ class BotUtils:
                                                      'age': Pig.age(user.id, lang)}) + '\n\n'
         if 'family' in info:
             family_id = User.get_family(user.id)
-            description += translate(Locales.Profile.family_profile_desc, lang, format_options={'role': Family.get_member_role(
-                family_id, user.id, lang)})
+            description += translate(Locales.Profile.family_profile_desc, lang,
+                                     format_options={'role': Family.get_member_role(
+                                         family_id, user.id, lang)})
         embed = generate_embed(
             title=translate(Locales.Profile.profile_title, lang, {'user': user.display_name}),
             description=description,

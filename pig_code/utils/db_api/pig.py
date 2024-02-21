@@ -24,7 +24,6 @@ class Pig:
     @staticmethod
     def fix_pig_structure(user_id):
         pig = User.get_pig(user_id)
-        fixed_pig = pig
         for key in utils_config.default_pig:
             if key not in pig:
                 pig[key] = utils_config.default_pig[key]
@@ -33,6 +32,18 @@ class Pig:
                     if i not in pig[key]:
                         pig[key][i] = utils_config.default_pig[key][i]
         pig['weight'] = round(pig['weight'], 1)
+        for i in ['body', 'tail', 'left_ear', 'right_ear', 'nose']:
+            if 'body' in pig['skins']:
+                pig['skins'][i] = pig['skins']['body']
+        if '_nose' in pig['skins'] and pig['skins']['_nose'] is not None:
+            if '_nose' in pig['skins']:
+                pig['skins']['nose'] = pig['skins']['_nose']
+        for i in ['left_eye', 'right_eye']:
+            if 'eyes' in pig['skins']:
+                pig['skins'][i] = pig['skins']['eyes']
+        for i in ['left_pupil', 'right_pupil']:
+            if 'pupils' in pig['skins']:
+                pig['skins'][i] = pig['skins']['pupils']
         # for key in utils_config.default_pig['skins']:
         #     if key not in pig['skins']:
         #         pig['skins'][key] = utils_config.default_pig['skins'][key]
@@ -42,7 +53,7 @@ class Pig:
         # for key in utils_config.default_pig['skins']:
         #     if key not in pig['skins']:
         #         pig['skins'][key] = utils_config.default_pig['skins'][key]
-        Pig.update_pig(user_id, fixed_pig)
+        Pig.update_pig(user_id, pig)
 
     @staticmethod
     def create_pig_if_no_pig(user_id):
@@ -126,16 +137,38 @@ class Pig:
         return pig['name']
 
     @staticmethod
-    def set_skin(user_id, item_id):
+    def set_skin(user_id, item_id, layer=None):
         pig = User.get_pig(user_id)
-        pig['skins'][Item.get_skin_type(item_id)] = item_id
+        pig['skins'] = Pig.set_skin_to_options(pig['skins'], item_id, layer)
         Pig.update_pig(user_id, pig)
 
     @staticmethod
-    def remove_skin(user_id, skin_type):
+    def set_skin_to_options(skins, item_id, layer=None):
+        if layer is None:
+            for layer in Item.get_skin_layers(item_id):
+                if layer in utils_config.default_pig['skins']:
+                    skins[layer] = item_id
+            skins[Item.get_skin_type(item_id)] = item_id
+        else:
+            skins[layer] = item_id
+        return skins
+
+    @staticmethod
+    def remove_skin(user_id, item_id, layer=None):
         pig = User.get_pig(user_id)
-        pig['skins'][skin_type] = None
+        pig['skins'] = Pig.remove_skin_from_options(pig['skins'], item_id, layer)
         Pig.update_pig(user_id, pig)
+
+    @staticmethod
+    def remove_skin_from_options(skins, item_id, layer=None):
+        if layer is None:
+            for layer in Item.get_skin_layers(item_id):
+                if layer in utils_config.default_pig['skins']:
+                    skins[layer] = None
+            skins[Item.get_skin_type(item_id)] = None
+        else:
+            skins[layer] = None
+        return skins
 
     @staticmethod
     # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))

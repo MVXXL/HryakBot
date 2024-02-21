@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import time
@@ -8,7 +9,6 @@ import disnake
 from ..core.items.item_components.item_components import item_components
 from ..utils import *
 from .. import modules
-
 
 class Events(commands.Cog):
     def __init__(self, client):
@@ -22,13 +22,6 @@ class Events(commands.Cog):
                 f.write(json.dumps(init_data))
         handle = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, True, os.getpid())
         win32process.SetPriorityClass(handle, win32process.HIGH_PRIORITY_CLASS)
-        # Tech.create_user_table()
-        # Tech.create_shop_table()
-        # Tech.create_promo_code_table()
-        # Tech.create_guild_table()
-        # Tech.create_families_table()
-        # Tech.create_trades_table()
-        # Tech.create_items_table()
         if not config.TEST:
             Func.clear_folder(config.TEMP_FOLDER_PATH)
 
@@ -42,11 +35,107 @@ class Events(commands.Cog):
         Tech.create_families_table()
         Tech.create_trades_table()
         Tech.create_items_table()
+        Tech.get_all_items((('skin_config', 'type', 'hat'),), )
         print('tables created')
         Guild.register([guild.id for guild in self.client.guilds])
         print('guilds registered')
-        # await Pig.fix_pig_structure_for_all_users()
-        # print('pig structure fixed')
+        await Pig.fix_pig_structure_for_all_users()
+        print('pig structure fixed')
+        with open('pig_code/core/skins_config.json', 'r') as f:
+            skins_config = json.loads(f.read())
+        for k, v in skins_config.items():
+            for layer in v['layers']:
+                for i, j in v['layers'][layer].items():
+                    if i not in ['shadow', 'image']:
+                        continue
+                    if type(j) == str and j.startswith('http') and not j.startswith(config.PIG_SKINS_FOLDER_PATH):
+                        print(i, j)
+                        path = await Func.get_image_path_from_link(j, config.PIG_SKINS_FOLDER_PATH, f'{k}-{layer}-{i}')
+                        v['layers'][layer][i] = path
+            for i, j in v.items():
+                if type(j) == str and j.startswith('http') and not j.startswith(config.PIG_SKINS_FOLDER_PATH):
+                    path = await Func.get_image_path_from_link(j, config.PIG_SKINS_FOLDER_PATH, f'{k}-{layer}-{i}')
+                    v[i] = path
+        for k, v in skins_config.items():
+            Item.set_skin_config(k, v)
+        with open('pig_code/core/skins_config.json', 'w') as f:
+            f.write(json.dumps(skins_config, indent=4))
+        print('items fixed')
+        channel = self.client.get_channel(1119269172585713664)
+        await channel.send(embed=generate_embed(f'-\n' * 50))
+        # await send_callback(channel, embed=generate_embed(f'-', image_file=await BotUtils.generate_user_pig(715575898388037676)),
+        #                     ctx_message=True)
+        return
+        for i, item_id in enumerate(Tech.get_all_items((('type', 'skin'),))[0:]):
+
+            if item_id not in ['space_suit']:
+                continue
+
+
+            for layer in Item.get_skin_layers(item_id):
+                if Item.get_skin_layer_before(item_id, layer) is not None or Item.get_skin_layer_after(item_id,
+                                                                                                       layer) is not None:
+                    break
+            else:
+                continue
+
+
+
+
+            for j, item_id2 in enumerate(Tech.get_all_items((('type', 'skin'),))[0:]):
+
+                if Item.get_skin_type(item_id2) == Item.get_skin_type(item_id):
+                    continue
+                if Item.get_skin_type(item_id2) in ['eyes', 'pupils', 'tattoo', 'body']:
+                    continue
+
+
+                # for layer in Item.get_skin_layers(item_id2):
+                #     if Item.get_skin_layer_before(item_id2, layer) is not None or Item.get_skin_layer_after(item_id2,
+                #                                                                                            layer) is not None:
+                #         break
+                # else:
+                #     continue
+
+
+
+
+                for _ in range(5):
+                    try:
+                        print(item_id)
+                        preview_options = utils_config.default_pig['skins'].copy()
+                        preview_options = Pig.set_skin_to_options(preview_options, item_id)
+                        preview_options = Pig.set_skin_to_options(preview_options, item_id2)
+                        pig = await BotUtils.build_pig(tuple(preview_options.items()),
+                                                                  tuple(utils_config.default_pig['genetic'].items()))
+                        print(pig)
+                        await send_callback(channel, embed=generate_embed(f'{i}.{j} {item_id}.{item_id2}', image_file=pig), ctx_message=True)
+                        await asyncio.sleep(.7)
+                        break
+                    except Exception as e:
+                        print('error')
+                        await channel.send(embed=generate_embed(description=f'error {item_id}\n' * 50))
+                        raise e
+                        await asyncio.sleep(1)
+        return
+        for i, item_id in enumerate(Tech.get_all_items((('type', 'skin'),))[0:]):
+
+            for _ in range(5):
+                try:
+                    print(item_id)
+                    preview_options = utils_config.default_pig['skins'].copy()
+                    preview_options = Pig.set_skin_to_options(preview_options, item_id)
+                    pig = await BotUtils.build_pig(tuple(preview_options.items()),
+                                                              tuple(utils_config.default_pig['genetic'].items()))
+                    print(pig)
+                    await send_callback(channel, embed=generate_embed(f'{i}. {item_id}', image_file=pig), ctx_message=True)
+                    await asyncio.sleep(.7)
+                    break
+                except Exception as e:
+                    print('error')
+                    await channel.send(embed=generate_embed(description=f'error {item_id}\n' * 50))
+                    raise e
+                    await asyncio.sleep(1)
         # await Stats.fix_stats_structure_for_all_users()
         # print('stats structure fixed')
         # await Tech.fix_settings_structure_for_all_users()
@@ -179,6 +268,8 @@ class Events(commands.Cog):
                                                   pre_command_check=False)
         if custom_id_params[0] == 'family':
             if custom_id_params[1] == 'view_profile':
+                # m = await interaction.response.defer()
+                # print(111, m)
                 await modules.family.callbacks.family_profile(interaction, interaction.values[0])
             elif custom_id_params[1] == 'join_requests':
                 if custom_id_params[2] == 'view_profile':
@@ -210,6 +301,7 @@ class Events(commands.Cog):
             await modules.other.callbacks.profile(interaction, await User.get_user(self.client, interaction.values[0]),
                                                   edit_original_message=False, ephemeral=True, pre_command_check=False)
         if custom_id_params[0] == 'item_select':
+            await interaction.response.defer()
             if custom_id_params[1] == 'inventory':
                 await modules.inventory.callbacks.inventory_item_selected(interaction, interaction.values[0],
                                                                           category=custom_id_params[2],

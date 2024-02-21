@@ -59,6 +59,7 @@ async def shop_item_buy(inter, item_id):
 
 async def shop_item_selected(inter, item_id, message: disnake.Message = None, category: str = None, page: int = 1):
     lang = User.get_language(inter.author.id)
+    print(item_id)
     await send_callback(inter if message is None else message,
                         embed=await BotUtils.generate_item_selected_embed(inter, lang, item_id=item_id, _type='shop'),
                         components=components.shop_item_selected(item_id, lang, category=category, page=page))

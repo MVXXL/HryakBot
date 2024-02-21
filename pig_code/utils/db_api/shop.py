@@ -94,17 +94,16 @@ class Shop:
                            'coins.a=2300.p=100.c=hollars',
                            'coins.a=4800.p=200.c=hollars',
                            'coins.a=12500.p=500.c=hollars'],
-            'premium_skins_shop': ['mr_beast_set.a=1.p=100.c=hollars',
-                                   'diamond_hryak_set.a=1.p=200.c=hollars',
-                                   'gold_body.a=1.p=100.c=hollars',
-                                   'gold_pupils.a=1.p=15.c=hollars'
-                                   ],
+            'premium_skins_shop': [],
             # 'premium_sub_shop': {}
         }
+        # print(33123, Tech.get_all_items((('shop_category', 'premium_skins'),)))
         for i in ["laxative", "knife", "grill"]:
             data['static_shop'].append(f'{i}.a={1}.p={Item.get_market_price(i)}.c={Item.get_market_price_currency(i)}')
         for i in ["common_case", "rare_case"]:
             data['case_shop'].append(f'{i}.a={1}.p={Item.get_market_price(i)}.c={Item.get_market_price_currency(i)}')
+        for i in sorted(Tech.get_all_items((('shop_category', 'premium_skins'),))):
+            data['premium_skins_shop'].append(f'{i}.a={1}.p={Item.get_market_price(i)}.c={Item.get_market_price_currency(i)}')
         Connection.make_request(
             f"INSERT INTO {shop_schema} (timestamp, data) "
             f"VALUES ('{Func.get_current_timestamp()}', %s)",

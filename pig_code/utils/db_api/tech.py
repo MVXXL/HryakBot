@@ -103,14 +103,15 @@ class Tech:
                    'name json',
                    'description json',
                    'type varchar(32)',
-                   'skin_type varchar(32)',
-                   'not_compatible_skins json',
-                   'not_draw_skins json',
+                   'skin_config json',
+                   # 'skin_type varchar(32)',
+                   # 'not_compatible_skins json',
+                   # 'not_draw_skins json',
                    'emoji varchar(32)',
                    'inventory_type varchar(32)',
                    'rarity varchar(32)',
-                   'image_file LONGBLOB',
-                   'image_file_2 LONGBLOB',
+                   # 'image_file LONGBLOB',
+                   # 'image_file_2 LONGBLOB',
                    'cooked_item_id varchar(32)',
                    'market_price int',
                    'market_price_currency varchar(32)',
@@ -157,13 +158,9 @@ class Tech:
             results = cursor.fetchall()
             for i in results:
                 id_list.append(i[0])
-        print('----------------------------------')
         if guild is not None:
             members_ids = [str(m.id) for m in guild.members]
-            print(len(members_ids))
-            print(len(id_list))
             id_list = [i for i in id_list if i in members_ids]
-            print('----------------------------------')
             if limit is not None:
                 id_list = id_list[:limit]
         return id_list
@@ -214,21 +211,29 @@ class Tech:
             requirements = []
         if exceptions is None:
             exceptions = []
-        requirements = dict(requirements)
-        for k, v in requirements.items():
-            text_conditions += f'{k} {"=" if v not in [None, False, True] else "IS"} %s AND '
+        params = []
+        for requirement in requirements:
+            if len(requirement) == 3:
+                text_conditions += f"JSON_UNQUOTE(JSON_EXTRACT({requirement[0]}, '$.{requirement[1]}')) = '{requirement[2]}'; AND "
+            else:
+                text_conditions += f'{requirement[0]} {"=" if requirement[1] not in [None, False, True] else "IS"} %s AND '
+                params.append(requirement[1])
         if exceptions is None:
             text_conditions = text_conditions[:-5]
-        exceptions = dict(exceptions)
-        for k, v in exceptions.items():
-            text_conditions += f'{k} {"!=" if v not in [None, False, True] else "IS NOT"} %s AND '
+        for exception in exceptions:
+            if len(exception) == 3:
+                text_conditions += f"JSON_UNQUOTE(JSON_EXTRACT({exception[0]}, '$.{exception[1]}')) != '{exception[2]}'; AND "
+            else:
+                text_conditions += f'{exception[0]} {"!=" if exception[1] not in [None, False, True] else "IS NOT"} %s AND '
+                params.append(exception[1])
         text_conditions = text_conditions[:-5]
+        print(f"SELECT id FROM {items_schema}{f' WHERE {text_conditions}' if text_conditions else ''}")
         result = Connection.make_request(
             f"SELECT id FROM {items_schema}{f' WHERE {text_conditions}' if text_conditions else ''}",
             commit=False,
             fetch=True,
             fetchall=True,
-            params=tuple([i for i in requirements.values()] + [i for i in exceptions.values()]) if requirements or exceptions else None
+            params=tuple(params) if params else None
         )
         result = [i[0] for i in result]
         return result

@@ -19,7 +19,7 @@ async def wardrobe(inter, message=None, select_item_component_id: str = 'item_se
     item_types = sorted(item_types)
     for i, item_type in enumerate(['all'] + item_types):
         items_by_cats[Locales.SkinTypes[item_type][lang] if item_type != 'all' else Locales.Global.everything[lang]] = \
-            Tech.get_all_items(tuple({'skin_type': item_type}.items())) if item_type != 'all' else _items
+            Tech.get_all_items((('skin_config', 'type', item_type),)) if item_type != 'all' else _items
     await BotUtils.pagination(inter if message is None else message, lang,
                               embeds=await BotUtils.generate_items_list_embeds(inter, items_by_cats, lang, empty_desc,
                                                                                list_type='wardrobe',
@@ -83,7 +83,7 @@ async def wardrobe_item_wear(inter, item_id, message: disnake.Message = None, ca
 
 async def wardrobe_item_remove(inter, item_id, message: disnake.Message = None, category: str = None, page: int = 1):
     lang = User.get_language(inter.author.id)
-    Pig.remove_skin(inter.author.id, Item.get_skin_type(item_id))
+    Pig.remove_skin(inter.author.id, item_id)
     await send_callback(inter if message is None else message,
                         embed=await embeds.wardrobe_item_remove(inter, item_id, lang),
                         edit_original_message=False,
