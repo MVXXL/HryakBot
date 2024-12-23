@@ -6,13 +6,11 @@ from ...core import *
 from ...utils import *
 
 
-async def choose_user(inter, lang, users) -> disnake.Embed:
-    # users = User.get_users_sorted_by('pig', 'weight', number=10)
+async def choose_user(inter, lang, users) -> discord.Embed:
     options = []
     for user_id in users:
-        options.append(disnake.SelectOption(
+        options.append(discord.SelectOption(
             label=await User.get_name(inter.client, user_id),
             value=user_id,
-            # description=option['description']
         ))
-    return disnake.ui.Select(options=options, custom_id='view_profile', placeholder=Locales.Top.placeholder[lang])
+    return discord.ui.Select(options=options, custom_id='view_profile', placeholder=translate(Locales.Top.placeholder, lang))

@@ -1,4 +1,4 @@
 from .main import *
-from .other import BotUtils
+from .basic import Utils
 from . import modals
 from . import error_callbacks

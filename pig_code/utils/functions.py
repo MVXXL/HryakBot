@@ -15,10 +15,37 @@ def translate(locales, lang, format_options: dict = None):
         translated_text = locales[lang]
     elif type(locales) == str:
         translated_text = locales
+    if type(translated_text) == list:
+        translated_text = random.choice(translated_text)
     if format_options is not None:
         for k, v in format_options.items():
-            translated_text = translated_text.replace('{'+k+'}', str(v))
+            translated_text = translated_text.replace('{' + k + '}', str(v))
     return translated_text
+
+
+class Translator(discord.app_commands.Translator):
+    async def load(self):
+        pass
+
+    async def unload(self):
+        pass
+
+    async def translate(self, string: discord.app_commands.locale_str, locale: discord.Locale,
+                        context: discord.app_commands.TranslationContext):
+        if context.location in [discord.app_commands.TranslationContextLocation.command_name,
+                                discord.app_commands.TranslationContextLocation.command_description,
+                                discord.app_commands.TranslationContextLocation.parameter_name,
+                                discord.app_commands.TranslationContextLocation.parameter_description,
+                                discord.app_commands.TranslationContextLocation.choice_name]:
+            if string.message not in Locales.app_commands_locales:
+                return string.message
+            if locale in [discord.Locale.russian, discord.Locale.ukrainian]:
+                return translate(Locales.app_commands_locales[string.message], 'ru')
+            elif locale in [discord.Locale.american_english, discord.Locale.british_english]:
+                return translate(Locales.app_commands_locales[string.message], 'en')
+            return translate(Locales.app_commands_locales[string.message], 'en')
+        return None
+
 
 class Func:
 
@@ -71,11 +98,11 @@ class Func:
             pass
 
     @staticmethod
-    def generate_temp_path(key_word: str, file_extension: str = 'png'):
+    def generate_temp_path(key_word: str, file_extension: str = None):
         i = 0
         while True:
             i += 1
-            path = f'{config.TEMP_FOLDER_PATH}/{key_word}_{Func.get_current_timestamp()}_{random.randrange(10000)}.{file_extension}'
+            path = f'{config.TEMP_FOLDER_PATH}/{key_word}_{Func.get_current_timestamp()}_{random.randrange(10000)}{f'.{file_extension}' if file_extension is not None else ''}'
             if not os.path.exists(path):
                 break
         return path
@@ -85,57 +112,75 @@ class Func:
         return {k: v for k, v in sorted(dictionary.items(), key=lambda x: x[1], reverse=reverse)}
 
     @staticmethod
-    def add_log(log_type, **kwargs):
-        current_time = datetime.datetime.now()
-        log_entry = {
-            'timestamp': str(current_time),
-            'type': str(log_type),
-        }
-        for k, v in kwargs.items():
-            if type(v) in [str, int, float, bool, list, dict, set]:
-                log_entry[k] = v
-        log_file_path = config.LOGS_PATH
-        if os.path.exists(log_file_path):
-            with open(log_file_path, "r") as log_file:
-                try:
-                    log_data = json.loads(log_file.read())
-                except json.decoder.JSONDecodeError:
-                    log_data = []
+    def generate_random_pig_name(language):
+        return f'{translate(utils_config.pig_names[0], language)} {translate(utils_config.pig_names[1], language)}'
 
-            log_data.append(log_entry)
+    @staticmethod
+    def generate_select_components_for_pages(options: list, custom_id, placeholder, fields_for_one: int = 25,
+                                             category=None):
+        fields_for_one -= 1
+        components = []
+        generated_options = []
+
+        if not options:
+            return [components]
+
+        def append_components(page: int = 1):
+            components.append([
+                discord.ui.Select(options=generated_options, custom_id=f'{custom_id};{category};{page}',
+                                  placeholder=placeholder)])
+
+        c = 1
+        for i, option in enumerate(options, 1):
+            generated_options.append(discord.SelectOption(
+                label=option['label'],
+                value=option['value'],
+                emoji=option['emoji'],
+                description=option['description']
+            ))
+            if i % (fields_for_one + 1) == 0:
+                append_components(c)
+                generated_options = []
+                c += 1
+        if generated_options:
+            append_components(c)
         else:
-            log_data = [log_entry]
+            components.append([])
+        return components
 
-        with open(log_file_path, "w") as log_file:
-            log_file.write(json.dumps(log_data, indent=4, ensure_ascii=False))
+    @staticmethod
+    def generate_aaio_url(amount, order_id, currency: str = 'RUB', desc: str = None, lang: str = 'ru'):
+        sign = f'{config.AAIO_MERCHANT_ID}:{amount}:{currency}:{config.AAIO_SECRET1}:{order_id}'
+        params = {
+            'merchant_id': config.AAIO_MERCHANT_ID,
+            'amount': amount,
+            'currency': currency,
+            'order_id': order_id,
+            'sign': hashlib.sha256(sign.encode('utf-8')).hexdigest(),
+            'lang': lang
+        }
+        if desc is not None:
+            params['desc'] = desc
+        return "https://aaio.so/merchant/pay?" + urlencode(params)
 
     @staticmethod
     def get_command_name_and_options(ctx):
-        try:
-            sub_commands_types = ['OptionType.sub_command', 'OptionType.sub_command_group',
-                                  'ApplicationCommandType.chat_input']
-            if ctx.data.options and str(ctx.data.options[0].type) == sub_commands_types[1]:
-                if ctx.data.options[0].options and str(ctx.data.options[0].options[0].type) == sub_commands_types[0]:
-                    command_text = f'{ctx.data.name} {ctx.data.options[0].name} {ctx.data.options[0].options[0].name}'
-                    options = ctx.data.options[0].options[0].options
-                else:
-                    command_text = f'{ctx.data.name} {ctx.data.options[0].name}'
-                    options = ctx.data.options[0].options
-            elif ctx.data.options and str(ctx.data.options[0].type) == sub_commands_types[0]:
-                command_text = f'{ctx.data.name} {ctx.data.options[0].name}'
-                options = ctx.data.options[0].options
-            else:
-                command_text = f'{ctx.data.name}'
-                options = ctx.data.options
-        except:
-            command_text, options = ctx.data.name, ctx.data.options
-        return command_text, options
+        name = ctx.data.get('name')
+        options = []
+        if ctx.data.get('options') is not None:
+            options = ctx.data.get('options')[0]
+        if isinstance(options, dict) and options.get('options') is not None:
+            options = options.get('options')
+        command_name = name
+        if options and ctx.data.get('options')[0].get('name') is not None:
+            command_name += f' {ctx.data.get('options')[0].get('name')}'
+        return command_name, options
 
     @staticmethod
     def str_to_bool(target):
         if target is None:
             return None
-        return True if target.lower() in ['✅ true', 'true', '✅', 'yes', 'да', 'так'] else False
+        return True if target.lower() in ['✅ true', 'true', '✅', 'yes', 'да', 'так', True] else False
 
     @staticmethod
     def str_to_dict(target):
@@ -156,16 +201,17 @@ class Func:
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                print(f'Failed to delete {file_path}. Reason: {e}')
+                print(f'! Failed to delete {file_path}. Reason: {e}')
 
     @staticmethod
-    def generate_footer(inter, first_part: str = 'user', second_part: str = '', user: disnake.User = None):
+    def generate_footer(inter=None, first_part: str = 'user', second_part: str = '', user: discord.User = None):
         separator = ' ・ '
-        if user is None:
-            user = inter.author
-        if second_part == 'com_name':
-            second_part, options = Func.get_command_name_and_options(inter)
-            second_part = f'/{second_part}'
+        if inter is not None:
+            if user is None:
+                user = inter.user
+            if second_part == 'com_name':
+                second_part, options = Func.get_command_name_and_options(inter)
+                second_part = f'/{second_part}'
         if first_part == 'user':
             first_part = user.display_name
         if not first_part or not second_part:
@@ -174,7 +220,7 @@ class Func:
         return footer
 
     @staticmethod
-    def generate_footer_url(footer_url, user: disnake.User = None):
+    def generate_footer_url(footer_url: str = 'user_avatar', user: discord.User = None):
         if footer_url == 'user_avatar' and user is not None:
             if user.avatar is not None:
                 footer_url = user.avatar.url
@@ -183,7 +229,6 @@ class Func:
         else:
             return None
         return footer_url
-
 
     @staticmethod
     def generate_prefix(prefix: str = 'scd', sep: str = '・', backticks: bool = False):
@@ -207,7 +252,7 @@ class Func:
         missing_perms = []
         for perm in perms:
             if perm in Locales.Permissions:
-                missing_perms.append(Locales.Permissions[perm][lang])
+                missing_perms.append(translate(Locales.Permissions[perm], lang))
             else:
                 missing_perms.append(perm.replace('_', ' ').capitalize())
         return missing_perms
@@ -249,26 +294,52 @@ class Func:
             path = f'{path}/{name}.{file_extension}'
         for i in range(3):
             try:
-                async with aiofiles.open(path, 'wb') as f:
-                    await f.write(requests.get(link).content)
+                if file_extension in ['gif']:
+                    async with aiofiles.open(path, 'wb') as file:
+                        for chunk in requests.get(link, stream=True).iter_content(1024):
+                            await file.write(chunk)
+                else:
+                    async with aiofiles.open(path, 'wb') as f:
+                        await f.write(requests.get(link).content)
             except requests.exceptions.ConnectionError:
                 continue
         return path
 
     @staticmethod
-    def upload_image_to_imgbb(image_path, name=None, expiration=None):
-        url = "https://api.imgbb.com/1/upload"
-        payload = {
-            'key': config.IMGBB_TOKEN,
-            'expiration': expiration,
-            'name': name
-        }
-        with open(image_path, 'rb') as image_file:
-            files = {
-                'image': image_file
+    @aiocache.cached(ttl=86400)
+    async def get_image_temp_path_from_path(init_path: str):
+        dest_path = Func.generate_temp_path(f'{random.randrange(1, 10000)}{os.path.basename(init_path)}')
+        shutil.copy2(init_path, dest_path)
+        return dest_path
+
+    @staticmethod
+    async def get_image_temp_path_from_path_or_link(p: str):
+        if p.startswith('http'):
+            return await Func.get_image_path_from_link(p)
+        else:
+            return await Func.get_image_temp_path_from_path(p)
+
+    @staticmethod
+    def get_image_link_from_path(image_path, name=None, expiration=None, service: str = 'thumbsnap'):
+        if service == 'imgbb':
+            url = "https://api.imgbb.com/1/upload"
+            payload = {
+                'key': config.IMGBB_TOKEN,
+                'expiration': expiration,
+                'name': name
             }
-            response = requests.post(url, files=files, data=payload)
-        return response.json()
+            with open(image_path, 'rb') as image_url:
+                files = {
+                    'image': image_url
+                }
+                response = requests.post(url, files=files, data=payload)
+            return response.json()['data']['url']
+        elif service == 'thumbsnap':
+            url = 'https://thumbsnap.com/api/upload'
+            files = {'media': open(image_path, 'rb').read()}
+            data = {'key': config.THUMBSNAP_TOKEN}
+            response = requests.post(url, files=files, data=data)
+            return response.json()['data']['media']
 
     @staticmethod
     def get_changed_page_number(total_pages, cur_page, differ):
@@ -396,18 +467,46 @@ class Func:
     #
 
     @staticmethod
+    def add_log(log_type, **kwargs):
+        current_time = datetime.datetime.now().isoformat()
+        log_entry = {
+            'timestamp': current_time,
+            'type': log_type,
+        }
+        log_entry.update({k: v for k, v in kwargs.items() if isinstance(v, (str, int, float, bool, list, dict, set))})
+        log_file_path = config.LOGS_PATH
+        if os.path.exists(log_file_path) and os.path.getsize(log_file_path) > 0:
+            with open(log_file_path, "rb+") as log_file:
+                log_file.seek(-1, os.SEEK_END)
+                last_char = log_file.read(1)
+                if last_char == b']':
+                    log_file.seek(-1, os.SEEK_END)
+                    log_file.truncate()
+                    log_file.write(b',\n')
+            with open(log_file_path, "a", encoding="utf-8") as log_file:
+                log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
+                log_file.write("\n]")
+        else:
+            with open(log_file_path, "w", encoding="utf-8") as log_file:
+                log_file.write("[\n")
+                log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
+                log_file.write("\n]")
+
+    @staticmethod
     async def send_data_to_stats_channel(client, servers):
-        channel = client.get_channel(config.BOT_STATS_CHANNEL)
-        try:
-            await channel.edit(name=str(re.sub(r'\d+', str(servers), str(channel))))
-        except:
-            pass
+        for i in config.BOT_GUILDS:
+            if 'guild_count_channel' in config.BOT_GUILDS[i]:
+                channel = client.get_channel(config.BOT_GUILDS[i]['guild_count_channel'])
+                try:
+                    await channel.edit(name=str(re.sub(r'\d+', str(servers), str(channel))))
+                except:
+                    pass
 
     @staticmethod
     def get_number_of_possible_skin_variations():
         num = 1
-        for cat in os.listdir('bin/pig_skins'):
-            num *= len(os.listdir(f'bin/pig_skins/{cat}'))
+        for cat in os.listdir('bin/images'):
+            num *= len(os.listdir(f'bin/images/{cat}'))
         return num
 
     @staticmethod
@@ -455,20 +554,20 @@ class Func:
     # @staticmethod
     # async def send_command_use_webhook(client, inter):
     #     color = config.main_color
-    #     if inter.author.id != client.owner_id:
-    #         color = config.default_avatars[int(inter.author.default_avatar.key)]['hex']
+    #     if inter.user.id != client.owner_id:
+    #         color = config.default_avatars[int(inter.user.default_avatar.key)]['hex']
     #     options_text = ''
     #     raw_options_text = ''
     #     command_text, options = Func.get_command_name_and_options(inter)
     #     discohook_embed = discord_webhook.DiscordEmbed(title='Command used',
-    #                                                    description=f'**User:** {inter.author}\n'
+    #                                                    description=f'**User:** {inter.user}\n'
     #                                                                f'**Guild:** `{inter.guild}`\n'
     #                                                                f'**Channel:** `{inter.channel}`\n'
     #                                                                f'**Command:** `{command_text}`\n',
     #                                                    color=color)
     #     for i, option in enumerate(options):
     #         value = option.value
-    #         if type(value) == disnake.Member or type(value) == disnake.User:
+    #         if type(value) == discord.Member or type(value) == discord.User:
     #             value = value.id
     #         options_text += f'{option.name}: `{Func.cut_name(value, 20)}`\n'
     #         raw_options_text += f'{option.name}: {Func.cut_name(value, 500)} '
@@ -482,7 +581,7 @@ class Func:
     #         discohook_embed.add_embed_field(name='Target',
     #                                         value=f'{inter.data.target}')
     #     discohook_embed.set_footer(
-    #         text=f'Guild ID: {inter.guild.id}\nChannel ID: {inter.channel.id}\nUser ID: {inter.author.id}')
+    #         text=f'Guild ID: {inter.guild.id}\nChannel ID: {inter.channel.id}\nUser ID: {inter.user.id}')
     #     await Func.send_webhook_embed(config.command_use_webhook, discohook_embed, str(inter.client.user), inter.client.user.avatar.url)
     #
     #

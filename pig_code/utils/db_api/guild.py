@@ -14,17 +14,16 @@ class Guild:
 
     @staticmethod
     def register(guild_id):
-        executemany = False
-        if type(guild_id) == list:
-            executemany = True
-            guild_id = tuple([(guild,) for guild in guild_id])
-        settings = json.dumps(utils_config.guild_settings)
-        Connection.make_request(
-            f"INSERT{' IGNORE' if executemany else ''} INTO {guilds_schema} (id, joined, settings) "
-            f"VALUES (%s, '{Func.get_current_timestamp()}', '{settings}')",
-            params=guild_id,
-            executemany=executemany
-        )
+        if type(guild_id) in [list, tuple]:
+            guild_ids = [(guild, Func.get_current_timestamp(), json.dumps(utils_config.guild_settings)) for guild in
+                         guild_id]
+            query = f"INSERT IGNORE INTO {guilds_schema} (id, joined, settings) VALUES (%s, %s, %s)"
+            Connection.make_request(query, params=guild_ids, executemany=True)
+        else:
+            query = f"INSERT INTO {guilds_schema} (id, joined, settings) VALUES (%s, %s, %s)"
+            Connection.make_request(query, params=(
+            guild_id, Func.get_current_timestamp(), json.dumps(utils_config.guild_settings)),
+                                    executemany=False)
 
     @staticmethod
     def exists(guild_id):
@@ -69,7 +68,7 @@ class Guild:
     def set_settings(guild_id, new_settings):
         new_settings = json.dumps(new_settings, ensure_ascii=False)
         Connection.make_request(
-            f"UPDATE {guilds_schema} SET settings = %s WHERE id = {guild_id}", (new_settings, )
+            f"UPDATE {guilds_schema} SET settings = %s WHERE id = {guild_id}", (new_settings,)
         )
 
     @staticmethod

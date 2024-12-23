@@ -1,64 +1,69 @@
+import json
 import time
 
 from .connection import Connection
 from .tech import Tech
-from .user import User
 from ..functions import Func
+from ..functions import translate
 from ...core import *
 from ...core.config import users_schema
+from .history import History
 from .item import Item
 
 
 class Pig:
 
     @staticmethod
-    async def fix_pig_structure_for_all_users():
-        users = Tech.get_all_users()
-        for user in users:
-            Pig.fix_pig_structure(user)
-            await asyncio.sleep(0.1)
-        # Connection.make_request(
-        #     "UPDATE users SET stats = JSON_SET(stats, '$.commands_used', JSON_OBJECT());"
-        # )
+    def fix_pig_structure_for_all_users(nested_key_path: str = '', standard_values: dict = None):
+        if standard_values is None:
+            standard_values = utils_config.default_pig
+        Connection.make_request(f"UPDATE {config.users_schema} SET pig = '{'{}'}' WHERE pig IS NULL")
+        for k, v in standard_values.items():
+            new_key_path = f"{nested_key_path}.{k}" if nested_key_path else k
+            if type(v) in [dict]:
+                Connection.make_request(f"""
+                UPDATE {config.users_schema}
+                SET pig = JSON_SET(pig, '$.{new_key_path}', CAST(%s AS JSON))
+                WHERE JSON_EXTRACT(pig, '$.{new_key_path}') IS NULL;
+                """, params=(json.dumps(v),))
+                Pig.fix_pig_structure_for_all_users(new_key_path, standard_values[k])
+            else:
+                Connection.make_request(f"""
+                UPDATE {config.users_schema}
+                SET pig = JSON_SET(pig, '$.{new_key_path}', {'CAST(%s AS JSON)' if isinstance(v, list) else '%s'})
+                WHERE JSON_EXTRACT(pig, '$.{new_key_path}') IS NULL;
+                """, params=(json.dumps(v) if isinstance(v, list) else v,))
 
     @staticmethod
-    def fix_pig_structure(user_id):
-        pig = User.get_pig(user_id)
-        for key in utils_config.default_pig:
-            if key not in pig:
-                pig[key] = utils_config.default_pig[key]
-            if type(pig[key]) == dict:
-                for i in utils_config.default_pig[key]:
-                    if i not in pig[key]:
-                        pig[key][i] = utils_config.default_pig[key][i]
-        pig['weight'] = round(pig['weight'], 1)
-        for i in ['body', 'tail', 'left_ear', 'right_ear', 'nose']:
-            if 'body' in pig['skins']:
-                pig['skins'][i] = pig['skins']['body']
-        if '_nose' in pig['skins'] and pig['skins']['_nose'] is not None:
-            if '_nose' in pig['skins']:
-                pig['skins']['nose'] = pig['skins']['_nose']
-        for i in ['left_eye', 'right_eye']:
-            if 'eyes' in pig['skins']:
-                pig['skins'][i] = pig['skins']['eyes']
-        for i in ['left_pupil', 'right_pupil']:
-            if 'pupils' in pig['skins']:
-                pig['skins'][i] = pig['skins']['pupils']
-        # for key in utils_config.default_pig['skins']:
-        #     if key not in pig['skins']:
-        #         pig['skins'][key] = utils_config.default_pig['skins'][key]
-        # for key in utils_config.default_pig['genetic']:
-        #     if key not in pig['genetic']:
-        #         pig['genetic'][key] = utils_config.default_pig['genetic'][key]
-        # for key in utils_config.default_pig['skins']:
-        #     if key not in pig['skins']:
-        #         pig['skins'][key] = utils_config.default_pig['skins'][key]
-        Pig.update_pig(user_id, pig)
-
-    @staticmethod
-    def create_pig_if_no_pig(user_id):
-        if not User.get_pig(user_id):
-            Pig.create(user_id)
+    def get(user_id) -> dict:
+        if type(user_id) is not list:
+            result = Connection.make_request(
+                f"SELECT pig FROM {users_schema} WHERE id = {user_id}",
+                commit=False,
+                fetch=True,
+            )
+            if result is not None:
+                return json.loads(result)
+            else:
+                return {}
+        else:
+            user_ids = []
+            for i in user_id:
+                user_ids.append(int(i))
+            result = Connection.make_request(
+                f"SELECT pig FROM {users_schema} WHERE id IN {tuple(user_ids)}",
+                commit=False,
+                fetch=True,
+                fetchall=True,
+                fetch_first=False
+            )
+            if result is not None:
+                final_result = {}
+                for i, j in enumerate(result):
+                    final_result[user_ids[i]] = json.loads(j[0])
+                return final_result
+            else:
+                return {}
 
     @staticmethod
     def update_pig(user_id, new_pig):
@@ -68,34 +73,75 @@ class Pig:
         )
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
+    def set_buffs(user_id, new_buffs):
+        pig = Pig.get(user_id)
+        pig['buffs'] = new_buffs
+        Pig.update_pig(user_id, pig)
+
+    @staticmethod
     def get_buffs(user_id):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         return pig['buffs']
 
     @staticmethod
     def add_buff(user_id, buff, amount):
-        pig = User.get_pig(user_id)
-        if buff in pig['buffs']:
-            pig['buffs'][buff] += amount
+        pig = Pig.get(user_id)
+        if buff not in pig['buffs']:
+            pig['buffs'][buff] = {}
+        if buff == 'activated_charcoal':
+            if 'expires' not in pig['buffs'][buff]:
+                pig['buffs'][buff]['expires'] = 0
+            if Pig.buff_expired(user_id, buff):
+                pig['buffs'][buff]['expires'] = Func.get_current_timestamp() + Item.get_buff_duration(buff)
+            else:
+                pig['buffs'][buff]['expires'] += Item.get_buff_duration(buff)
         else:
-            pig['buffs'][buff] = amount
+            if 'amount' not in pig['buffs'][buff]:
+                pig['buffs'][buff]['amount'] = 0
+            pig['buffs'][buff]['amount'] += amount
         Pig.update_pig(user_id, pig)
+
+    @staticmethod
+    def buff_expired(user_id, buff):
+        return Func.get_current_timestamp() > Pig.get_buff_expiration_timestamp(user_id, buff)
 
     @staticmethod
     def remove_buff(user_id, buff, amount: int = 1):
-        pig = User.get_pig(user_id)
-        if buff in pig['buffs']:
-            pig['buffs'][buff] -= amount
+        pig = Pig.get(user_id)
+        if buff == 'activated_charcoal':
+            return
+        else:
+            if buff in pig['buffs'] and pig['buffs'][buff]['amount'] > 0:
+                pig['buffs'][buff]['amount'] -= amount
         Pig.update_pig(user_id, pig)
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_buff_value(user_id, buff):
-        pig = User.get_pig(user_id)
+    def get_buff_data(user_id, buff):
+        pig = Pig.get(user_id)
         if buff in pig['buffs']:
             return pig['buffs'][buff]
+
+    @staticmethod
+    def get_buff_amount(user_id, buff):
+        if Pig.get_buff_data(user_id, buff) is not None and 'amount' in Pig.get_buff_data(user_id, buff):
+            return Pig.get_buff_data(user_id, buff)['amount']
+        elif 'expires' in Pig.get_buff_data(user_id, buff):
+            if not Pig.buff_expired(user_id, buff):
+                return (Pig.get_buff_data(user_id, buff)['expires'] - Func.get_current_timestamp()) // Item.get_buff_duration(buff) + 1
         return 0
+
+    @staticmethod
+    def get_buff_expiration_timestamp(user_id, buff):
+        if Pig.get_buff_data(user_id, buff) is not None and 'expires' in Pig.get_buff_data(user_id, buff):
+            return Pig.get_buff_data(user_id, buff)['expires']
+        return 0
+
+    @staticmethod
+    def get_buff_name(buff, lang):
+        if Item.exists(buff):
+            return Item.get_name(buff, lang)
+        else:
+            return translate(Locales.BuffsNames[buff], lang)
 
     @staticmethod
     def create(user_id, name: str = None):
@@ -111,39 +157,38 @@ class Pig:
 
     @staticmethod
     def rename(user_id, name: str):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         pig['name'] = name
         Pig.update_pig(user_id, pig)
 
     @staticmethod
     def set_genetic(user_id, key, value):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         pig['genetic'][key] = value
         Pig.update_pig(user_id, pig)
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_genetic(user_id, key):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         if key == 'all':
             return pig['genetic']
         if key in pig['genetic']:
             return pig['genetic'][key]
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_name(user_id):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         return pig['name']
 
     @staticmethod
     def set_skin(user_id, item_id, layer=None):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         pig['skins'] = Pig.set_skin_to_options(pig['skins'], item_id, layer)
         Pig.update_pig(user_id, pig)
 
     @staticmethod
     def set_skin_to_options(skins, item_id, layer=None):
+        skins = skins.copy()
         if layer is None:
             for layer in Item.get_skin_layers(item_id):
                 if layer in utils_config.default_pig['skins']:
@@ -155,7 +200,7 @@ class Pig:
 
     @staticmethod
     def remove_skin(user_id, item_id, layer=None):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         pig['skins'] = Pig.remove_skin_from_options(pig['skins'], item_id, layer)
         Pig.update_pig(user_id, pig)
 
@@ -163,152 +208,68 @@ class Pig:
     def remove_skin_from_options(skins, item_id, layer=None):
         if layer is None:
             for layer in Item.get_skin_layers(item_id):
-                if layer in utils_config.default_pig['skins']:
+                if layer in utils_config.default_pig['skins'] and skins[layer] == item_id:
                     skins[layer] = None
-            skins[Item.get_skin_type(item_id)] = None
+            if skins.get(Item.get_skin_type(item_id)) == item_id:
+                skins[Item.get_skin_type(item_id)] = None
         else:
             skins[layer] = None
         return skins
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_skin(user_id, key):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         if key == 'all':
             return pig['skins']
         if key in pig['skins']:
             return pig['skins'][key]
 
-    @staticmethod
-    def _set_last_action(user_id, timestamp, action):
-        pig = User.get_pig(user_id)
-        pig[f'{action}_history'].append(timestamp)
-        Pig.update_pig(user_id, pig)
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def _get_last_action(user_id, action):
-        pig = User.get_pig(user_id)
-        last_action = None
-        if len(pig[f'{action}_history']) > 0:
-            last_action = pig[f'{action}_history'][-1]
-        return last_action
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def _get_action_history(user_id, action):
-        pig = User.get_pig(user_id)
-        return pig[f'{action}_history']
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def _get_time_to_next_action(user_id, action):
-        last_action = Pig._get_last_action(user_id, action)
-        cooldown = 1000000
-        if action == 'feed':
-            cooldown = utils_config.pig_feed_cooldown
-        if action == 'meat':
-            cooldown = utils_config.pig_meat_cooldown
-        if action == 'breed':
-            cooldown = utils_config.pig_breed_cooldown
-        # primal_cooldown = cooldown
-        # cont = True
-        # while cont:
-        #     for i in range(
-        #             Func.check_consecutive_timestamps(Pig._get_action_history(user_id, action)[-30:], 5, cooldown * 1.5,
-        #                                               cooldown)):
-        #         cooldown += cooldown // 2
-        #     if Func.check_consecutive_timestamps(Pig._get_action_history(user_id, action)[-30:], 5, cooldown * 1.5,
-        #                                          cooldown) == 0 or \
-        #             cooldown > 12 * 3600:
-        #         cont = False
-        if last_action is None:
-            return -1
-        next_action = last_action + cooldown - Func.get_current_timestamp()
-        return next_action if next_action > 0 else -1
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def _get_time_of_next_action(user_id, action):
-        if Pig._get_time_to_next_action(user_id, action) == -1:
-            return Func.get_current_timestamp()
-        return Func.get_current_timestamp() + Pig._get_time_to_next_action(user_id, action)
-
-    @staticmethod
-    def set_last_feed(user_id, timestamp):
-        Pig._set_last_action(user_id, timestamp, 'feed')
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_last_feed(user_id):
-        return Pig._get_last_action(user_id, 'feed')
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_feed_history(user_id):
-        return Pig._get_action_history(user_id, 'feed')
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_time_to_next_feed(user_id):
-        return Pig._get_time_to_next_action(user_id, 'feed')
+        last_feed = History.get_last_feed(user_id)
+        if last_feed is None:
+            return -1
+        next_feed = last_feed + utils_config.pig_feed_cooldown - Func.get_current_timestamp()
+        return next_feed if next_feed > 0 else -1
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_time_of_next_feed(user_id):
-        return Pig._get_time_of_next_action(user_id, 'feed')
+        if Pig.get_time_to_next_feed(user_id) == -1:
+            return Func.get_current_timestamp()
+        return Func.get_current_timestamp() + Pig.get_time_to_next_feed(user_id)
 
     @staticmethod
-    def set_last_meat(user_id, timestamp):
-        Pig._set_last_action(user_id, timestamp, 'meat')
+    def is_ready_to_feed(user_id):
+        if History.get_last_feed(user_id) is not None:
+            if Func.get_current_timestamp() < Pig.get_time_of_next_feed(user_id):
+                return False
+        return True
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_last_meat(user_id):
-        return Pig._get_last_action(user_id, 'meat')
+    def is_ready_to_butcher(user_id):
+        if History.get_last_butcher(user_id) is not None:
+            if Func.get_current_timestamp() < Pig.get_time_of_next_butcher(user_id):
+                return False
+        return True
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_meat_history(user_id):
-        return Pig._get_action_history(user_id, 'meat')
+    def get_time_to_next_butcher(user_id):
+        last_butcher = History.get_last_butcher(user_id)
+        if last_butcher is None:
+            return -1
+        next_butcher = last_butcher + utils_config.pig_butcher_cooldown - Func.get_current_timestamp()
+        return next_butcher if next_butcher > 0 else -1
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_time_to_next_meat(user_id):
-        return Pig._get_time_to_next_action(user_id, 'meat')
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_time_of_next_meat(user_id):
-        return Pig._get_time_of_next_action(user_id, 'meat')
-
-    @staticmethod
-    def set_last_breed(user_id, timestamp):
-        Pig._set_last_action(user_id, timestamp, 'breed')
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_last_breed(user_id):
-        return Pig._get_last_action(user_id, 'breed')
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_breed_history(user_id):
-        return Pig._get_action_history(user_id, 'breed')
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_time_to_next_breed(user_id):
-        return Pig._get_time_to_next_action(user_id, 'breed')
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    def get_time_of_next_breed(user_id):
-        return Pig._get_time_of_next_action(user_id, 'breed')
+    def get_time_of_next_butcher(user_id):
+        if Pig.get_time_to_next_butcher(user_id) == -1:
+            return Func.get_current_timestamp()
+        return Func.get_current_timestamp() + Pig.get_time_to_next_butcher(user_id)
 
     @staticmethod
     def add_weight(user_id, weight: float):
-        pig = User.get_pig(user_id)
+        pig = Pig.get(user_id)
         pig['weight'] += weight
         pig['weight'] = round(pig['weight'], 1)
         if pig['weight'] <= .1:
@@ -318,11 +279,11 @@ class Pig:
     @staticmethod
     def get_weight(user_id):
         if type(user_id) != list:
-            pig = User.get_pig(user_id)
+            pig = Pig.get(user_id)
             return pig['weight']
         else:
             weight = 0
-            pigs = User.get_pig(user_id)
+            pigs = Pig.get(user_id)
             for pig in pigs.values():
                 weight += pig['weight']
             return weight
@@ -339,53 +300,5 @@ class Pig:
         if lang is None:
             return max_age
         else:
-            return Locales.PigAges[max_age][lang]
+            return translate(Locales.PigAges[max_age], lang)
 
-    # @staticmethod
-    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    # def make_pregnant(user_id, pregnant_by_id, pregnant_with_id):
-    #     pig = User.get_pig(user_id)
-    #     pig['pregnant_time'] = Func.get_current_timestamp()
-    #     pig['pregnant_with'] = pregnant_with_id
-    #     pig['pregnant_by'] = pregnant_by_id
-    #     pig['pregnancy_duration'] = items[pregnant_with_id]['pregnancy_duration']
-    #     Pig.update_pig(user_id, pig)
-    #
-    # @staticmethod
-    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    # def pregnant_by(user_id):
-    #     pig = User.get_pig(user_id)
-    #     return pig['pregnant_by']
-    #
-    # @staticmethod
-    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    # def pregnant_time(user_id):
-    #     pig = User.get_pig(user_id)
-    #     return pig['pregnant_time']
-    #
-    # @staticmethod
-    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    # def pregnant_with(user_id):
-    #     pig = User.get_pig(user_id)
-    #     return pig['pregnant_with']
-    #
-    # @staticmethod
-    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    # def pregnancy_duration(user_id):
-    #     pig = User.get_pig(user_id)
-    #     return pig['pregnancy_duration']
-    #
-    # @staticmethod
-    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    # def disable_pregnant(user_id):
-    #     pig = User.get_pig(user_id)
-    #     pig['pregnant_time'] = None
-    #     Pig.update_pig(user_id, pig)
-    #
-    # @staticmethod
-    # # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
-    # def is_pregnant(user_id):
-    #     pig = User.get_pig(user_id)
-    #     if pig['pregnant_time'] is not None:
-    #         return True
-    #     return False

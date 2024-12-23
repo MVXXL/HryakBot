@@ -8,5 +8,6 @@ from .stats import Stats
 from .tech import Tech
 from .user import User
 from .trade import Trade
-from .family import Family
+from .order import Order
 from .item import Item
+from .history import History

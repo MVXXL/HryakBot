@@ -7,46 +7,34 @@ class PigCommands(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.slash_command(description=Localized(data=Locales.Feed.description))
+    @discord.app_commands.command(description=locale_str("feed-desc"))
+    @discord.app_commands.user_install()
+    @discord.app_commands.guild_install()
     async def feed(self, inter):
-        await modules.pig.callbacks.pig_feed(inter)
+        await modules.pig.callbacks.feed(inter)
 
-    @commands.slash_command(description=Localized(data=Locales.Meat.description))
-    async def meat(self, inter):
-        await modules.pig.callbacks.meat(inter)
+    @discord.app_commands.command(description=locale_str("butcher-desc"))
+    @discord.app_commands.user_install()
+    @discord.app_commands.guild_install()
+    async def butcher(self, inter):
+        await modules.pig.callbacks.butcher(inter)
 
-    #
-    @commands.slash_command(description=Localized(data=Locales.Rename.description))
-    async def rename(self, inter, name: str = commands.Param(
-        name=Localized(data=Locales.Rename.name_var_name),
-        description=Localized(data=Locales.Rename.name_var_desc), max_length=50)):
-        await modules.pig.callbacks.pig_rename(inter, name)
+    @discord.app_commands.command(description=locale_str("rename-desc"))
+    @discord.app_commands.rename(name=locale_str("rename-name-name"))
+    @discord.app_commands.describe(name=locale_str("rename-name-desc"))
+    @discord.app_commands.user_install()
+    @discord.app_commands.guild_install()
+    async def rename(self, inter, name: discord.app_commands.Range[str, 1, 50]):
+        await modules.pig.callbacks.rename(inter, name)
 
-    # @commands.slash_command(description=Localized(data=Locales.Breed.description))
-    # # @commands.is_nsfw()
-    # async def breed(self, inter, user: disnake.User = commands.Param(
-    #     name=Localized(data=Locales.Breed.user_var_name),
-    #     description=Localized(data=Locales.Breed.user_var_desc))):
-    #     await modules.breed.callbacks.breed(inter, user)
-
-    # @commands.slash_command(description=Localized(data=Locales.Pregnancy.description))
-    # async def pregnancy(self, inter):
-    #     await modules.breed.callbacks.pregnancy(inter)
-
-    @commands.slash_command(description=Localized(data=Locales.View.description))
-    async def view(self, inter, user: disnake.User = commands.Param(default=None,
-                                                                    name=Localized(
-                                                                           data=Locales.View.user_var_name),
-                                                                    description=Localized(
-                                                                           data=Locales.View.user_var_desc)), ):
+    @discord.app_commands.command(description=locale_str("view-desc"))
+    @discord.app_commands.rename(user=locale_str("view-user-name"))
+    @discord.app_commands.describe(user=locale_str("view-user-desc"))
+    @discord.app_commands.user_install()
+    @discord.app_commands.guild_install()
+    async def view(self, inter, user: discord.User = None):
         await modules.other.callbacks.view(inter, user)
 
-    # @commands.slash_command(description=Localized(data=locales['grunt']['description']))
-    # async def grunt(self, inter, name: str = commands.Param(
-    #     name=Localized(data=locales['rename']['name_var_name']),
-    #     description=Localized(data=locales['rename']['name_var_desc']))):
-    #     await modules.pig.callbacks.pig_rename(inter, name)
 
-
-def setup(client):
-    client.add_cog(PigCommands(client))
+async def setup(client):
+    await client.add_cog(PigCommands(client))

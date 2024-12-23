@@ -9,24 +9,44 @@ from ...core.config import users_schema
 class Stats:
 
     @staticmethod
-    async def fix_stats_structure_for_all_users():
-        users = Tech.get_all_users()
-        for user in users:
-            Stats.fix_stats_structure(user)
-            await asyncio.sleep(0.1)
+    def fix_stats_structure_for_all_users(nested_key_path: str = '', standard_values: dict = None):
+        if standard_values is None:
+            standard_values = utils_config.default_stats
+        Connection.make_request(f"UPDATE {config.users_schema} SET stats = '{'{}'}' WHERE stats IS NULL")
+        for k, v in standard_values.items():
+            new_key_path = f"{nested_key_path}.{k}" if nested_key_path else k
+            if type(v) in [dict]:
+                Connection.make_request(f"""
+                UPDATE {config.users_schema}
+                SET stats = JSON_SET(stats, '$.{new_key_path}', CAST(%s AS JSON))
+                WHERE JSON_EXTRACT(stats, '$.{new_key_path}') IS NULL;
+                """, params=(json.dumps(v),))
+                Stats.fix_stats_structure_for_all_users(new_key_path, standard_values[k])
+            else:
+                Connection.make_request(f"""
+                UPDATE {config.users_schema}
+                SET stats = JSON_SET(stats, '$.{new_key_path}', {'CAST(%s AS JSON)' if isinstance(v, list) else '%s'})
+                WHERE JSON_EXTRACT(stats, '$.{new_key_path}') IS NULL;
+                """, params=(json.dumps(v) if isinstance(v, list) else v,))
+
+    # @staticmethod
+    # async def fix_stats_structure_for_all_users():
+    #     users = Tech.get_all_users()
+    #     for user in users:
+    #         Stats.fix_stats_structure(user)
+    #         await asyncio.sleep(0.1)
+    #
+    # @staticmethod
+    # def fix_stats_structure(user_id):
+    #     stats = Stats.get_stats(user_id)
+    #     if stats is None:
+    #         stats = {}
+    #     for key, value in utils_config.user_stats.items():
+    #         if key not in stats:
+    #             stats[key] = value
+    #     Stats.set_stats(user_id, stats)
 
     @staticmethod
-    def fix_stats_structure(user_id):
-        stats = Stats.get_stats(user_id)
-        if stats is None:
-            stats = {}
-        for key, value in utils_config.user_stats.items():
-            if key not in stats:
-                stats[key] = value
-        Stats.set_stats(user_id, stats)
-
-    @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_stats(user_id):
         result = Connection.make_request(
             f"SELECT stats FROM {users_schema} WHERE id = {user_id}",
@@ -42,7 +62,7 @@ class Stats:
     def set_stats(user_id, new_stats):
         new_stats = json.dumps(new_stats, ensure_ascii=False)
         Connection.make_request(
-            f"UPDATE {users_schema} SET stats = '{new_stats}' WHERE id = {user_id}"
+            f"UPDATE {users_schema} SET stats = %s WHERE id = {user_id}", params=(new_stats,)
         )
 
     @staticmethod
@@ -52,10 +72,26 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_pig_fed(user_id):
         stats = Stats.get_stats(user_id)
         return stats['pig_fed']
+
+    @staticmethod
+    def set_streak(user_id, amount: int = 1):
+        stats = Stats.get_stats(user_id)
+        stats['streak'] = amount
+        Stats.set_stats(user_id, stats)
+
+    @staticmethod
+    def add_streak(user_id, amount: int = 1):
+        stats = Stats.get_stats(user_id)
+        stats['streak'] += amount
+        Stats.set_stats(user_id, stats)
+
+    @staticmethod
+    def get_streak(user_id):
+        stats = Stats.get_stats(user_id)
+        return stats['streak']
 
     @staticmethod
     def add_money_earned(user_id, amount: int = 1):
@@ -64,7 +100,6 @@ class Stats:
         Stats.set_stats(user_id, stats)
 
     @staticmethod
-    # @cached(TTLCache(maxsize=utils_config.db_api_cash_size, ttl=utils_config.db_api_cash_ttl))
     def get_money_earned(user_id):
         stats = Stats.get_stats(user_id)
         return stats['money_earned']
@@ -170,3 +205,26 @@ class Stats:
     def get_language_changed(user_id):
         stats = Stats.get_stats(user_id)
         return stats['language_changed']
+
+    @staticmethod
+    def add_successful_orders(user_id, amount: int = 1):
+        stats = Stats.get_stats(user_id)
+        stats['successful_orders'] += amount
+        Stats.set_stats(user_id, stats)
+
+    @staticmethod
+    def get_successful_orders(user_id):
+        stats = Stats.get_stats(user_id)
+        return stats['successful_orders']
+
+    @staticmethod
+    def add_dollars_donated(user_id, amount: int = 1):
+        stats = Stats.get_stats(user_id)
+        stats['dollars_donated'] += amount
+        Stats.set_stats(user_id, stats)
+
+    @staticmethod
+    def get_dollars_donated(user_id):
+        stats = Stats.get_stats(user_id)
+        return stats['dollars_donated']
+

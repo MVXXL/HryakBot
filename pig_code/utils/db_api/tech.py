@@ -1,8 +1,11 @@
+import os
+
 from .connection import Connection
 from ...core import *
-from ...core.config import users_schema, shop_schema, promo_code_schema, guilds_schema, families_schema, trades_schema, items_schema
+from ...core.config import users_schema, shop_schema, promocode_schema, guilds_schema
 from .user import User
 from .item import Item
+
 
 class Tech:
 
@@ -13,7 +16,8 @@ class Tech:
         except mysql.connector.errors.ProgrammingError:
             pass
         try:
-            Connection.make_request(f"ALTER TABLE {schema} CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;", commit=False)
+            Connection.make_request(
+                f"ALTER TABLE {schema} CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;", commit=False)
         except mysql.connector.errors.ProgrammingError:
             pass
         for column in columns[1:]:
@@ -32,16 +36,12 @@ class Tech:
             "inventory json",
             "stats json",
             "events json",
-            "buy_history json",
-            "logs json",
+            # "buy_history json",
+            # "logs json",
+            "history json",
             "rating json",
-            "settings json"
-            # "language varchar(10) DEFAULT 'en'",
-            # 'premium boolean DEFAULT FALSE',
-            # 'blocked boolean DEFAULT FALSE',
-            # 'blocked_promocodes boolean DEFAULT FALSE',
-            # "block_reason varchar(512) DEFAULT ''",
-            # 'family varchar(20)'
+            "settings json",
+            "orders json"
         ]
         Tech.create_table(columns, users_schema)
 
@@ -50,15 +50,12 @@ class Tech:
         columns = ['id int AUTO_INCREMENT PRIMARY KEY UNIQUE',
                    'timestamp varchar(32)',
                    'data json',
-                   # 'static_shop json',
-                   # 'daily_shop json',
-                   # 'case_shop json'
                    ]
         Tech.create_table(columns, shop_schema)
 
     @staticmethod
     def create_promo_code_table():
-        columns = ['id varchar(32) PRIMARY KEY UNIQUE',
+        columns = ['id varchar(128) PRIMARY KEY UNIQUE',
                    'created varchar(32)',
                    'users_used json',
                    'max_uses int',
@@ -66,7 +63,7 @@ class Tech:
                    'expires_in int',
                    'can_use varchar(32)',
                    ]
-        Tech.create_table(columns, promo_code_schema)
+        Tech.create_table(columns, promocode_schema)
 
     @staticmethod
     def create_guild_table():
@@ -76,59 +73,10 @@ class Tech:
                    ]
         Tech.create_table(columns, guilds_schema)
 
-    @staticmethod
-    def create_families_table():
-        columns = ['id int AUTO_INCREMENT PRIMARY KEY UNIQUE',
-                   'name varchar(32)',
-                   'description varchar(512)',
-                   'members json',
-                   'bans json',
-                   'requests json',
-                   'image varchar(512)',
-                   'private boolean DEFAULT FALSE',
-                   'ask_to_join boolean DEFAULT FALSE'
-                   ]
-        Tech.create_table(columns, families_schema)
 
     @staticmethod
-    def create_trades_table():
-        columns = ['id varchar(32) PRIMARY KEY UNIQUE',
-                   'data json',
-                   ]
-        Tech.create_table(columns, trades_schema)
-
-    @staticmethod
-    def create_items_table():
-        columns = ['id varchar(32) PRIMARY KEY UNIQUE',
-                   'name json',
-                   'description json',
-                   'type varchar(32)',
-                   'skin_config json',
-                   # 'skin_type varchar(32)',
-                   # 'not_compatible_skins json',
-                   # 'not_draw_skins json',
-                   'emoji varchar(32)',
-                   'inventory_type varchar(32)',
-                   'rarity varchar(32)',
-                   # 'image_file LONGBLOB',
-                   # 'image_file_2 LONGBLOB',
-                   'cooked_item_id varchar(32)',
-                   'market_price int',
-                   'market_price_currency varchar(32)',
-                   'shop_category varchar(32)',
-                   'shop_cooldown json',
-                   'buffs json',
-                   'salable bool',
-                   'sell_price int',
-                   'sell_price_currency varchar(32)',
-                   'tradable bool',
-                   'case_drops json',
-                   'requirements json',
-                   ]
-        Tech.create_table(columns, items_schema)
-
-    @staticmethod
-    def get_all_users(order_by: str = None, include_where: str = None, exclude_users: list = None, limit: int = None, guild: disnake.Guild = None):
+    def get_all_users(order_by: str = None, include_where: str = None, exclude_users: list = None, limit: int = None,
+                      guild: discord.Guild = None):
         """
         :type order_by: object
             Example: JSON_EXTRACT(inventory, '$.coins.amount')
@@ -165,16 +113,17 @@ class Tech:
                 id_list = id_list[:limit]
         return id_list
 
-
     @staticmethod
-    def get_user_position(user_id, order_by: str = None, include_where: str = None, exclude_users: list = None, guild: disnake.Guild = None):
-        users = Tech.get_all_users(order_by=order_by, include_where=include_where, exclude_users=exclude_users, guild=guild)
+    def get_user_position(user_id, order_by: str = None, include_where: str = None, exclude_users: list = None,
+                          guild: discord.Guild = None):
+        users = Tech.get_all_users(order_by=order_by, include_where=include_where, exclude_users=exclude_users,
+                                   guild=guild)
         if str(user_id) in users:
             return users.index(str(user_id))
 
     # @staticmethod
     # @cached(TTLCache(maxsize=1000, ttl=600000))
-    # def get_all_users_cached(order_by: str = None, include_where: str = None, exclude_users: tuple = None, limit: int = None, guild: disnake.Guild = None):
+    # def get_all_users_cached(order_by: str = None, include_where: str = None, exclude_users: tuple = None, limit: int = None, guild: discord.Guild = None):
     #     return Tech.get_all_users(order_by, include_where, exclude_users, limit, guild)
 
     @staticmethod
@@ -206,36 +155,31 @@ class Tech:
     @staticmethod
     @cached(utils_config.db_caches['tech.__get_all_items'])
     def __get_all_items(requirements: tuple = None, exceptions: tuple = None):
-        text_conditions = ''
-        if requirements is None:
-            requirements = []
-        if exceptions is None:
-            exceptions = []
-        params = []
-        for requirement in requirements:
-            if len(requirement) == 3:
-                text_conditions += f"JSON_UNQUOTE(JSON_EXTRACT({requirement[0]}, '$.{requirement[1]}')) = '{requirement[2]}'; AND "
-            else:
-                text_conditions += f'{requirement[0]} {"=" if requirement[1] not in [None, False, True] else "IS"} %s AND '
-                params.append(requirement[1])
-        if exceptions is None:
-            text_conditions = text_conditions[:-5]
-        for exception in exceptions:
-            if len(exception) == 3:
-                text_conditions += f"JSON_UNQUOTE(JSON_EXTRACT({exception[0]}, '$.{exception[1]}')) != '{exception[2]}'; AND "
-            else:
-                text_conditions += f'{exception[0]} {"!=" if exception[1] not in [None, False, True] else "IS NOT"} %s AND '
-                params.append(exception[1])
-        text_conditions = text_conditions[:-5]
-        print(f"SELECT id FROM {items_schema}{f' WHERE {text_conditions}' if text_conditions else ''}")
-        result = Connection.make_request(
-            f"SELECT id FROM {items_schema}{f' WHERE {text_conditions}' if text_conditions else ''}",
-            commit=False,
-            fetch=True,
-            fetchall=True,
-            params=tuple(params) if params else None
-        )
-        result = [i[0] for i in result]
+        result = []
+        requirements = () if requirements is None else requirements
+        exceptions = () if exceptions is None else exceptions
+        for k, v in utils_config.items.items():
+            correct_item = True
+            for i in exceptions:
+                vv = v
+                for j in range(len(i) - 1):
+                    if vv is not None and i[j] in vv:
+                        vv = vv[i[j]]
+                if vv is not None and vv == i[-1]:
+                    correct_item = False
+                    break
+            if correct_item:
+                for i in requirements:
+                    vv = v
+                    for j in range(len(i) - 1):
+                        if vv is not None and i[j] in vv:
+                            vv = vv[i[j]]
+                    if vv != i[-1]:
+                        correct_item = False
+                        break
+            if correct_item:
+                result.append(k)
+
         return result
 
     @staticmethod
@@ -258,7 +202,7 @@ class Tech:
         """
         result = Tech.__get_all_items(requirements, exceptions)
         if user_id is not None:
-            result = [i for i in result if Item.get_amount(i, user_id) > 0]
+            result = [i for i in result if Item.get_amount(i, user_id) != 0]
             Tech.clear_get_all_items_cache((requirements, exceptions, user_id))
         return result
 

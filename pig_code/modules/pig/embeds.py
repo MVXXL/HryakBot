@@ -2,41 +2,46 @@ from ...core import *
 from ...utils import *
 
 
-async def pig_feed(inter, lang, weight_changed: float, pooped_poop: int) -> disnake.Embed:
-    weight_changed_description = ''
-    pooped_poop_description = random.choice(Locales.Feed.pig_pooped_desc_list[lang])
-    if weight_changed >= 0:
-        weight_changed_description = random.choice(Locales.Feed.feed_scd_desc_list[lang])
-    elif weight_changed < 0:
-        weight_changed_description = random.choice(Locales.Feed.feed_fail_desc_list[lang])
+async def feed(inter, lang, weight_changed: float, pooped_amount: int, vomit: bool) -> discord.Embed:
+    pooped_poop_description = translate(Locales.Feed.pig_pooped_desc_list, lang)
+    eye_emotion = 'happy'
+    if not vomit:
+        weight_changed_description = translate(Locales.Feed.feed_scd_desc_list, lang)
+    else:
+        weight_changed_description = translate(Locales.Feed.feed_fail_desc_list, lang)
+        eye_emotion = 'sad'
+    description = f'- {translate(weight_changed_description, lang, {"pig": Pig.get_name(inter.user.id), "mass": abs(weight_changed)})}'
+    if not vomit:
+        description += f'\n- {translate(pooped_poop_description, lang, {"pig": Pig.get_name(inter.user.id), "poop": pooped_amount})}'
+    description += f"\n\n*{translate(Locales.Feed.total_pig_weight, lang, {'weight': Pig.get_weight(inter.user.id)})}*"
     embed = generate_embed(
-        title=Locales.Feed.feed_scd_title[lang],
-        description=f'- {weight_changed_description.format(pig=Pig.get_name(inter.author.id), mass=abs(weight_changed))}\n'
-                    f'- {pooped_poop_description.format(pig=Pig.get_name(inter.author.id), poop=pooped_poop)}\n\n'
-                    f"*{Locales.Feed.total_pig_weight[lang].format(weight=Pig.get_weight(inter.author.id))}*",
+        title=translate(Locales.Feed.feed_scd_title, lang),
+        description=description,
         prefix=Func.generate_prefix('🐷'),
-        thumbnail_file=await BotUtils.generate_user_pig(inter.author.id, eye_emotion='happy'),
+        thumbnail_url=await Utils.generate_user_pig(inter.user.id, eye_emotion=eye_emotion),
+        inter=inter,
+        footer=Func.generate_footer(inter, second_part=f'{Stats.get_streak(inter.user.id)} 🔥')
+    )
+    return embed
+
+
+async def butcher(inter, lang, lard_add: int, weight_lost: float) -> discord.Embed:
+    embed = generate_embed(
+        title=translate(Locales.Butcher.butcher_title, lang),
+        description=f'- {translate(Locales.Butcher.butcher_desc_list, lang, {"pig": Pig.get_name(inter.user.id), "meat": lard_add})}\n'
+                    f'- {translate(Locales.Butcher.weight_lost_desc_list, lang, {"pig": Pig.get_name(inter.user.id), "weight_lost": weight_lost})}\n\n'
+                    f'*{translate(Locales.Butcher.total_pig_weight, lang, {"weight": Pig.get_weight(inter.user.id)})}*',
+        prefix=Func.generate_prefix('🐷'),
+        thumbnail_url=await Utils.generate_user_pig(inter.user.id),
         inter=inter,
     )
     return embed
 
 
-async def pig_meat(inter, lang, bacon_add: int, weight_lost: float) -> disnake.Embed:
+def rename(inter, lang) -> discord.Embed:
     embed = generate_embed(
-        title=Locales.Meat.meat_title[lang],
-        description=f'- {random.choice(Locales.Meat.meat_desc_list[lang]).format(pig=Pig.get_name(inter.author.id), meat=bacon_add)}\n'
-                    f'- {random.choice(Locales.Meat.weight_lost_desc_list[lang]).format(pig=Pig.get_name(inter.author.id), weight_lost=weight_lost)}\n\n'
-                    f"*{Locales.Meat.total_pig_weight[lang].format(weight=Pig.get_weight(inter.author.id))}*",
-        prefix=Func.generate_prefix('🐷'),
-        thumbnail_file=await BotUtils.generate_user_pig(inter.author.id),
-        inter=inter,
-    )
-    return embed
-
-
-def pig_rename(inter, lang) -> disnake.Embed:
-    embed = generate_embed(
-        title=Locales.Rename.scd_title[lang].format(pig=Pig.get_name(inter.author.id)),
+        title=translate(Locales.Rename.scd_title, lang),
+        description=translate(Locales.Rename.scd_desc, lang, {'pig': Pig.get_name(inter.user.id)}),
         prefix=Func.generate_prefix('🐷'),
         inter=inter,
     )

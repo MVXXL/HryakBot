@@ -20,6 +20,7 @@ class Connection:
     def make_request(query, params: tuple = None, commit: bool = True, executemany: bool = False,
                      fetch: bool = False, fetch_first: bool = True, fetchall=False):
         connection = Connection.connect()
+        fetch = True if fetchall else fetch
         try:
             with connection.cursor() as cursor:
                 if not executemany:

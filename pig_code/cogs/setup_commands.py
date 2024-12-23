@@ -7,52 +7,31 @@ class SetupCommands(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.cooldown(3, 3, commands.BucketType.user)
-    @commands.slash_command(description=Localized(data=Locales.SetLanguage.description))
-    async def language(self, inter, language: str = commands.Param(
-        name=Localized(data=Locales.SetLanguage.language_var_name),
-        description=Localized(data=Locales.SetLanguage.language_var_description),
-        choices=[bot_locale.full_names[i] for i in bot_locale.valid_discord_locales])):
+    @discord.app_commands.command(description=locale_str("language-desc"))
+    @discord.app_commands.rename(language=locale_str("language-language-name"))
+    @discord.app_commands.describe(language=locale_str("language-language-desc"))
+    @discord.app_commands.choices(language=[discord.app_commands.Choice(name=bot_locale.full_names[i], value=i) for i in bot_locale.valid_discord_locales])
+    @discord.app_commands.user_install()
+    @discord.app_commands.guild_install()
+    async def language(self, inter, language: str):
         await modules.other.callbacks.set_language(inter, language)
 
-    @commands.has_guild_permissions(administrator=True)
-    @commands.slash_command()
+    settings = discord.app_commands.Group(name="settings", description='-')
+
+    @settings.command(description=locale_str("settings-say-desc"))
+    @discord.app_commands.rename(allow=locale_str("settings-say-allow-name"))
+    @discord.app_commands.describe(allow=locale_str("settings-say-allow-desc"))
+    @discord.app_commands.choices(allow=[
+            discord.app_commands.Choice(name=locale_str('choice-true'), value='true'),
+            discord.app_commands.Choice(name=locale_str('choice-false'), value='false')
+        ])
+    @discord.app_commands.checks.has_permissions(administrator=True)
+    @discord.app_commands.guild_install()
     @commands.guild_only()
-    async def join_message(self, inter):
-        pass
-
-    @join_message.sub_command(description=Localized(data=Locales.JoinMessageSet.description))
-    async def set(self, inter,
-                  channel: disnake.TextChannel = commands.Param(
-                      name=Localized(data=Locales.JoinMessageSet.channel_var_name),
-                      description=Localized(data=Locales.JoinMessageSet.channel_var_desc)),
-                  message: str = commands.Param(max_length=500,
-                                                name=Localized(
-                                                    data=Locales.JoinMessageSet.message_var_name),
-                                                description=Localized(
-                                                    data=Locales.JoinMessageSet.message_var_desc))
-                  ):
-        await modules.other.callbacks.set_join_message(inter, channel, message)
-
-    @join_message.sub_command(description=Localized(data=Locales.JoinMessageReset.description))
-    async def reset(self, inter):
-        await modules.other.callbacks.reset_join_message(inter)
-
-    @commands.has_guild_permissions(administrator=True)
-    @commands.slash_command()
-    async def settings(self, inter):
-        pass
-
-    @settings.sub_command(description=Localized(data=Locales.SettingsSay.description))
-    @commands.guild_only()
-    async def say(self, inter,
-                  allow: str = commands.Param(
-                      name=Localized(data=Locales.SettingsSay.allow_var_name),
-                      description=Localized(data=Locales.SettingsSay.allow_var_description),
-                  choices=BotUtils.bool_command_choice())
-                  ):
+    async def say(self, inter, allow: str):
         await modules.other.callbacks.settings_say(inter, Func.str_to_bool(allow))
 
 
-def setup(client):
-    client.add_cog(SetupCommands(client))
+async def setup(client):
+    await client.add_cog(SetupCommands(client))
+

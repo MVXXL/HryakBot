@@ -1,5 +1,6 @@
 from .connection import Connection
 from ..functions import Func
+from ..functions import translate
 from ...core import *
 from ...core.config import users_schema
 
@@ -49,7 +50,7 @@ class Events:
             description = description.copy()
             if description_format is not None:
                 for lang in description:
-                    description[lang] = description[lang].format(**description_format)
+                    description[lang] = translate(description, lang, description_format)
         elif type(description) == str and description_format is not None:
             description = description.format(**description_format)
         if event_id is None:
