@@ -30,7 +30,7 @@ THUMBSNAP_TOKEN = get_env('THUMBSNAP_TOKEN')  # https://thumbsnap.com/
 BOTICORD_TOKEN = get_env('BOTICORD_TOKEN')  # https://boticord.top/
 
 # github version
-GITHUB_PUBLIC_VERSION = False  # don't change this line
+GITHUB_PUBLIC_VERSION = True  # don't change this line
 
 # support guild config
 
