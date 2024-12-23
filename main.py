@@ -34,6 +34,3 @@ pig_bot.load_cogs()
 
 pig_bot.pig_bot.run(config.TOKEN)
 
-# Для запуска профайлера на всем боте
-# cProfile.run('i()', f'profile_output{"" if not config.TEST else "_test"}.txt')
-
