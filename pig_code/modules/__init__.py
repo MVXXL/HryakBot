@@ -2,7 +2,6 @@ from . import inventory
 from . import pig
 from . import other
 from . import shop
-from . import quests
 from . import help
 from . import top
 from . import duel

@@ -59,12 +59,6 @@ class MainCommands(commands.Cog):
     async def shop(self, inter):
         await modules.shop.callbacks.shop(inter)
 
-    # @discord.app_commands.command(description=locale_str("quests-desc"))
-    # @discord.app_commands.user_install()
-    # @discord.app_commands.guild_install()
-    # async def quests(self, inter):
-    #     await modules.quests.callbacks.quests(inter)
-
     @discord.app_commands.command(description=locale_str("duel-desc"))
     @discord.app_commands.rename(user=locale_str("duel-user-name"))
     @discord.app_commands.describe(user=locale_str("duel-user-desc"))

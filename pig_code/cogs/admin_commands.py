@@ -151,30 +151,6 @@ class AdminCommands(commands.Cog):
         await self.client.get_guild(int(server)).leave()
         await send_callback(inter, f'*I left from *{server}***')
 
-    # @commands.slash_command(guild_ids=config.ADMIN_GUILDS, description='Check the user')
-    # async def check(self, inter, user: discord.User = commands.Param(description='User or id')):
-    #     await Utils.pre_command_check(inter)
-    #     found_in_guilds = []
-    #     for guild in self.client.guilds:
-    #         if user in guild.members:
-    #             found_in_guilds.append(guild)
-    #     embeds = []
-    #     tf = Func.check_consecutive_timestamps(History.get_feed_history(user.id)[-40:], 6 * 3600, 4 * 3600)
-    #     title = f'{len(found_in_guilds)}w{Pig.get_weight(user.id)}m{Item.get_amount("coins", user.id)}c{tf}\n'
-    #     embed = generate_embed(title, '')
-    #     User.register_user_if_not_exists(user.id)
-    #     for i, guild in enumerate(sorted(found_in_guilds, key=lambda x: len(x.members))):
-    #         member = guild.get_member(user.id)
-    #         embed.description += f'{i}. [{guild}]({guild.icon.url if guild.icon is not None else ""}).' \
-    #                              f'{guild.id}.' \
-    #                              f'm{len(guild.members)}r{len(member.roles)}.' \
-    #                              f'{"o" if member.id == guild.owner_id else "-"}<t:{round(guild.created_at.timestamp())}:R><t:{round(member.joined_at.timestamp())}:R>\n'
-    #         if len(embed.description) >= 3900:
-    #             embeds.append(embed)
-    #             embed = generate_embed(title, '')
-    #     embeds.append(embed)
-    #     await Utils.pagination(inter, 'ru', embeds=embeds)
-
     @discord.app_commands.command(description='Returns a list of guilds')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     async def guilds(self, inter):

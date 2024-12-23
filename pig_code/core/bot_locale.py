@@ -1243,22 +1243,6 @@ class Locales:
         desc = {'en': "*Imagine wearing **{item}** - this is how it would look*",
                 'ru': '*Вот как будет выглядеть **{item}**, если вы его наденете*'}
 
-    class Quests:
-        shop_empty_desc = {'en': '*You don\'t have any quests right now',
-                           'ru': '*Сейчас нету никаких квестов*'}
-        main_page_title = {'en': 'Quests',
-                           'ru': 'Квесты'}
-        main_page_desc = {'en': '*Here you can find some quests for yourself*\n\n'
-                                '**Select a category below:**',
-                          'ru': '*Здесь вы можете найти для себя какие либо квесты*\n\n'
-                                '**Выберите категорию ниже:**'}
-        titles = {
-            'daily_quests': {'en': 'Daily quests',
-                             'ru': 'Ежедневные квесты'},
-            'weekly_quests': {'en': 'Weekly quests',
-                              'ru': 'Еженедельные квесты'},
-        }
-
     class Shop:
         shop_empty_desc = {'en': '*Shop is empty now*',
                            'ru': '*Магазин сейчас пустой*'}

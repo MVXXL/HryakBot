@@ -760,33 +760,6 @@ class Utils:
         amount_with_tax = math.ceil(amount + amount * (tax / 100))
         return amount_with_tax
 
-    # @staticmethod
-    # async def calculate_pig_buffs(client, user_id):
-    #     calculated_buffs = {'pooping': 1,
-    #                         'weight': 1,
-    #                         'vomit_chance': .15}
-    #     for item_buff in Pig.get_buffs(user_id):
-    #         if Pig.get_buff_amount(user_id, item_buff) > 0 or not Pig.buff_expired(user_id, item_buff):
-    #             buffs = Item.get_buffs(item_buff)
-    #             if item_buff in ['laxative', 'compound_feed']:
-    #                 Pig.remove_buff(user_id, item_buff)
-    #             for buff in buffs:
-    #                 if buff in calculated_buffs:
-    #                     if Item.get_buff_duration(item_buff) is None or not Pig.buff_expired(user_id, item_buff):
-    #                         digit_buff = float(buffs[buff][1:])
-    #                         match buffs[buff][0]:
-    #                             case 'x':
-    #                                 calculated_buffs[buff] *= digit_buff
-    #                             case '+':
-    #                                 calculated_buffs[buff] += digit_buff
-    #                             case '-':
-    #                                 calculated_buffs[buff] -= digit_buff
-    #     bot_guild = client.get_guild(config.BOT_GUILD)
-    #     if bot_guild is not None:
-    #         if bot_guild.get_member(user_id) is not None:
-    #             calculated_buffs['weight'] += .05
-    #     return calculated_buffs
-
     @staticmethod
     async def calculate_buff_multipliers(client, user_id, use_buffs: bool = False):
         res = utils_config.base_buff_multipliers.copy()
