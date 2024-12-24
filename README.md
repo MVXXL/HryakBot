@@ -1,6 +1,10 @@
 <p align="light">
 <h1 align="center">
  <a><img src="https://i.ibb.co/M1vf2Sf/image.png" style="width: 25%;" alt="Hryak"></a>
+ <h4 align="center">
+ 
+  ![Python](https://img.shields.io/badge/Python-3.11%20%E2%80%94%203.12-blue)
+</h4>
 </h1>
 
 
