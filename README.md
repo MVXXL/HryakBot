@@ -20,11 +20,10 @@ Hryak is a Tamagotchi-type Discord bot where you can feed and raise your own pig
 
 # How to run it
 
-The bot is designed to run on a Windows-based PC as the hosting machine and uses MySQL as its database.
+*The bot is designed to run on a Windows-based PC as the hosting machine and uses MySQL as its database*
 
 1. Fill out the `config.py` file with the required details
 2. Set up your MySQL database
-3. Install the required dependencies by running:  
-   ```pip install -r requirements.txt```
+3. Install the required dependencies. (```pip install -r requirements.txt```)
 4. Run main.py to start the bot
 5. Test to ensure everything is working correctly
