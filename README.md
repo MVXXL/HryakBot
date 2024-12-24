@@ -5,7 +5,7 @@
  
   ![Python](https://img.shields.io/badge/Python-3.11%20%E2%80%94%203.12-blue)
   ![discord.py](https://img.shields.io/badge/discord.py-blue)
-  ![LICENSE MIT](https://img.shields.io/badge/license-MIT-green)
+  ![LICENSE MIT](https://img.shields.io/badge/license-CC_BY_NC_ND_4.0-green)
 </h4>
 </h1>
 
