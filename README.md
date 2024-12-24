@@ -2,17 +2,7 @@
 <h1 align="center">
  <a><img src="https://i.ibb.co/M1vf2Sf/image.png" style="width: 25%;" alt="Hryak"></a>
 </h1>
-<h1 align="center">
-  🐷 Hryak 🐷
-</h1>
-<h4 align="center">
 
-  The best piggy in the whole internet
-
-
-  
-  ![Python](https://img.shields.io/badge/Python-3.11.7%20%E2%80%94%203.12.4-blue)
-</h4>
 
 # HryakBot
 
