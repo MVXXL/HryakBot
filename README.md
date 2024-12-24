@@ -1,12 +1,13 @@
 <p align="light">
 <h1 align="center">
-  <br>  <a><img src="https://github.com/user-attachments/assets/75dff533-b9fd-4815-9954-016e32ff8766" style="width: 100%;" alt="Hryak"></a>
-   🐷 Hryak 🐷
-  <br>
+ <a><img src="https://i.ibb.co/M1vf2Sf/image.png" style="width: 25%;" alt="Hryak"></a>
+</h1>
+<h1 align="center">
+  🐷 Hryak 🐷
 </h1>
 <h4 align="center">
 
-  The ultimate Discord bot for expanding your server's capabilities ✨
+  The best piggy in the whole internet
 
 
   
