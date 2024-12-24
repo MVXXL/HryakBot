@@ -35,3 +35,4 @@ from urllib.parse import urlencode
 from PIL import Image, ImageDraw
 import asyncio
 from aiocache import Cache
+from cachetools import cached, TTLCache

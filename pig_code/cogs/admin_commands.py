@@ -83,15 +83,15 @@ class AdminCommands(commands.Cog):
         Pig.add_weight(user.id, amount)
         await send_callback(inter, f'*User **{user}** received **{amount} kg***')
 
-    @commands.slash_command(guild_ids=config.ADMIN_GUILDS,
-                            description='Set order status')
-    async def set_order_status(self, inter, order_id: str = commands.Param(description='Order ID'),
-                               status=commands.Param(
-                                   choices=['success', 'in_process', 'expired'])
-                               ):
-        await Utils.pre_command_check(inter)
-        Order.set_status(order_id, status)
-        await send_callback(inter, f'*Order **{order_id}** status has been set to **{status}***')
+    # @commands.slash_command(guild_ids=config.ADMIN_GUILDS,
+    #                         description='Set order status')
+    # async def set_order_status(self, inter, order_id: str = commands.Param(description='Order ID'),
+    #                            status=commands.Param(
+    #                                choices=['success', 'in_process', 'expired'])
+    #                            ):
+    #     await Utils.pre_command_check(inter)
+    #     Order.set_status(order_id, status)
+    #     await send_callback(inter, f'*Order **{order_id}** status has been set to **{status}***')
 
     @discord.app_commands.command(description='Add all available skins to user')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
