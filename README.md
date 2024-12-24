@@ -1,1 +1,19 @@
 # HryakBot
+
+Hryak is an entertaining Discord bot created by @brevnoo in May 2023. The bot has gained popularity and is currently in use on 5,500 Discord servers with 800 daily active users.
+
+# What is it exactly?
+
+Hryak is a Tamagotchi-type Discord bot where you can feed and raise your own pig. The pig will grow, you will earn money, and you’ll be able to buy new items for your piggy. Players can trade items with one another, creating a user-driven economy.
+
+
+# Features
+
+- Feed your piggy
+- Rename your piggy
+- Dress up your piggy
+- Harvest meat from your pig (don’t worry, it doesn’t hurt)
+- Cook and sell meat
+- Buy buff items to enhance gameplay
+- Duel with your friends
+- Trade items with your friends
