@@ -47,7 +47,6 @@ class Shop:
     def is_item_in_shop(item_id, shop_id=None):
         shop_pages = Shop.get_data(shop_id)
         for shop in shop_pages:
-            print(item_id)
             if item_id in shop_pages[shop]:
                 return True
         return False
@@ -107,7 +106,6 @@ class Shop:
             'premium_skins_shop': [],
             'coins_shop': [f'coins.a={k}.p={round(v)}.c=hollars' for k, v in utils_config.coins_prices.items()],
         }
-        # print(33123, Tech.get_all_items((('shop_category', 'premium_skins'),)))
         for i in ["laxative", 'compound_feed', "activated_charcoal", "milk"]:
             data['consumables_shop'].append(f'{i}.a={1}.p={Item.get_market_price(i)}.c={Item.get_market_price_currency(i)}')
         for i in ["knife", "grill"]:

@@ -42,16 +42,6 @@ class Events(commands.Cog):
             await self.client.tree.sync(guild=discord.Object(id=guild_id))
         await self.client.tree.sync()
         print('> Tree is synced')
-        # for guild in self.client.guilds:
-        #     if guild.large:
-        #         await guild.chunk()
-        #         await asyncio.sleep(.2)
-        # print('> Large guilds are chunked')
-        # for guild in self.client.guilds:
-        #     if not guild.large:
-        #         await guild.chunk()
-        #         await asyncio.sleep(1)
-        # print('> Small guilds are chunked')
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
@@ -183,9 +173,6 @@ class Events(commands.Cog):
                             Trade.add_item(trade_id, modal_interaction.user.id, action_object, amount)
                             Trade.set_agree(trade_id, user1_id, False)
                             Trade.set_agree(trade_id, user2_id, False)
-                            print(modal_interaction)
-                            # print(await interaction.original_response())
-                            # print(await modal_interaction.original_response())
                             await modules.trade.callbacks.trade(interaction,
                                                                 await Trade.get_user(modal_interaction.client, trade_id, 0),
                                                                 await Trade.get_user(modal_interaction.client, trade_id, 1),
@@ -239,7 +226,6 @@ class Events(commands.Cog):
                         await modules.shop.callbacks.shop(interaction, init_category=interaction_values[0],
                                                           init_page=0)
                 if custom_id_params[0] == 'donate':
-                    print(12312313123123)
                     await modules.shop.callbacks.donation_page_selected(interaction, interaction_values[0])
                 elif custom_id_params[0] == 'preview_skin':
                     await modules.other.callbacks.skin_preview(interaction, custom_id_params[1])
@@ -266,7 +252,6 @@ class Events(commands.Cog):
                                                                             init_category=custom_id_params[2],
                                                                             init_page=int(custom_id_params[3]))
                         else:
-                            print(115, interaction)
                             await modules.inventory.callbacks.inventory_item_selected(interaction, custom_id_params[1], edit_followup=edit_followup)
 
                     if Item.get_amount(custom_id_params[1], interaction.user.id) <= 0:
@@ -291,8 +276,6 @@ class Events(commands.Cog):
                                 item_components[custom_id_params[1]][custom_id_params[0]]['callback']['prefix']),
                             inter=interaction,
                         )
-                        # print(interaction.message.webhook_id)
-                        # print(await self.client.fetch_webhook(interaction.message.webhook_id))
                         await send_callback(interaction, embed=embed,
                                             ephemeral=True, edit_original_response=False)
                         await update_inventory(edit_followup=True)

@@ -25,7 +25,6 @@ class Tech:
                 Connection.make_request(f"ALTER TABLE {schema} ADD COLUMN {column}", commit=False)
             except Exception as e:
                 pass
-                # print(e)
 
     @staticmethod
     def create_user_table():

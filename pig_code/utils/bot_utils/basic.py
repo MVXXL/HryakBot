@@ -275,7 +275,6 @@ class Utils:
                 if field['inline'] is True:
                     field['name'] = Func.cut_text(field['name'], 15)
                 field['name'] = f'{field['name']}{field['after_prefix']}'
-            # print(cat)
             page_embeds = Utils.generate_embeds_list_from_fields(item_fields,
                                                                  description=description if item_fields else empty_desc,
                                                                  title=f'{Func.generate_prefix(prefix_emoji)}{title if not cat_as_title else cat}',
@@ -533,9 +532,6 @@ class Utils:
                 except:
                     pass
                 return
-            # except AttributeError:
-            #     print(232423222)
-            #     return
             if type(interaction) != discord.interactions.Interaction:
                 continue
             if interaction.data.get('custom_id') in ['in;next', 'in;previous', 'hide', 'in;choose_category']:

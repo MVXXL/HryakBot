@@ -43,7 +43,6 @@ class MySQLPool:
         ))
 
     def get_connection(self):
-        # print(self.pools)
         for i in range(len(self.pools)):
             try:
                 return self.pools[i].get_connection()

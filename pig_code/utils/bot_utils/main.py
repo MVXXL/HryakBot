@@ -73,13 +73,6 @@ async def send_callback(inter,
                                                                              attachments=attachments)
                             except Exception as e:
                                 print(e)
-                                # try:
-                                #     message = await inter.response.edit_message(content=content, embed=embed,
-                                #                                                 view=view,
-                                #                                                 attachments=attachments)
-                                # except discord.errors.InteractionResponded as e:
-                                #     print(203)
-                                #     print(e)
                         else:
                             extra_kwargs = {}
                             if embed is not None:
