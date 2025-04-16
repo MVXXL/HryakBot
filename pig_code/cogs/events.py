@@ -12,7 +12,7 @@ class Events(commands.Cog):
         self.client = client
         aiocache.Cache(Cache.MEMORY)
         if not config.TEST:
-            init_data = {'start': Func.get_current_timestamp()}
+            init_data = {'start': hryak.Func.generate_current_timestamp()}
             if config.HOSTING_TYPE == 'pc':
                 init_data['pid'] = os.getpid()
                 handle = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, True, os.getpid())
@@ -104,10 +104,10 @@ class Events(commands.Cog):
                         if action_object in ['coins', 'hollars']:
                             modal_interaction, amount = await modals.get_item_amount(interaction,
                                                                                      translate(
-                                                                                         Locales.Trade.add_item_modal_title,
+                                                                                         Locale.Trade.add_item_modal_title,
                                                                                          lang),
                                                                                      translate(
-                                                                                         Locales.Trade.add_item_with_tax_modal_label,
+                                                                                         Locale.Trade.add_item_with_tax_modal_label,
                                                                                          lang, {
                                                                                              'tax': hryak.GameFunc.get_user_tax_percent(
                                                                                                  interaction.user.id,
@@ -155,12 +155,12 @@ class Events(commands.Cog):
                                                                 pre_command_check=False)
                         elif custom_id_params[1] == 'cancel':
                             await error_callbacks.default_error_callback(interaction,
-                                                                         translate(Locales.Trade.cancel_title, lang),
-                                                                         translate(Locales.Trade.cancel_desc,
+                                                                         translate(Locale.Trade.cancel_title, lang),
+                                                                         translate(Locale.Trade.cancel_desc,
                                                                                    lang).format(
                                                                              user=interaction.user.display_name),
-                                                                         thumbnail_url=await Func.get_image_path_from_link(
-                                                                             utils_config.image_links['trade']))
+                                                                         thumbnail_url=await hryak.Func.get_image_path_from_link(
+                                                                             config.image_links['trade']))
                         elif custom_id_params[1] == 'clear':
                             await interaction.response.defer()
                             Trade.set_agree(trade_id, user1_id, False)
@@ -175,10 +175,10 @@ class Events(commands.Cog):
                             action_object = interaction_values[0].split(';')[0]
                             modal_interaction, amount = await modals.get_item_amount(interaction,
                                                                                      translate(
-                                                                                         Locales.Trade.add_item_modal_title,
+                                                                                         Locale.Trade.add_item_modal_title,
                                                                                          lang),
                                                                                      translate(
-                                                                                         Locales.Trade.add_item_modal_label,
+                                                                                         Locale.Trade.add_item_modal_label,
                                                                                          lang, {'item': Item.get_name(
                                                                                              action_object, lang)}),
                                                                                      max_amount=Item.get_amount(
@@ -338,7 +338,7 @@ class Events(commands.Cog):
             if 'not_verified_role' in config.BOT_GUILDS[member.guild.id]:
                 User.register_user_if_not_exists(member.id)
                 if (Pig.get_weight(member.id) < 1.5 and User.get_age(member.id) < 3600) or \
-                        (Func.get_current_timestamp() - member.created_at.timestamp() < 30 * 24 * 3600):
+                        (hryak.Func.generate_current_timestamp() - member.created_at.timestamp() < 30 * 24 * 3600):
                     await member.add_roles(
                         member.guild.get_role(config.BOT_GUILDS[member.guild.id]['not_verified_role']))
 

@@ -3,121 +3,8 @@ import cProfile
 from . import config
 from .imports import *
 
-default_pig = {'name': 'Hryak',
-               'weight': 1,
-               'feed_history': [],
-               'butcher_history': [],
-               'buffs': {},
-               'genetic': {
-                   'tail': 'default_body',
-                   'left_ear': 'default_body',
-                   'left_eye': 'white_eyes',
-                   'right_eye': 'white_eyes',
-                   'left_pupil': 'black_pupils',
-                   'right_pupil': 'black_pupils',
-                   'right_ear': 'default_body',
-                   'nose': 'default_body',
-                   'body': 'default_body',
-                   'eyes': 'white_eyes',
-                   'pupils': 'black_pupils',
-               },
-               'skins': {'body': None,
-                         'tattoo': None,
-                         'tail': None,
-                         'left_ear': None,
-                         'makeup': None,
-                         'mouth': None,
-                         'left_eye': None,
-                         'right_eye': None,
-                         'left_pupil': None,
-                         'right_pupil': None,
-                         'middle_ear': None,
-                         'right_ear': None,
-                         'suit': None,
-                         'glasses': None,
-                         'nose': None,
-                         'piercing_nose': None,
-                         'face': None,
-                         'piercing_ear': None,
-                         'back': None,
-                         'hat': None,
-                         'legs': None,
-                         'tie': None}}
-default_pig_body_genetic = ['default_body']
-default_pig_pupils_genetic = ['black_pupils', 'blue_pupils', 'green_pupils',
-                              'orange_pupils', 'pink_pupils', 'yellow_pupils', 'purple_pupils']
-default_pig_eyes_genetic = ['white_eyes']
-default_stats = {'pig_fed': 0, 'money_earned': 0, 'commands_used': {}, 'items_used': {}, 'items_sold': {}, 'streak': 0,
-                 'successful_orders': 0, 'dollars_donated': 0,
-                 'language_changed': False}
-default_history = {'feed_history': [], 'butcher_history': [], 'shop_history': [], 'streak_history': []}
 
-default_item = {
-    'id': 'none',
-    'name': {},
-    'description': {},
-    'type': None,
-    'skin_config': {},
-    'emoji': '🔴',
-    'inventory_type': None,
-    'rarity': None,
-    'cooked_item_id': None,
-    'market_price': None,
-    'market_price_currency': None,
-    'shop_category': None,
-    'shop_cooldown': None,
-    'buffs': None,
-    'salable': None,
-    'sell_price': None,
-    'sell_price_currency': None,
-    'tradable': None,
-    'case_drops': None,
-    'requirements': None,
-    'image': None
-}
 
-skin_layers_rules = {
-    'mouth': {'before': [
-        'nose',
-    ]},
-    'glasses': {'before': [
-        'nose',
-    ]},
-    'nose': {'before': [
-    ],
-        'after': [
-            'left_eye',
-            'right_eye',
-            'left_pupil',
-            'right_pupil',
-        ]},
-    'piercing_nose': {'after': [
-        'nose'
-    ]},
-    'piercing_ear': {'after': [
-        'right_ear',
-    ]},
-    'hat': {
-        'after': ['suit'],
-        'hide': ['middle_ear']
-    }}
-
-with open(f'pig_code/core/items_config.json', 'r', encoding='utf-8') as f:
-    items = json.loads(f.read())
-
-pig_feed_cooldown = 4 * 3600 if not config.TEST else 5  # seconds
-
-pig_butcher_cooldown = 40 * 3600 if not config.TEST else 15  # seconds
-
-streak_timeout = 24.5 * 3600 if not config.TEST else 15
-
-daily_shop_items_types = {
-    'hat': 1,
-    'glasses': 1,
-    'body': 1,
-    'pupils': 1,
-    'other': 3
-}
 shops_emojis = {
     'daily_shop': '🎨',
     'case_shop': '📦',
@@ -127,18 +14,6 @@ shops_emojis = {
     'coins_shop': '🪙',
     'donation_shop': '🍩',
 }
-
-base_buff_multipliers = {
-    'weight': 1,
-    'pooping': 1,
-    'vomit_chance': .15,
-}
-
-coins_prices = {750: 25,
-                1550: 49,
-                3300: 99,
-                7200: 199,
-                20000: 499}  # coins: hollars
 
 donate_coins_prices = {  # coins: real_currency
     'ru': {  # RUB
@@ -180,33 +55,9 @@ currency_symbols = {
 }
 
 payment_methods_for_languages = {
-    'ru': ['aaio', 'donatepay', 'donatello'],
-    'en': ['aaio']
+    'ru': ['donatello'],
+    'en': []
 }
-
-fight_gifs = ['https://thumbsnap.com/i/3A83K3Ub.gif', 'https://thumbsnap.com/i/bKNDTHvr.gif',
-              'https://media.tenor.com/mTxSXMy_kZAAAAAM/pig-dog.gif',
-              'https://i.makeagif.com/media/10-11-2019/YgT9Fl.gif', 'https://tenor.com/view/dipshinn-pig-gif-20510409']
-win_gifs = ['https://thumbsnap.com/i/wMCKTND2.gif',
-            'https://thumbsnap.com/i/23B2Eyuo.gif',
-            'https://thumbsnap.com/i/23B2Eyuo.gif',
-            'https://thumbsnap.com/i/GggXBtEp.gif',
-            'https://thumbsnap.com/i/DTt4Myh4.gif',
-            'https://thumbsnap.com/i/g61XmvJJ.gif',
-            'https://thumbsnap.com/i/i5EZi4mk.gif',
-            'https://thumbsnap.com/i/hKJoXUqJ.gif',
-            'https://thumbsnap.com/i/WptnXC5A.gif']
-image_links = {'inventory': 'https://thumbsnap.com/i/4EBKi23j.png',
-               'invite': 'https://thumbsnap.com/i/JQ3RPzX1.png',
-               'trade': 'https://thumbsnap.com/i/Hm1iX2Mj.png',
-               'shop': 'https://thumbsnap.com/i/JkjRGKx2.png',
-               'top': 'https://thumbsnap.com/i/2QLNAtCR.png',
-               'coins_ru_ruble_prices': 'https://i.postimg.cc/yxCJCCcB/IMG-7540.png',
-               'image_is_blocked': 'https://thumbsnap.com/i/EQ1EaKmW.png',
-               'buffs': 'https://i.ibb.co/5Kq79Sp/26a1.webp',
-               'quests': 'https://i.ibb.co/Htmxmxj/Quest-Main-Available-Icon-001.png'}
-db_api_cash_size = 10
-db_api_cash_ttl = 1
 
 guild_settings = {'allow_say': False}
 user_settings = {'language': 'en', 'blocked': False, 'block_reason': None, 'isolated': False, 'isolation_level': 0}

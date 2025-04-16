@@ -7,12 +7,12 @@ def invite_components(lang) -> list:
     components = [
         discord.ui.Button(
             style=discord.ButtonStyle.green,
-            label=translate(Locales.Global.accept, lang),
+            label=translate(Locale.Global.accept, lang),
             custom_id=f'in;accept',
         ),
         discord.ui.Button(
             style=discord.ButtonStyle.red,
-            label=translate(Locales.Global.reject, lang),
+            label=translate(Locale.Global.reject, lang),
             custom_id=f'in;reject',
         )
     ]

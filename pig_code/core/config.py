@@ -105,3 +105,13 @@ error_color = 0xc94312
 warn_color = 0xe0bb36
 success_color = 0x2fc256
 premium_color = 0x61dfff
+
+image_links = {'inventory': 'https://thumbsnap.com/i/4EBKi23j.png',
+               'invite': 'https://thumbsnap.com/i/JQ3RPzX1.png',
+               'trade': 'https://thumbsnap.com/i/Hm1iX2Mj.png',
+               'shop': 'https://thumbsnap.com/i/JkjRGKx2.png',
+               'top': 'https://thumbsnap.com/i/2QLNAtCR.png',
+               'coins_ru_ruble_prices': 'https://i.postimg.cc/yxCJCCcB/IMG-7540.png',
+               'image_is_blocked': 'https://thumbsnap.com/i/EQ1EaKmW.png',
+               'buffs': 'https://i.ibb.co/5Kq79Sp/26a1.webp',
+               'quests': 'https://i.ibb.co/Htmxmxj/Quest-Main-Available-Icon-001.png'}

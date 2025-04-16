@@ -27,18 +27,18 @@ def inventory_item_selected(user_id, item_id, lang, _type, category: str = None,
         if not wear:
             components.append(discord.ui.Button(
                 style=discord.ButtonStyle.primary,
-                label=translate(Locales.Global.wear, lang),
+                label=translate(Locale.Global.wear, lang),
                 custom_id=f'wear_skin;{item_id};{category};{page}',
             ))
             components.append(discord.ui.Button(
                 style=discord.ButtonStyle.primary,
-                label=translate(Locales.Global.preview, lang),
+                label=translate(Locale.Global.preview, lang),
                 custom_id=f'preview_skin;{item_id};{category};{page}',
             ))
         else:
             components.append(discord.ui.Button(
                 style=discord.ButtonStyle.primary,
-                label=translate(Locales.Global.remove_cloth, lang),
+                label=translate(Locale.Global.remove_cloth, lang),
                 custom_id=f'remove_skin;{item_id};{category};{page}',
             ))
     components.append(discord.ui.Button(
@@ -53,9 +53,9 @@ def choose_parts_to_wear(item_id, lang, custom_id) -> list:
     components = []
     options = []
     options.append(
-        discord.SelectOption(label=translate(Locales.WardrobeItemChooseLayerToWear.wear_all_option, lang), value='all'))
+        discord.SelectOption(label=translate(Locale.WardrobeItemChooseLayerToWear.wear_all_option, lang), value='all'))
     for i in Item.get_skin_layers(item_id):
-        options.append(discord.SelectOption(label=translate(Locales.SkinLayers[i], lang), value=i))
+        options.append(discord.SelectOption(label=translate(Locale.SkinLayers[i], lang), value=i))
     components.append(
         discord.ui.Select(custom_id=custom_id,
                           placeholder='Выберите части',

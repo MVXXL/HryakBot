@@ -14,4 +14,4 @@ async def choose_user(inter, lang, users) -> discord.Embed:
             value=user_id,
         ))
     return discord.ui.Select(options=options, custom_id='view_profile',
-                             placeholder=translate(Locales.Top.placeholder, lang))
+                             placeholder=translate(Locale.Top.placeholder, lang))

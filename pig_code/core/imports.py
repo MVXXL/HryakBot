@@ -35,6 +35,7 @@ from aiocache import Cache
 from cachetools import cached, TTLCache
 import hryak
 from hryak.db_api import *
+from hryak.functions import translate
 
 try:
     import win32api

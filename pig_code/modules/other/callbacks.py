@@ -74,7 +74,7 @@ async def send_money(inter, user, amount, currency, message=None):
         await error_callbacks.no_money(inter)
         return
     confirmation = await DisUtils.confirm_message(inter, lang,
-                                               description=translate(Locales.SendMoney.confirm_desc, lang,
+                                               description=translate(Locale.SendMoney.confirm_desc, lang,
                                                                      {'money': amount, 'user': user.display_name,
                                                                       'tax': response.get('tax'),
                                                                       'currency_emoji': Item.get_emoji(currency),
@@ -86,12 +86,12 @@ async def send_money(inter, user, amount, currency, message=None):
     if response['status'] == '400;no_money':
         await error_callbacks.no_money(inter)
         return
-    title = f'{translate(Locales.SendMoney.event_title, lang)}'
-    description = translate(Locales.SendMoney.event_desc, lang,
+    title = f'{translate(Locale.SendMoney.event_title, lang)}'
+    description = translate(Locale.SendMoney.event_desc, lang,
                             format_options={'user': inter.user.display_name, 'money': amount,
                                             'currency_emoji': Item.get_emoji(currency)})
     if message is not None:
-        description += f'\n\n> {translate(Locales.Global.message, lang)}: *{message}*'
+        description += f'\n\n> {translate(Locale.Global.message, lang)}: *{message}*'
     await DisUtils.send_notification(user, inter, title, description,
                                   prefix_emoji='💸', send_to_dm=True, create_command_notification=True,
                                   notification_id='money_transfer')
@@ -122,8 +122,8 @@ async def say(inter, text):
     await DisUtils.pre_command_check(inter, ephemeral=True)
     if not Guild.is_say_allowed(inter.guild.id):
         lang = User.get_language(inter.user.id)
-        await error_callbacks.default_error_callback(inter, translate(Locales.Say.not_allowed_title, lang),
-                                                     translate(Locales.Say.not_allowed_desc, lang))
+        await error_callbacks.default_error_callback(inter, translate(Locale.Say.not_allowed_title, lang),
+                                                     translate(Locale.Say.not_allowed_desc, lang))
         return
     if not inter.channel.permissions_for(inter.user).mention_everyone:
         text = text.replace('@everyone', '`@everyone`').replace('@here', '`@here`')
@@ -138,8 +138,8 @@ async def set_language(inter, lang):
     await DisUtils.pre_command_check(inter, language_check=False)
     User.set_language(inter.user.id, lang)
     Stats.set_language_changed(inter.user.id, True)
-    await send_callback(inter, embed=generate_embed(title=translate(Locales.SetLanguage.scd_title, lang),
-                                                    description=translate(Locales.SetLanguage.scd_desc, lang),
+    await send_callback(inter, embed=generate_embed(title=translate(Locale.SetLanguage.scd_title, lang),
+                                                    description=translate(Locale.SetLanguage.scd_desc, lang),
                                                     prefix=Func.generate_prefix('scd'),
                                                     inter=inter))
 
@@ -148,8 +148,8 @@ async def settings_say(inter, allow: bool):
     await DisUtils.pre_command_check(inter, language_check=False)
     lang = User.get_language(inter.user.id)
     Guild.allow_say(inter.guild.id, allow)
-    await send_callback(inter, embed=generate_embed(title=translate(Locales.SettingsSay.scd_title, lang),
-                                                    description=translate(Locales.SettingsSay.scd_desc, lang),
+    await send_callback(inter, embed=generate_embed(title=translate(Locale.SettingsSay.scd_title, lang),
+                                                    description=translate(Locale.SettingsSay.scd_desc, lang),
                                                     prefix=Func.generate_prefix('scd'),
                                                     inter=inter))
 

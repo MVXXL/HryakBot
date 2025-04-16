@@ -19,7 +19,7 @@ server_var_desc = {'en': 'Display the global user leaderboard',
                    'ru': 'Показать глобальный топ пользователей'}
 
 
-class Locales:
+class Locale:
     app_commands_locales = {
         'choice-true': {'en': '✅ True',
                         'ru': '✅ Да'},

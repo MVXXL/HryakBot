@@ -1,6 +1,7 @@
 from pig_code.core import *
 from pig_code.utils.functions import Translator
-from pig_code.utils.bot_utils import error_callbacks
+from pig_code.utils import error_callbacks
+
 
 class PigBot:
 

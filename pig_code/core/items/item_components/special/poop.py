@@ -10,12 +10,12 @@ async def eat(inter, item_id, update):
     if scenario == 0:
         await send_callback(inter, embed=eaten_and_poisoned(inter, lang),
                             components=[discord.ui.Button(
-                                label=translate(Locales.Global.pay, lang),
+                                label=translate(Locale.Global.pay, lang),
                                 custom_id='in;pay',
                                 emoji='🪙',
                                 style=discord.ButtonStyle.primary
                             ), discord.ui.Button(
-                                label=translate(Locales.Global.run_away, lang),
+                                label=translate(Locale.Global.run_away, lang),
                                 custom_id='in;run_away',
                                 emoji='🏃‍♂️',
                             )],
@@ -33,24 +33,24 @@ async def eat(inter, item_id, update):
                 await inter.edit_original_response(embed=not_enough_money_for_doctor(inter, lang), view=None)
     elif scenario == 1:
         await send_callback(inter, embed=generate_embed(
-            title=translate(Locales.ItemUsed.ate_poop_and_dizzy_title, lang),
-            description=f"{translate(Locales.ItemUsed.ate_poop_and_dizzy_desc, lang)}",
+            title=translate(Locale.ItemUsed.ate_poop_and_dizzy_title, lang),
+            description=f"{translate(Locale.ItemUsed.ate_poop_and_dizzy_desc, lang)}",
             prefix=Func.generate_prefix('🍽️'),
             inter=inter,
         ), ephemeral=True, edit_original_response=False)
         await update(edit_followup=True)
     elif scenario == 2:
         await send_callback(inter, embed=generate_embed(
-            title=translate(Locales.ItemUsed.ate_poop_and_dizzy_title, lang),
-            description=f"{translate(Locales.ItemUsed.ate_poop_and_question_desc, lang)}",
+            title=translate(Locale.ItemUsed.ate_poop_and_dizzy_title, lang),
+            description=f"{translate(Locale.ItemUsed.ate_poop_and_question_desc, lang)}",
             prefix=Func.generate_prefix('🍽️'),
             inter=inter,
         ), ephemeral=True, edit_original_response=False)
         await update(edit_followup=True)
     elif scenario == 3:
         await send_callback(inter, embed=generate_embed(
-            title=translate(Locales.ItemUsed.ate_poop_and_dad_title, lang),
-            description=f"{translate(Locales.ItemUsed.ate_poop_and_dad_desc, lang)}",
+            title=translate(Locale.ItemUsed.ate_poop_and_dad_title, lang),
+            description=f"{translate(Locale.ItemUsed.ate_poop_and_dad_desc, lang)}",
             prefix=Func.generate_prefix('🍽️'),
             inter=inter,
         ), ephemeral=True, edit_original_response=False)
@@ -59,8 +59,8 @@ async def eat(inter, item_id, update):
 
 def eaten_and_poisoned(inter, lang) -> discord.Embed:
     embed = generate_embed(
-        title=translate(Locales.ItemUsed.ate_poop_and_poisoned_title, lang),
-        description=f"{translate(Locales.ItemUsed.ate_poop_and_poisoned_desc, lang)}",
+        title=translate(Locale.ItemUsed.ate_poop_and_poisoned_title, lang),
+        description=f"{translate(Locale.ItemUsed.ate_poop_and_poisoned_desc, lang)}",
         prefix=Func.generate_prefix('🍽️'),
         inter=inter,
     )
@@ -69,8 +69,8 @@ def eaten_and_poisoned(inter, lang) -> discord.Embed:
 
 def ran_away_from_doctor(inter, lang) -> discord.Embed:
     embed = generate_embed(
-        title=translate(Locales.PoopEaten.ran_away_and_not_payed_title, lang),
-        description=f"{translate(Locales.PoopEaten.ran_away_and_not_payed_desc, lang)}",
+        title=translate(Locale.PoopEaten.ran_away_and_not_payed_title, lang),
+        description=f"{translate(Locale.PoopEaten.ran_away_and_not_payed_desc, lang)}",
         prefix=Func.generate_prefix('🏃‍♂️'),
         inter=inter,
     )
@@ -79,8 +79,8 @@ def ran_away_from_doctor(inter, lang) -> discord.Embed:
 
 def payed_the_doctor(inter, lang) -> discord.Embed:
     embed = generate_embed(
-        title=translate(Locales.PoopEaten.payed_to_doctor_title, lang),
-        description=f"{translate(Locales.PoopEaten.payed_to_doctor_desc, lang)}",
+        title=translate(Locale.PoopEaten.payed_to_doctor_title, lang),
+        description=f"{translate(Locale.PoopEaten.payed_to_doctor_desc, lang)}",
         prefix=Func.generate_prefix('🪙'),
         inter=inter,
     )
@@ -89,8 +89,8 @@ def payed_the_doctor(inter, lang) -> discord.Embed:
 
 def not_enough_money_for_doctor(inter, lang) -> discord.Embed:
     embed = generate_embed(
-        title=translate(Locales.PoopEaten.not_enough_money_for_doctor_title, lang),
-        description=f"{translate(Locales.PoopEaten.not_enough_money_for_doctor_desc, lang)}",
+        title=translate(Locale.PoopEaten.not_enough_money_for_doctor_title, lang),
+        description=f"{translate(Locale.PoopEaten.not_enough_money_for_doctor_desc, lang)}",
         prefix=Func.generate_prefix('🪙'), inter=inter,
         color=utils_config.error_color
     )

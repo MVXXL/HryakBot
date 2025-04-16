@@ -6,17 +6,17 @@ from ...core import *
 
 
 async def generate_basic_buffs_embed(inter, lang, thumbnail_url=None):
-    description = f'{translate(Locales.Buffs.main_page_desc, lang)}\n'
+    description = f'{translate(Locale.Buffs.main_page_desc, lang)}\n'
     buffs = hryak.game_functions.GameFunc.get_all_pig_buffs(inter.user.id, inter.client)
     for buff in buffs:
         if Item.exists(buff):
             description += f'\n- {Pig.get_buff_name(buff, lang)} x{Pig.get_buff_amount(inter.user.id, buff)}'
             if Item.get_buff_duration(buff) is not None:
-                description += f'\n{translate(Locales.Buffs.buff_expires_in, lang, {'expiration_timestamp': Pig.get_buff_expiration_timestamp(inter.user.id, buff)})}'
-    if description == f'{translate(Locales.Buffs.main_page_desc, lang)}\n':
-        description += f'\n{translate(Locales.Buffs.main_page_no_buffs_desc, lang)}'
+                description += f'\n{translate(Locale.Buffs.buff_expires_in, lang, {'expiration_timestamp': Pig.get_buff_expiration_timestamp(inter.user.id, buff)})}'
+    if description == f'{translate(Locale.Buffs.main_page_desc, lang)}\n':
+        description += f'\n{translate(Locale.Buffs.main_page_no_buffs_desc, lang)}'
     embed = generate_embed(
-        title=translate(Locales.Buffs.main_page_title, lang),
+        title=translate(Locale.Buffs.main_page_title, lang),
         description=description,
         prefix=Func.generate_prefix('⚡'),
         inter=inter,
@@ -30,16 +30,16 @@ async def generate_buffs_multipliers_embed(inter, lang, buff_type: str, thumbnai
     description = None
     match buff_type:
         case 'weight':
-            title = translate(Locales.Buffs.weight_buffs_title, lang)
-            description = f'{translate(Locales.Buffs.weight_buffs_desc, lang)}\n\n'
+            title = translate(Locale.Buffs.weight_buffs_title, lang)
+            description = f'{translate(Locale.Buffs.weight_buffs_desc, lang)}\n\n'
         case 'pooping':
-            title = translate(Locales.Buffs.pooping_buffs_title, lang)
-            description = f'{translate(Locales.Buffs.pooping_buffs_desc, lang)}\n\n'
+            title = translate(Locale.Buffs.pooping_buffs_title, lang)
+            description = f'{translate(Locale.Buffs.pooping_buffs_desc, lang)}\n\n'
         case 'vomit_chance':
-            title = translate(Locales.Buffs.vomit_chance_buffs_title, lang)
-            description = f'{translate(Locales.Buffs.vomit_chance_desc, lang)}\n\n'
-    base_multiplier_value_text = translate(Locales.Buffs.base_multiplier_value, lang,
-                                           {'mult': round(utils_config.base_buff_multipliers[buff_type] * 100)})
+            title = translate(Locale.Buffs.vomit_chance_buffs_title, lang)
+            description = f'{translate(Locale.Buffs.vomit_chance_desc, lang)}\n\n'
+    base_multiplier_value_text = translate(Locale.Buffs.base_multiplier_value, lang,
+                                           {'mult': round(hryak.config.base_buff_multipliers[buff_type] * 100)})
     description += f'- {base_multiplier_value_text}'
 
     buffs = hryak.GameFunc.get_all_pig_buffs(inter.user.id, inter.client)
@@ -57,7 +57,7 @@ async def generate_buffs_multipliers_embed(inter, lang, buff_type: str, thumbnai
         if buff_type in buffs[buff]:
             description += f'\n- {Pig.get_buff_name(buff, lang)}: **{buffs[buff][buff_type][0]}{round(float(buffs[buff][buff_type][1:]) * 100)}%**'
     calculated_buffs = GameFunc.calculate_buff_multipliers(inter.user.id, False, inter.client)
-    description += f'\n> {translate(Locales.Buffs.final_multiplier_value, lang,
+    description += f'\n> {translate(Locale.Buffs.final_multiplier_value, lang,
                                     {'mult': round(calculated_buffs[buff_type] * 100)})}'
     embed = generate_embed(
         title=title,

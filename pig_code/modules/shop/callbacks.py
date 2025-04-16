@@ -15,24 +15,24 @@ async def shop(inter, message=None, init_category: str = None, init_page: int = 
              'case_shop': Shop.get_case_shop,
              'premium_skins_shop': Shop.get_premium_skins_shop,
              'coins_shop': Shop.get_coins_shop,
-             'donation_shop': None
+             # 'donation_shop': None
              }
     if init_category is None:
-        description = f'{translate(Locales.Shop.main_page_desc, lang)}\n\n'
+        description = f'{translate(Locale.Shop.main_page_desc, lang)}\n\n'
         for shop_ in shops:
-            description += f'{'\n' if shop_ == 'premium_skins_shop' else ''}> {Func.generate_prefix(utils_config.shops_emojis[shop_])}{translate(Locales.Shop.titles[shop_], lang)}\n'
-        await send_callback(inter, embed=generate_embed(translate(Locales.Shop.main_page_title, lang),
+            description += f'{'\n' if shop_ == 'premium_skins_shop' else ''}> {Func.generate_prefix(utils_config.shops_emojis[shop_])}{translate(Locale.Shop.titles[shop_], lang)}\n'
+        await send_callback(inter, embed=generate_embed(translate(Locale.Shop.main_page_title, lang),
                                                         description,
                                                         prefix=Func.generate_prefix('🛍️'),
-                                                        thumbnail_url=await Func.get_image_path_from_link(
-                                                            utils_config.image_links['shop']),
+                                                        thumbnail_url=await hryak.Func.get_image_path_from_link(
+                                                            config.image_links['shop']),
                                                         footer_url=Func.generate_footer_url(user=inter.user),
                                                         footer=Func.generate_footer(inter)),
                             components=[discord.ui.Select(custom_id='move_to;shop',
-                                                          placeholder=translate(Locales.Global.choose_category, lang),
+                                                          placeholder=translate(Locale.Global.choose_category, lang),
                                                           options=[discord.SelectOption(
-                                                              label=translate(Locales.Shop.titles[shop_], lang),
-                                                              value=translate(Locales.Shop.titles[shop_], lang),
+                                                              label=translate(Locale.Shop.titles[shop_], lang),
+                                                              value=translate(Locale.Shop.titles[shop_], lang),
                                                               emoji=utils_config.shops_emojis[shop_]) for shop_ in
                                                               shops])])
         return
@@ -40,7 +40,7 @@ async def shop(inter, message=None, init_category: str = None, init_page: int = 
     for shop_ in shops:
         if shops[shop_] is None:
             continue
-        items_by_cats[f'{translate(Locales.Shop.titles[shop_], lang)}'] = shops[shop_]()
+        items_by_cats[f'{translate(Locale.Shop.titles[shop_], lang)}'] = shops[shop_]()
     embeds = await Embeds.generate_items_list_embeds(inter, items_by_cats, lang, sort=False,
                                                     list_type='shop',
                                                     prefix_emoji='🛍️',
@@ -54,39 +54,39 @@ async def shop(inter, message=None, init_category: str = None, init_page: int = 
     #                                             color=utils_config.premium_color,
     #                                             footer=Func.generate_footer(inter)),
     #                     'components': []}]}
-    if lang in ['ru']:
-        embeds[translate(Locales.Shop.titles['donation_shop'], lang)] = {
-            'embeds': [{'embed': generate_embed(translate(Locales.PremiumShop.main_page_title, lang),
-                                                translate(Locales.PremiumShop.main_page_desc, lang),
-                                                prefix=Func.generate_prefix('🍩'),
-                                                footer_url=Func.generate_footer_url(user=inter.user),
-                                                color=utils_config.premium_color,
-                                                footer=Func.generate_footer(inter)),
-                        'components': [discord.ui.Select(
-                            custom_id='donate',
-                            placeholder=translate(Locales.PremiumShop.main_page_select_placeholder, lang),
-                            options=[discord.SelectOption(
-                                label=translate(Locales.PremiumShop.main_page_select_option_hollars, lang),
-                                emoji='💵',
-                                value='hollars'),
-                                discord.SelectOption(
-                                    label=translate(Locales.PremiumShop.main_page_select_option_coins, lang),
-                                    emoji='🪙',
-                                    value='coins')])]}]}
-    elif lang in ['en']:
-        embeds[translate(Locales.Shop.titles['donation_shop'], lang)] = {
-            'embeds': [{'embed': generate_embed(translate(Locales.Shop.donation_shop_title, lang),
-                                                translate(Locales.Shop.donation_shop_desc, lang),
-                                                prefix=Func.generate_prefix('🍩'),
-                                                footer_url=Func.generate_footer_url(user=inter.user),
-                                                color=utils_config.premium_color,
-                                                footer=Func.generate_footer(inter)),
-                        'components': []}]}
+    # if lang in ['ru']:
+    #     embeds[translate(Locale.Shop.titles['donation_shop'], lang)] = {
+    #         'embeds': [{'embed': generate_embed(translate(Locale.PremiumShop.main_page_title, lang),
+    #                                             translate(Locale.PremiumShop.main_page_desc, lang),
+    #                                             prefix=Func.generate_prefix('🍩'),
+    #                                             footer_url=Func.generate_footer_url(user=inter.user),
+    #                                             color=utils_config.premium_color,
+    #                                             footer=Func.generate_footer(inter)),
+    #                     'components': [discord.ui.Select(
+    #                         custom_id='donate',
+    #                         placeholder=translate(Locale.PremiumShop.main_page_select_placeholder, lang),
+    #                         options=[discord.SelectOption(
+    #                             label=translate(Locale.PremiumShop.main_page_select_option_hollars, lang),
+    #                             emoji='💵',
+    #                             value='hollars'),
+    #                             discord.SelectOption(
+    #                                 label=translate(Locale.PremiumShop.main_page_select_option_coins, lang),
+    #                                 emoji='🪙',
+    #                                 value='coins')])]}]}
+    # elif lang in ['en']:
+    #     embeds[translate(Locale.Shop.titles['donation_shop'], lang)] = {
+    #         'embeds': [{'embed': generate_embed(translate(Locale.Shop.donation_shop_title, lang),
+    #                                             translate(Locale.Shop.donation_shop_desc, lang),
+    #                                             prefix=Func.generate_prefix('🍩'),
+    #                                             footer_url=Func.generate_footer_url(user=inter.user),
+    #                                             color=utils_config.premium_color,
+    #                                             footer=Func.generate_footer(inter)),
+    #                     'components': []}]}
     await DisUtils.pagination(inter, lang, message=message,
                            embeds=embeds,
                            return_if_starts_with=['back_to_inventory', 'wardrobe_category_choose'],
-                           embed_thumbnail_url=await Func.get_image_path_from_link(
-                               utils_config.image_links['shop']), arrows=False, categories=True,
+                           embed_thumbnail_url=await hryak.Func.get_image_path_from_link(
+                               config.image_links['shop']), arrows=False, categories=True,
                            init_category=init_category, init_page=init_page)
 
 
@@ -97,8 +97,8 @@ async def shop_item_buy(inter, item_id):
         return
     if Shop.is_item_in_cooldown(inter.user.id, item_id):
         await error_callbacks.default_error_callback(inter,
-                                                     translate(Locales.ErrorCallbacks.shop_buy_cooldown_title, lang),
-                                                     translate(Locales.ErrorCallbacks.shop_buy_cooldown_desc, lang,
+                                                     translate(Locale.ErrorCallbacks.shop_buy_cooldown_title, lang),
+                                                     translate(Locale.ErrorCallbacks.shop_buy_cooldown_desc, lang,
                                                                {'item': Item.get_name(item_id, lang),
                                                                 'timestamp': Shop.get_timestamp_of_cooldown_pass(
                                                                     inter.user.id, item_id)}),
@@ -112,10 +112,10 @@ async def shop_item_buy(inter, item_id):
     History.append_shop_history(inter.user.id, Item.clean_id(item_id), amount=Item.get_amount(item_id))
     await send_callback(inter, edit_original_response=False, ephemeral=True,
                         embed=generate_embed(
-                            title=translate(Locales.ShopItemBought.title, lang,
+                            title=translate(Locale.ShopItemBought.title, lang,
                                             {'item': Item.get_name(item_id,
                                                                    lang).lower()}) + f' x{Item.get_amount(item_id)}',
-                            description=translate(Locales.ShopItemBought.desc, lang),
+                            description=translate(Locale.ShopItemBought.desc, lang),
                             prefix=Func.generate_prefix('scd'),
                             inter=inter,
                         ))
@@ -138,26 +138,26 @@ async def donation_page_selected(inter, category):
         currency = 'USD'
     if category == 'hollars':
         m = await send_callback(inter,
-                                embed=generate_embed(translate(Locales.PremiumShop.buy_hollars_page_title, lang),
-                                                     translate(Locales.PremiumShop.buy_hollars_page_desc, lang,
+                                embed=generate_embed(translate(Locale.PremiumShop.buy_hollars_page_title, lang),
+                                                     translate(Locale.PremiumShop.buy_hollars_page_desc, lang,
                                                                {'amount':
                                                                     utils_config.amount_of_hollars_per_unit_of_real_currency[
-                                                                        utils_config.language_currencies[lang]]}),
+                                                                        hryak.config.language_currencies[lang]]}),
                                                      prefix=Func.generate_prefix('💵'),
                                                      footer_url=Func.generate_footer_url(user=inter.user),
                                                      footer=Func.generate_footer(inter),
-                                                     color=utils_config.premium_color,
-                                                     thumbnail_url=await Func.get_image_path_from_link(
-                                                         utils_config.image_links['shop'])),
+                                                     color=config.premium_color,
+                                                     thumbnail_url=await hryak.Func.get_image_path_from_link(
+                                                         config.image_links['shop'])),
                                 components=[
                                     discord.ui.Button(
-                                        label=translate(Locales.PremiumShop.buy_hollars_button_label, lang),
+                                        label=translate(Locale.PremiumShop.buy_hollars_button_label, lang),
                                         custom_id='in;donate;hollars',
                                         style=discord.ButtonStyle.green),
                                     discord.ui.Button(
                                         style=discord.ButtonStyle.grey,
                                         label='↩️',
-                                        custom_id=f'back_to_inventory;shop;{translate(Locales.Shop.titles["donation_shop"], lang)};1',
+                                        custom_id=f'back_to_inventory;shop;{translate(Locale.Shop.titles["donation_shop"], lang)};1',
                                     )
                                 ])
         interaction = await inter.client.wait_for(
@@ -173,28 +173,28 @@ async def donation_page_selected(inter, category):
         await choose_payment_method(inter, category, amount, price, currency)
     if category == 'coins':
         options = []
-        for k, v in utils_config.donate_coins_prices[lang].items():
+        for k, v in hryak.config.donate_coins_prices[lang].items():
             options.append(discord.SelectOption(
-                label=translate(Locales.PremiumShop.select_coins_option_label, lang, {'amount': k}),
-                description=translate(Locales.PremiumShop.select_coins_option_desc, lang, {'price': v,
+                label=translate(Locale.PremiumShop.select_coins_option_label, lang, {'amount': k}),
+                description=translate(Locale.PremiumShop.select_coins_option_desc, lang, {'price': v,
                                                                                            'currency':
                                                                                                utils_config.currency_symbols[
                                                                                                    currency]}),
                 emoji='🪙',
                 value=f'{k}'))
         m = await send_callback(inter,
-                                embed=generate_embed(translate(Locales.PremiumShop.buy_coins_page_title, lang),
-                                                     translate(Locales.PremiumShop.buy_coins_page_desc, lang),
+                                embed=generate_embed(translate(Locale.PremiumShop.buy_coins_page_title, lang),
+                                                     translate(Locale.PremiumShop.buy_coins_page_desc, lang),
                                                      prefix=Func.generate_prefix('🪙'),
                                                      footer_url=Func.generate_footer_url(user=inter.user),
                                                      footer=Func.generate_footer(inter),
                                                      color=utils_config.premium_color,
-                                                     thumbnail_url=await Func.get_image_path_from_link(
-                                                         utils_config.image_links['shop']),
-                                                     image_url=utils_config.image_links[
+                                                     thumbnail_url=await hryak.Func.get_image_path_from_link(
+                                                         config.image_links['shop']),
+                                                     image_url=config.image_links[
                                                          'coins_ru_ruble_prices'] if currency == 'RUB' else None),
                                 components=[discord.ui.Select(
-                                    placeholder=translate(Locales.PremiumShop.select_coins_placeholder, lang),
+                                    placeholder=translate(Locale.PremiumShop.select_coins_placeholder, lang),
                                     custom_id='in;donate;coins', options=options)])
         interaction = await inter.client.wait_for(
             "interaction",
@@ -204,7 +204,7 @@ async def donation_page_selected(inter, category):
         )
         amount = int(interaction.data['values'][0])
         await interaction.response.defer()
-        await choose_payment_method(inter, category, amount, utils_config.donate_coins_prices[lang][amount], currency)
+        await choose_payment_method(inter, category, amount, hryak.config.donate_coins_prices[lang][amount], currency)
 
 
 async def choose_payment_method(inter, category, amount, price, currency):
@@ -224,19 +224,19 @@ async def choose_payment_method(inter, category, amount, price, currency):
         items = {'hollars': amount}
     elif category == 'coins':
         items = {'coins': amount}
-    description = f'{translate(Locales.PremiumShop.select_payment_method_desc, lang)}\n\n'
+    description = f'{translate(Locale.PremiumShop.select_payment_method_desc, lang)}\n\n'
     for i in utils_config.payment_methods_for_languages[lang]:
         description += f'**{i.capitalize()}**\n' \
-                       f'{translate(Locales.PremiumShop.payment_methods_descs[i], lang)}\n'
+                       f'{translate(Locale.PremiumShop.payment_methods_descs[i], lang)}\n'
     m = await send_callback(inter,
-                            embed=generate_embed(translate(Locales.PremiumShop.select_payment_method_title, lang),
+                            embed=generate_embed(translate(Locale.PremiumShop.select_payment_method_title, lang),
                                                  description,
                                                  prefix=Func.generate_prefix('🍩'),
                                                  footer_url=Func.generate_footer_url(user=inter.user),
                                                  footer=Func.generate_footer(inter),
                                                  color=utils_config.premium_color,
-                                                 thumbnail_url=await Func.get_image_path_from_link(
-                                                     utils_config.image_links['shop'])
+                                                 thumbnail_url=await hryak.Func.get_image_path_from_link(
+                                                     config.image_links['shop'])
                                                  ),
                             components=[discord.ui.Select(custom_id='in;payment_method', options=options)])
     interaction = await inter.client.wait_for(
@@ -251,8 +251,8 @@ async def choose_payment_method(inter, category, amount, price, currency):
         aaio_url = Func.generate_aaio_url(price, f'{order_id}', currency, lang=lang)
         await Order.create(inter.user.id, order_id, items, price, currency, platform='aaio')
         await send_callback(interaction, embed=generate_embed(
-            translate(Locales.PremiumShop.aaio_pay_title, lang),
-            translate(Locales.PremiumShop.aaio_pay_desc, lang, {'url': aaio_url, 'order_id': order_id}),
+            translate(Locale.PremiumShop.aaio_pay_title, lang),
+            translate(Locale.PremiumShop.aaio_pay_desc, lang, {'url': aaio_url, 'order_id': order_id}),
             prefix=Func.generate_prefix('🍩'),
             footer_url=Func.generate_footer_url(user=inter.user),
             footer=Func.generate_footer(inter),
@@ -260,8 +260,8 @@ async def choose_payment_method(inter, category, amount, price, currency):
     elif interaction.data['values'][0] == 'boosty':
         await Order.create(inter.user.id, order_id, items, price, currency, platform='boosty')
         await send_callback(interaction, embed=generate_embed(
-            translate(Locales.PremiumShop.boosty_pay_title, lang),
-            description=translate(Locales.PremiumShop.boosty_pay_desc, lang,
+            translate(Locale.PremiumShop.boosty_pay_title, lang),
+            description=translate(Locale.PremiumShop.boosty_pay_desc, lang,
                                   {'amount': price, 'currency': utils_config.currency_symbols[currency],
                                    'order_id': order_id}),
             prefix=Func.generate_prefix('🍩'),
@@ -272,8 +272,8 @@ async def choose_payment_method(inter, category, amount, price, currency):
     elif interaction.data['values'][0] == 'donatepay':
         await Order.create(inter.user.id, order_id, items, price, currency, platform='donatepay')
         await send_callback(interaction, embed=generate_embed(
-            translate(Locales.PremiumShop.donatepay_pay_title, lang),
-            description=translate(Locales.PremiumShop.donatepay_pay_desc, lang,
+            translate(Locale.PremiumShop.donatepay_pay_title, lang),
+            description=translate(Locale.PremiumShop.donatepay_pay_desc, lang,
                                   {'amount': price, 'currency': utils_config.currency_symbols[currency],
                                    'order_id': order_id}),
             prefix=Func.generate_prefix('🍩'),
@@ -288,8 +288,8 @@ async def choose_payment_method(inter, category, amount, price, currency):
         price *= utils_config.currency_to_usd[currency]
         price = round(price, 2)
         await send_callback(interaction, embed=generate_embed(
-            translate(Locales.PremiumShop.donatello_pay_title, lang),
-            description=translate(Locales.PremiumShop.donatello_pay_desc, lang,
+            translate(Locale.PremiumShop.donatello_pay_title, lang),
+            description=translate(Locale.PremiumShop.donatello_pay_desc, lang,
                                   {'amount': price, 'currency': utils_config.currency_symbols[currency],
                                    'order_id': order_id}),
             prefix=Func.generate_prefix('🍩'),
@@ -297,12 +297,12 @@ async def choose_payment_method(inter, category, amount, price, currency):
             footer=Func.generate_footer(inter),
             color=utils_config.premium_color,
         ), edit_original_response=False, ephemeral=True)
-    await send_callback(inter, embed=generate_embed(translate(Locales.PremiumShop.pay_below_title, lang),
-                                                    translate(Locales.PremiumShop.pay_below_desc, lang),
+    await send_callback(inter, embed=generate_embed(translate(Locale.PremiumShop.pay_below_title, lang),
+                                                    translate(Locale.PremiumShop.pay_below_desc, lang),
                                                     prefix=Func.generate_prefix('⬇️'),
                                                     footer_url=Func.generate_footer_url(user=inter.user),
                                                     footer=Func.generate_footer(inter),
                                                     color=utils_config.premium_color,
-                                                    thumbnail_url=await Func.get_image_path_from_link(
-                                                        utils_config.image_links['shop'])
+                                                    thumbnail_url=await hryak.Func.get_image_path_from_link(
+                                                        config.image_links['shop'])
                                                     ))

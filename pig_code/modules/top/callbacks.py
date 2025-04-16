@@ -1,7 +1,3 @@
-import asyncio
-import datetime
-import random
-
 from ...core import *
 from ...utils import *
 from . import embeds
@@ -31,67 +27,67 @@ async def top(inter, _global: bool = False):
                                                                        guild=guild)
     await DisUtils.pagination(inter, lang,
                            embeds={
-                               translate(Locales.Top.weight_top_title, lang): {
+                               translate(Locale.Top.weight_top_title, lang): {
                                    'embed': await embeds.generate_top_embed(inter, lang,
-                                                                            translate(Locales.Top.weight_top_title,
+                                                                            translate(Locale.Top.weight_top_title,
                                                                                       lang),
                                                                             translate(
-                                                                                Locales.Top.weight_top_desc,
+                                                                                Locale.Top.weight_top_desc,
                                                                                 lang),
                                                                             weight_top_response.get('users'),
                                                                             prefix_emoji='🐖',
                                                                             user_position=weight_top_response.get(
                                                                                 'user_position'),
                                                                             thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
-                                                                                utils_config.image_links['top'])),
+                                                                                config.image_links['top'])),
                                    'components': [await components.choose_user(inter, lang, [i[0] for i in
                                                                                              weight_top_response.get(
                                                                                                  'users')])]},
-                               translate(Locales.Top.coins_top_title, lang): {
+                               translate(Locale.Top.coins_top_title, lang): {
                                    'embed': await embeds.generate_top_embed(inter, lang,
-                                                                            translate(Locales.Top.coins_top_title,
+                                                                            translate(Locale.Top.coins_top_title,
                                                                                       lang),
                                                                             translate(
-                                                                                Locales.Top.coins_top_desc,
+                                                                                Locale.Top.coins_top_desc,
                                                                                 lang),
                                                                             coins_top_response.get('users'),
                                                                             prefix_emoji='💰',
                                                                             user_position=coins_top_response.get(
                                                                                 'user_position'),
                                                                             thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
-                                                                                utils_config.image_links['top'])),
+                                                                                config.image_links['top'])),
                                    'components': [await components.choose_user(inter, lang, [i[0] for i in
                                                                                              coins_top_response.get(
                                                                                                  'users')])]},
-                               translate(Locales.Top.hollars_top_title, lang): {
+                               translate(Locale.Top.hollars_top_title, lang): {
                                    'embed': await embeds.generate_top_embed(inter, lang,
-                                                                            translate(Locales.Top.hollars_top_title,
+                                                                            translate(Locale.Top.hollars_top_title,
                                                                                       lang),
                                                                             translate(
-                                                                                Locales.Top.hollars_top_desc,
+                                                                                Locale.Top.hollars_top_desc,
                                                                                 lang),
                                                                             hollars_top_response.get('users'),
                                                                             prefix_emoji='💸',
                                                                             user_position=hollars_top_response.get(
                                                                                 'user_position'),
                                                                             thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
-                                                                                utils_config.image_links['top'])),
+                                                                                config.image_links['top'])),
                                    'components': [await components.choose_user(inter, lang, [i[0] for i in
                                                                                              hollars_top_response.get(
                                                                                                  'users')])]},
-                               translate(Locales.Top.streak_top_title, lang): {
+                               translate(Locale.Top.streak_top_title, lang): {
                                    'embed': await embeds.generate_top_embed(inter, lang,
-                                                                            translate(Locales.Top.streak_top_title,
+                                                                            translate(Locale.Top.streak_top_title,
                                                                                       lang),
                                                                             translate(
-                                                                                Locales.Top.streak_top_desc,
+                                                                                Locale.Top.streak_top_desc,
                                                                                 lang),
                                                                             streak_top_response.get('users'),
                                                                             prefix_emoji='🔥',
                                                                             user_position=streak_top_response.get(
                                                                                 'user_position'),
                                                                             thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
-                                                                                utils_config.image_links['top'])),
+                                                                                config.image_links['top'])),
                                    'components': [await components.choose_user(inter, lang, [i[0] for i in
                                                                                              streak_top_response.get(
                                                                                                  'users')])]},
