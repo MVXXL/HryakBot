@@ -1,5 +1,8 @@
 from ....utils import *
 from .special import *
+from ....utils.discord_utils import send_callback, generate_embed
+from ....core import *
+
 
 
 async def item_remove(inter, item_id, update):
@@ -36,7 +39,7 @@ async def cook(inter, item_id, update):
     if Item.get_amount('grill', inter.user.id) <= 0:
         await error_callbacks.no_item(inter, 'grill',
                                       description=translate(Locales.ErrorCallbacks.no_mangal_to_cook, inter.user.id),
-                                      thumbnail_url=await Item.get_image_path('grill'), edit_original_response=False,
+                                      thumbnail_url=await Item.get_image_path('grill', config.TEMP_FOLDER_PATH), edit_original_response=False,
                                       ephemeral=True)
         return
     modal_interaction, amount = await modals.get_item_amount(inter,
@@ -46,7 +49,7 @@ async def cook(inter, item_id, update):
     if amount is False:
         return
     if Item.get_amount(item_id, inter.user.id) <= 0:
-        await error_callbacks.not_enough_items(inter, item_id, thumbnail_url=await Item.get_image_path(item_id))
+        await error_callbacks.not_enough_items(inter, item_id, thumbnail_url=await Item.get_image_path(item_id, config.TEMP_FOLDER_PATH))
         return
     User.remove_item(inter.user.id, item_id, amount)
     User.add_item(inter.user.id, Item.get_cooked_item_id(item_id), amount)
@@ -71,7 +74,7 @@ async def sell(inter, item_id, update):
         return
     if Item.get_amount(item_id, inter.user.id) < amount:
         await error_callbacks.not_enough_items(modal_interaction, item_id,
-                                               thumbnail_url=await Item.get_image_path(item_id))
+                                               thumbnail_url=await Item.get_image_path(item_id, config.TEMP_FOLDER_PATH))
         return
     money_received = Item.get_sell_price(item_id) * amount
     Stats.add_money_earned(inter.user.id, money_received)

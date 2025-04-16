@@ -50,28 +50,6 @@ class Translator(discord.app_commands.Translator):
 class Func:
 
     @staticmethod
-    def random_choice_with_probability(dictionary):
-        total_probability = sum(dictionary.values())
-        random_number = random.uniform(0, total_probability)
-        cumulative_probability = 0
-
-        for key, probability in dictionary.items():
-            cumulative_probability += probability
-            if random_number <= cumulative_probability:
-                return key
-
-    @staticmethod
-    def calculate_probabilities(dictionary, round_to: int = 2):
-        total = sum(dictionary.values())
-        probabilities = {}
-
-        for key, value in dictionary.items():
-            probability = (value / total) * 100
-            probabilities[key] = round(probability, round_to)
-
-        return probabilities
-
-    @staticmethod
     async def async_speed_test(func, **kwargs):
         start = datetime.datetime.now().timestamp()
         await func(**kwargs)
@@ -99,9 +77,7 @@ class Func:
 
     @staticmethod
     def generate_temp_path(key_word: str, file_extension: str = None):
-        i = 0
         while True:
-            i += 1
             path = f'{config.TEMP_FOLDER_PATH}/{key_word}_{Func.get_current_timestamp()}_{random.randrange(10000)}{f'.{file_extension}' if file_extension is not None else ''}'
             if not os.path.exists(path):
                 break
@@ -147,21 +123,6 @@ class Func:
         else:
             components.append([])
         return components
-
-    @staticmethod
-    def generate_aaio_url(amount, order_id, currency: str = 'RUB', desc: str = None, lang: str = 'ru'):
-        sign = f'{config.AAIO_MERCHANT_ID}:{amount}:{currency}:{config.AAIO_SECRET1}:{order_id}'
-        params = {
-            'merchant_id': config.AAIO_MERCHANT_ID,
-            'amount': amount,
-            'currency': currency,
-            'order_id': order_id,
-            'sign': hashlib.sha256(sign.encode('utf-8')).hexdigest(),
-            'lang': lang
-        }
-        if desc is not None:
-            params['desc'] = desc
-        return "https://aaio.so/merchant/pay?" + urlencode(params)
 
     @staticmethod
     def get_command_name_and_options(ctx):

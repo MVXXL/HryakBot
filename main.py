@@ -1,5 +1,4 @@
-from pig_code.core import config
-from pig_code.utils.db_api.tech import *
+from pig_code.core import *
 from pig_code.utils.functions import Translator
 from pig_code.utils.bot_utils import error_callbacks
 

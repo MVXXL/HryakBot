@@ -1,12 +1,11 @@
-from ...core import *
-from .main import *
+from ..discord_utils import send_callback, generate_embed, send_webhook
 from ..functions import Func
 from ..functions import translate
-from ..db_api import *
+from ...core import *
 
 
 def default_error_embed(inter, title, description, prefix_emoji: str = '❌',
-                        color: str = utils_config.error_color, thumbnail_url=None) -> discord.Embed:
+                        color: str = config.error_color, thumbnail_url=None) -> discord.Embed:
     embed = generate_embed(
         title=title,
         description=description,
@@ -38,7 +37,7 @@ async def error(error, inter):
         perms = Func.translate_permissions(error.missing_permissions, lang)
         description = translate(Locales.ErrorCallbacks.bot_missing_perms_desc, lang)
         for n, i in enumerate(perms):
-            description += f'\n> {n+1}. {i}'
+            description += f'\n> {n + 1}. {i}'
         await default_error_callback(inter, translate(Locales.ErrorCallbacks.bot_missing_perms_title, lang),
                                      description,
                                      prefix_emoji='👧', color=utils_config.warn_color, ephemeral=True)
@@ -46,7 +45,7 @@ async def error(error, inter):
         perms = Func.translate_permissions(error.missing_permissions, lang)
         description = translate(Locales.ErrorCallbacks.user_missing_perms_desc, lang)
         for n, i in enumerate(perms):
-            description += f'\n> {n+1}. {i}'
+            description += f'\n> {n + 1}. {i}'
         await default_error_callback(inter, translate(Locales.ErrorCallbacks.user_missing_perms_title, lang),
                                      description,
                                      prefix_emoji='👧', color=utils_config.warn_color, ephemeral=True)
@@ -94,6 +93,7 @@ async def error(error, inter):
                            content='<@&1106677021691613205>',
                            file_content=traceback.format_exc())
         print(error)
+        raise error
 
 
 async def cant_duel_with_yourself(inter):
@@ -124,6 +124,7 @@ async def item_is_not_in_shop(inter):
     lang = User.get_language(inter.user.id)
     await default_error_callback(inter, translate(Locales.ErrorCallbacks.item_is_not_in_shop_title, lang),
                                  translate(Locales.ErrorCallbacks.item_is_not_in_shop_desc, lang))
+
 
 async def not_enough_money(inter, minimum_money: float = None, edit_original_response: bool = False,
                            ephemeral: bool = True):
@@ -199,8 +200,10 @@ async def bot_is_restarting(inter):
 
 async def cannot_use_command_in_this_channel(inter):
     lang = User.get_language(inter.user.id)
-    await default_error_callback(inter, translate(Locales.ErrorCallbacks.cannot_use_command_in_this_channel_title, lang),
-                                 translate(Locales.ErrorCallbacks.cannot_use_command_in_this_channel_desc, lang), prefix_emoji='❌')
+    await default_error_callback(inter,
+                                 translate(Locales.ErrorCallbacks.cannot_use_command_in_this_channel_title, lang),
+                                 translate(Locales.ErrorCallbacks.cannot_use_command_in_this_channel_desc, lang),
+                                 prefix_emoji='❌')
 
 
 async def black_list(inter):

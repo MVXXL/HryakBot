@@ -860,9 +860,9 @@ class Locales:
         not_enough_money_desc = {'en': "*You don't have enough money to do this*",
                                  'ru': '*У вас не достаточно денег, чтобы сделать это*'}
         item_is_not_in_shop_title = {'en': 'No item',
-                                   'ru': 'Нету предмета'}
+                                     'ru': 'Нету предмета'}
         item_is_not_in_shop_desc = {'en': '*This item is not in the shop. Try updating the command*',
-                                  'ru': '*Этого предмета нету в магазине. Попробуйте обновить команду*'}
+                                    'ru': '*Этого предмета нету в магазине. Попробуйте обновить команду*'}
         no_item_title = {'en': "You don't have a {item}",
                          'ru': 'У вас нету предмета "{item}"'}
         no_item_desc = {'en': "*Unfortunately, you couldn't find this item in your storage*",
@@ -1055,11 +1055,6 @@ class Locales:
                   'ru': 'Глава'},
         'member': {'en': 'Member',
                    'ru': 'Участник'},
-    }
-
-    FamilyRolesEmojis = {
-        'owner': '⭐',
-        'member': '👤',
     }
 
     PigAges = {
@@ -1345,9 +1340,9 @@ class Locales:
                        'ru': '- Выдача может занимать до суток\n'
                              '- Минимальная сумма 10 рублей\n'},
             'donatepay': {'en': '- Issuance may take up to a day\n'
-                             '- Minimum amount 0.1 dollar\n',
-                       'ru': '- Выдача может занимать до суток\n'
-                             '- Минимальная сумма 10 рублей\n'},
+                                '- Minimum amount 0.1 dollar\n',
+                          'ru': '- Выдача может занимать до суток\n'
+                                '- Минимальная сумма 10 рублей\n'},
             'donatello': {'en': '- Issuance may take up to a day\n'
                                 '- Cryptocurrency\n',
                           'ru': '- Выдача может занимать до суток\n'
@@ -1379,23 +1374,24 @@ class Locales:
                                  '- В поле "сообщение" введите номер заказа\n'
                                  ' > Номер заказа: {order_id}'}
         donatepay_pay_title = {'en': 'DonatePay',
-                            'ru': 'DonatePay'}
-        donatepay_pay_desc = {'en': '- Send {amount}{currency} via this link: [link](https://new.donatepay.ru/@brevnoo)\n'
-                                 '- In the "message" field, enter the order number\n'
-                                 ' > Order number: {order_id}',
-                           'ru': '- Отправьте {amount}{currency} по этой ссылке: [ссылка](https://new.donatepay.ru/@brevnoo)\n'
-                                 '- В поле "сообщение стримеру" введите номер заказа\n'
-                                 ' > Номер заказа: {order_id}'}
+                               'ru': 'DonatePay'}
+        donatepay_pay_desc = {
+            'en': '- Send {amount}{currency} via this link: [link](https://new.donatepay.ru/@brevnoo)\n'
+                  '- In the "message" field, enter the order number\n'
+                  ' > Order number: {order_id}',
+            'ru': '- Отправьте {amount}{currency} по этой ссылке: [ссылка](https://new.donatepay.ru/@brevnoo)\n'
+                  '- В поле "сообщение стримеру" введите номер заказа\n'
+                  ' > Номер заказа: {order_id}'}
         donatello_pay_title = {'en': 'Donatello',
-                            'ru': 'Donatello'}
+                               'ru': 'Donatello'}
         donatello_pay_desc = {'en': '- Send {amount}{currency} via this link: [link](https://donatello.to/brevnoo)\n'
-                                 '- In the "message" field, enter the order number\n'
-                                 ' > Order number: {order_id}\n\n'
-                                 '*Payment method "Mono", accepts all cards*',
-                           'ru': '- Отправьте {amount}{currency} по этой ссылке: [ссылка](https://donatello.to/brevnoo)\n'
-                                 '- В поле "сообщение" введите номер заказа\n'
-                                 ' > Номер заказа: {order_id}\n\n'
-                                 '*Способ оплаты "Моно", принимает все карточки*'}
+                                    '- In the "message" field, enter the order number\n'
+                                    ' > Order number: {order_id}\n\n'
+                                    '*Payment method "Mono", accepts all cards*',
+                              'ru': '- Отправьте {amount}{currency} по этой ссылке: [ссылка](https://donatello.to/brevnoo)\n'
+                                    '- В поле "сообщение" введите номер заказа\n'
+                                    ' > Номер заказа: {order_id}\n\n'
+                                    '*Способ оплаты "Моно", принимает все карточки*'}
         item_give_notification_title = {'en': 'Donation paid',
                                         'ru': 'Донат оплачен'}
         item_give_notification_desc = {'en': '*You received items for your donation:*\n\n'

@@ -502,7 +502,7 @@
     "image": "bin/images/IMG_7570(1).png",
     "cases": {}
   },
-    "streak_freezer": {
+  "streak_freezer": {
     "name": {
       "en": "Streak freezer",
       "ru": "Заморозка стрика"
@@ -9492,7 +9492,7 @@
     "cases": {},
     "wealth_impact": 0
   },
-    "brook_tattoo7": {
+  "brook_tattoo7": {
     "id": "brook_tattoo",
     "name": {
       "en": "Brook tattoo",

@@ -9,9 +9,9 @@ from . import components
 
 
 async def buffs(inter, _global: bool = False):
-    await Utils.pre_command_check(inter)
+    await DisUtils.pre_command_check(inter)
     lang = User.get_language(inter.user.id)
-    await Utils.pagination(inter, lang,
+    await DisUtils.pagination(inter, lang,
                            embeds={
                                translate(Locales.Buffs.main_page_title, lang): {
                                    'embed': await embeds.generate_basic_buffs_embed(inter, lang,

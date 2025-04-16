@@ -1,11 +1,12 @@
-from ...core import *
 from ...utils import *
 from . import embeds
 from . import components
+from ...utils.discord_utils import send_callback, generate_embed
+from ...core import *
 
 
 async def duel(inter, opponent, bet):
-    await Utils.pre_command_check(inter)
+    await DisUtils.pre_command_check(inter)
     lang = User.get_language(inter.user.id)
     User.register_user_if_not_exists(opponent.id)
     if opponent == inter.user:
@@ -29,10 +30,10 @@ async def duel(inter, opponent, bet):
                                       inter=inter,
                                   ),
                                   components=components.invite_components(lang))
-    await Utils.send_notification(opponent, inter,
+    await DisUtils.send_notification(opponent, inter,
                                   translate(Locales.Duel.invite_title, User.get_language(opponent.id)),
                                   translate(Locales.Duel.personal_invite_dm_desc, User.get_language(opponent.id),
-                                               format_options={'user': inter.user.display_name, 'bet': bet}),
+                                            format_options={'user': inter.user.display_name, 'bet': bet}),
                                   prefix_emoji='⚔️',
                                   url_label=translate(Locales.Global.message, User.get_language(opponent.id)),
                                   url=message.jump_url if message is not None else None, send_to_dm=True,
@@ -52,19 +53,16 @@ async def duel(inter, opponent, bet):
                                                                format_options={'user': opponent.display_name}))
         return
     if interaction.data.get('custom_id') == 'in;accept':
+        response = hryak.requests.duel_requests.duel(inter.user.id, opponent.id)
         await interaction.response.defer(ephemeral=True)
-        if Item.get_amount('coins', inter.user.id) < bet:
+        if response.get('status') == '400;no_money':
+            broke_user = await User.get_user(response.get('user_id'))
             await error_callbacks.default_error_callback(inter, translate(Locales.Duel.duel_canceled_title, lang),
                                                          translate(Locales.Duel.no_money_for_bet_desc, lang,
-                                                                   format_options={'user': inter.user.display_name}))
+                                                                   format_options={'user': broke_user.display_name}))
             return
-        if Item.get_amount('coins', opponent.id) < bet:
-            await error_callbacks.default_error_callback(inter, translate(Locales.Duel.duel_canceled_title, lang),
-                                                         translate(Locales.Duel.no_money_for_bet_desc, lang,
-                                                                   format_options={'user': opponent.display_name}))
-            return
-        chances = Utils.get_duel_winning_chances(inter.user, opponent)
-        winner = Func.random_choice_with_probability(chances)
+        chances = hryak.GameFunc.get_duel_winning_chances(inter.user, opponent)
+        winner = hryak.Func.random_choice_with_probability(chances)
         chances_copy = chances.copy()
         chances_copy.pop(winner)
         loser = list(chances_copy)[0]

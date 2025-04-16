@@ -1,34 +1,37 @@
-import random
-
-import discord
-
 from ..core.items.item_components.item_components import item_components
 from ..utils import *
 from .. import modules
+from ..core import *
+
+
+from ..utils.discord_utils import send_callback, generate_embed
 
 
 class Events(commands.Cog):
     def __init__(self, client):
         self.client = client
         aiocache.Cache(Cache.MEMORY)
-        if not config.TEST or config.PUBLIC_TEST:
+        if not config.TEST:
             init_data = {'start': Func.get_current_timestamp()}
             if config.HOSTING_TYPE == 'pc':
                 init_data['pid'] = os.getpid()
                 handle = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, True, os.getpid())
                 win32process.SetPriorityClass(handle, win32process.HIGH_PRIORITY_CLASS)
-            with open(config.INIT_DATA_PATH, 'w') as f:
-                f.write(json.dumps(init_data))
+                with open(config.INIT_DATA_PATH, 'w') as f:
+                    f.write(json.dumps(init_data))
         if not config.TEST:
             Func.clear_folder(config.TEMP_FOLDER_PATH)
 
     @commands.Cog.listener()
     async def on_ready(self):
         print(f'Bot is ready: {self.client.user}')
-        Tech.create_user_table()
-        Tech.create_shop_table()
-        Tech.create_promo_code_table()
-        Tech.create_guild_table()
+        if not os.path.exists(config.TEMP_FOLDER_PATH):
+            os.makedirs(config.TEMP_FOLDER_PATH)
+        print('> Temp folder is created')
+        Setup.create_user_table()
+        Setup.create_shop_table()
+        Setup.create_promo_code_table()
+        Setup.create_guild_table()
         print('> Tables are created')
         Guild.register([guild.id for guild in self.client.guilds])
         print('> Guilds are registered')
@@ -39,7 +42,16 @@ class Events(commands.Cog):
         History.fix_history_structure_for_all_users()
         print('> History structures are fixed')
         for guild_id in [*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS]:
-            await self.client.tree.sync(guild=discord.Object(id=guild_id))
+            try:
+                await self.client.tree.sync(guild=discord.Object(id=guild_id))
+            except discord.errors.Forbidden:
+                pass
+        for guild in self.client.guilds:
+            if guild.id not in [*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS]:
+                try:
+                    await self.client.tree.sync(guild=guild)
+                except discord.errors.Forbidden:
+                    pass
         await self.client.tree.sync()
         print('> Tree is synced')
 
@@ -59,7 +71,8 @@ class Events(commands.Cog):
                          command=command_name,
                          options=options)
         if interaction.type == discord.InteractionType.component:
-            custom_id_params = interaction.data.get('custom_id').split(';') if interaction.data.get('custom_id') is not None else []
+            custom_id_params = interaction.data.get('custom_id').split(';') if interaction.data.get(
+                'custom_id') is not None else []
             interaction_values = interaction.data.get('values')
             if custom_id_params and custom_id_params[0] == 'in':
                 return
@@ -69,14 +82,15 @@ class Events(commands.Cog):
                 trade_id = None
                 if custom_id_params[1] == 'add':
                     trade_id = interaction_values[0].split(';')[1]
-                elif custom_id_params[1] in ['agree', 'cancel', 'clear', 'add_item', 'tax_split_1', 'tax_split_2', 'tax_split_equal']:
+                elif custom_id_params[1] in ['agree', 'cancel', 'clear', 'add_item', 'tax_split_1', 'tax_split_2',
+                                             'tax_split_equal']:
                     trade_id = custom_id_params[2]
                 user1_id = await Trade.get_user(interaction.client, trade_id, 0, fetch=False)
                 user2_id = await Trade.get_user(interaction.client, trade_id, 1, fetch=False)
                 allowed_users.append(int(user1_id))
                 allowed_users.append(int(user2_id))
             if interaction.message is not None and interaction.message.interaction is not None:
-                if not Utils.check_if_right_user(interaction, except_users=allowed_users):
+                if not DisUtils.check_if_right_user(interaction, except_users=allowed_users):
                     await error_callbacks.wrong_component_clicked(interaction)
                     return
             if custom_id_params:
@@ -95,14 +109,17 @@ class Events(commands.Cog):
                                                                                      translate(
                                                                                          Locales.Trade.add_item_with_tax_modal_label,
                                                                                          lang, {
-                                                                                             'tax': Utils.get_user_tax_percent(
-                                                                                                 interaction.user.id, action_object),
+                                                                                             'tax': hryak.GameFunc.get_user_tax_percent(
+                                                                                                 interaction.user.id,
+                                                                                                 action_object),
                                                                                              'item_name': Item.get_name(
                                                                                                  action_object, lang)}),
-                                                                                     max_amount=Item.get_amount(action_object,
-                                                                                                                interaction.user.id) - Trade.get_item_amount(
+                                                                                     max_amount=Item.get_amount(
+                                                                                         action_object,
+                                                                                         interaction.user.id) - Trade.get_item_amount(
                                                                                          trade_id, interaction.user.id,
-                                                                                         action_object), delete_response=True
+                                                                                         action_object),
+                                                                                     delete_response=True
                                                                                      )
                             if amount is False:
                                 return
@@ -122,7 +139,8 @@ class Events(commands.Cog):
                                                                        select_item_component_id=f'trade;add_item;{trade_id}',
                                                                        ephemeral=True, edit_original_response=False,
                                                                        tradable_items_only=True)
-                    elif custom_id_params[1] in ['agree', 'cancel', 'clear', 'add_item', 'tax_split_1', 'tax_split_2', 'tax_split_equal']:
+                    elif custom_id_params[1] in ['agree', 'cancel', 'clear', 'add_item', 'tax_split_1', 'tax_split_2',
+                                                 'tax_split_equal']:
                         trade_id = custom_id_params[2]
                         user1_id = await Trade.get_user(interaction.client, trade_id, 0, fetch=False)
                         user2_id = await Trade.get_user(interaction.client, trade_id, 1, fetch=False)
@@ -138,7 +156,8 @@ class Events(commands.Cog):
                         elif custom_id_params[1] == 'cancel':
                             await error_callbacks.default_error_callback(interaction,
                                                                          translate(Locales.Trade.cancel_title, lang),
-                                                                         translate(Locales.Trade.cancel_desc, lang).format(
+                                                                         translate(Locales.Trade.cancel_desc,
+                                                                                   lang).format(
                                                                              user=interaction.user.display_name),
                                                                          thumbnail_url=await Func.get_image_path_from_link(
                                                                              utils_config.image_links['trade']))
@@ -162,10 +181,12 @@ class Events(commands.Cog):
                                                                                          Locales.Trade.add_item_modal_label,
                                                                                          lang, {'item': Item.get_name(
                                                                                              action_object, lang)}),
-                                                                                     max_amount=Item.get_amount(action_object,
-                                                                                                                interaction.user.id) - Trade.get_item_amount(
+                                                                                     max_amount=Item.get_amount(
+                                                                                         action_object,
+                                                                                         interaction.user.id) - Trade.get_item_amount(
                                                                                          trade_id, interaction.user.id,
-                                                                                         action_object), delete_response=True
+                                                                                         action_object),
+                                                                                     delete_response=True
                                                                                      )
                             if amount is False:
                                 return
@@ -174,12 +195,15 @@ class Events(commands.Cog):
                             Trade.set_agree(trade_id, user1_id, False)
                             Trade.set_agree(trade_id, user2_id, False)
                             await modules.trade.callbacks.trade(interaction,
-                                                                await Trade.get_user(modal_interaction.client, trade_id, 0),
-                                                                await Trade.get_user(modal_interaction.client, trade_id, 1),
+                                                                await Trade.get_user(modal_interaction.client, trade_id,
+                                                                                     0),
+                                                                await Trade.get_user(modal_interaction.client, trade_id,
+                                                                                     1),
                                                                 trade_id=trade_id,
                                                                 pre_command_check=False)
 
                         elif custom_id_params[1] in ['tax_split_1', 'tax_split_2', 'tax_split_equal']:
+                            await interaction.response.defer()
                             Trade.set_tax_splitting_vote(trade_id, interaction.user.id, custom_id_params[1])
                             await modules.trade.callbacks.trade(interaction,
                                                                 await Trade.get_user(interaction.client, trade_id, 0),
@@ -195,8 +219,10 @@ class Events(commands.Cog):
                                                           await User.get_user(interaction.client, custom_id_params[1]),
                                                           pre_command_check=False)
                 elif custom_id_params[0] == 'view_profile':
-                    await modules.other.callbacks.profile(interaction, await User.get_user(self.client, interaction_values[0]),
-                                                          edit_original_response=False, ephemeral=True, pre_command_check=False)
+                    await modules.other.callbacks.profile(interaction,
+                                                          await User.get_user(self.client, interaction_values[0]),
+                                                          edit_original_response=False, ephemeral=True,
+                                                          pre_command_check=False)
                 if custom_id_params[0] == 'item_select':
                     await interaction.response.defer()
                     if custom_id_params[1] == 'inventory':
@@ -252,25 +278,29 @@ class Events(commands.Cog):
                                                                             init_category=custom_id_params[2],
                                                                             init_page=int(custom_id_params[3]))
                         else:
-                            await modules.inventory.callbacks.inventory_item_selected(interaction, custom_id_params[1], edit_followup=edit_followup)
+                            await modules.inventory.callbacks.inventory_item_selected(interaction, custom_id_params[1],
+                                                                                      edit_followup=edit_followup)
 
                     if Item.get_amount(custom_id_params[1], interaction.user.id) <= 0:
                         await error_callbacks.no_item(interaction, custom_id_params[1], edit_original_response=False,
                                                       ephemeral=True,
-                                                      thumbnail_url=await Item.get_image_path(custom_id_params[1]))
+                                                      thumbnail_url=await Item.get_image_path(custom_id_params[1], config.TEMP_FOLDER_PATH))
                         await update_inventory()
                         return
                     result = await item_components[custom_id_params[1]][custom_id_params[0]]['func'](interaction,
-                                                                                                     custom_id_params[1],
+                                                                                                     custom_id_params[
+                                                                                                         1],
                                                                                                      update_inventory)
                     if result is None:
                         result = {}
                     if 'callback' in item_components[custom_id_params[1]][custom_id_params[0]]:
                         embed = generate_embed(
-                            title=translate(item_components[custom_id_params[1]][custom_id_params[0]]['callback']['title'],
-                                            lang),
+                            title=translate(
+                                item_components[custom_id_params[1]][custom_id_params[0]]['callback']['title'],
+                                lang),
                             description=translate(
-                                item_components[custom_id_params[1]][custom_id_params[0]]['callback']['description'], lang,
+                                item_components[custom_id_params[1]][custom_id_params[0]]['callback']['description'],
+                                lang,
                                 format_options=result),
                             prefix=Func.generate_prefix(
                                 item_components[custom_id_params[1]][custom_id_params[0]]['callback']['prefix']),
@@ -296,7 +326,8 @@ class Events(commands.Cog):
                     amount *= 2
                 message = await self.client.get_channel(payload.channel_id).fetch_message(payload.message_id)
                 User.add_item(message.author.id, reward_item_id, amount)
-                await message.reply(f'{Item.get_emoji(reward_item_id)}・*Выдана награда: **{Item.get_name(reward_item_id, 'ru')}** x{amount}*')
+                await message.reply(
+                    f'{Item.get_emoji(reward_item_id)}・*Выдана награда: **{Item.get_name(reward_item_id, 'ru')}** x{amount}*')
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -308,7 +339,8 @@ class Events(commands.Cog):
                 User.register_user_if_not_exists(member.id)
                 if (Pig.get_weight(member.id) < 1.5 and User.get_age(member.id) < 3600) or \
                         (Func.get_current_timestamp() - member.created_at.timestamp() < 30 * 24 * 3600):
-                    await member.add_roles(member.guild.get_role(config.BOT_GUILDS[member.guild.id]['not_verified_role']))
+                    await member.add_roles(
+                        member.guild.get_role(config.BOT_GUILDS[member.guild.id]['not_verified_role']))
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):

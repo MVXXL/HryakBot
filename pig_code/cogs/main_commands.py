@@ -27,9 +27,9 @@ class MainCommands(commands.Cog):
     @discord.app_commands.rename(_global=locale_str("top-global-name"))
     @discord.app_commands.describe(_global=locale_str("top-global-desc"))
     @discord.app_commands.choices(_global=[
-            discord.app_commands.Choice(name=locale_str('choice-true'), value='true'),
-            discord.app_commands.Choice(name=locale_str('choice-false'), value='false')
-        ])
+        discord.app_commands.Choice(name=locale_str('choice-true'), value='true'),
+        discord.app_commands.Choice(name=locale_str('choice-false'), value='false')
+    ])
     @discord.app_commands.guild_install()
     @commands.guild_only()
     async def top(self, inter, _global: str = 'false'):
@@ -91,9 +91,9 @@ class MainCommands(commands.Cog):
     @discord.app_commands.rename(currency=locale_str("send_money-currency-name"))
     @discord.app_commands.describe(currency=locale_str("send_money-currency-desc"))
     @discord.app_commands.choices(currency=[
-            discord.app_commands.Choice(name='🪙', value='coins'),
-            discord.app_commands.Choice(name='💵', value='hollars')
-        ])
+        discord.app_commands.Choice(name='🪙', value='coins'),
+        discord.app_commands.Choice(name='💵', value='hollars')
+    ])
     @discord.app_commands.rename(message=locale_str("send_money-message-name"))
     @discord.app_commands.describe(message=locale_str("send_money-message-desc"))
     @discord.app_commands.user_install()

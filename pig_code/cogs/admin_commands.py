@@ -1,8 +1,9 @@
-import discord
-
-from ..core import *
 from ..utils import *
-from .. import modules
+from ..core import *
+
+from hryak.db_api import PromoCode
+
+from ..utils.discord_utils import send_callback, generate_embed
 
 
 class AdminCommands(commands.Cog):
@@ -13,7 +14,7 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     @commands.is_owner()
     async def is_ready(self, inter):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         if self.client.is_ready():
             await send_callback(inter, f'*{self.client.user} is ready*')
         else:
@@ -23,7 +24,7 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     @commands.is_owner()
     async def sync_tree(self, inter):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         await self.client.tree.sync()
         for guild_id in config.ADMIN_GUILDS + config.TEST_GUILDS + config.PUBLIC_TEST_GUILDS:
             try:
@@ -36,15 +37,13 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     @commands.is_owner()
     async def test(self, inter):
-        await Utils.pre_command_check(inter, owner_only=True)
-        o = Func.generate_aaio_url(100, f'test{random.randrange(1000)}', 'RUB', lang='ru')
-        await send_callback(inter, f'{o}')
+        await DisUtils.pre_command_check(inter, owner_only=True)
 
     @discord.app_commands.command(description='Block user from using the bot')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     @commands.is_owner()
     async def block(self, inter, user: discord.User, reason: str = None):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         User.register_user_if_not_exists(user.id)
         User.set_block(user.id, True)
         User.set_block_reason(user.id, reason)
@@ -54,7 +53,7 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     @commands.is_owner()
     async def unblock(self, inter, user: discord.User):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         User.register_user_if_not_exists(user.id)
         User.set_block(user.id, False)
         User.set_block_reason(user.id, '')
@@ -63,7 +62,7 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.command(description='Add item to user\'s inventory')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS])
     async def add_item(self, inter, user: discord.User, item_id: str, amount: int = 1):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         User.register_user_if_not_exists(user.id)
         if not Item.exists(item_id):
             await send_callback(inter, "*Item doesn't exist*")
@@ -79,7 +78,7 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.command(description='Add weight to user')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS])
     async def add_weight(self, inter, user: discord.User, amount: int = 1):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         Pig.add_weight(user.id, amount)
         await send_callback(inter, f'*User **{user}** received **{amount} kg***')
 
@@ -89,7 +88,7 @@ class AdminCommands(commands.Cog):
     #                            status=commands.Param(
     #                                choices=['success', 'in_process', 'expired'])
     #                            ):
-    #     await Utils.pre_command_check(inter)
+    #     await DisUtils.pre_command_check(inter)
     #     Order.set_status(order_id, status)
     #     await send_callback(inter, f'*Order **{order_id}** status has been set to **{status}***')
 
@@ -97,7 +96,7 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     async def add_all_skins(self, inter,
                             user: discord.User):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         if user is None:
             user = inter.user
         User.register_user_if_not_exists(user.id)
@@ -108,7 +107,7 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.command(description='Update shop')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS])
     async def update_shop(self, inter):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         Shop.add_shop_state()
         await send_callback(inter, f'*Shop updated*')
 
@@ -121,7 +120,7 @@ class AdminCommands(commands.Cog):
                                max_uses: int = 999999,
                                name: str = None,
                                lifespan: int = -1):
-        await Utils.pre_command_check(inter, allowed_users=config.PROMOCODERS)
+        await DisUtils.pre_command_check(inter, allowed_users=config.PROMOCODERS)
         try:
             prise = json.loads(prise)
             if type(prise) == list:
@@ -147,14 +146,14 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.command(description='Leave from a server')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     async def leave(self, inter, server: str):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         await self.client.get_guild(int(server)).leave()
         await send_callback(inter, f'*I left from *{server}***')
 
     @discord.app_commands.command(description='Returns a list of guilds')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     async def guilds(self, inter):
-        await Utils.pre_command_check(inter, owner_only=True)
+        await DisUtils.pre_command_check(inter, owner_only=True)
         d = {}
         for guild in self.client.guilds:
             d[guild] = len(set([i for i in guild.members if not i.bot]))
@@ -166,12 +165,12 @@ class AdminCommands(commands.Cog):
         title = f'🌐・{len(self.client.guilds)} | {len(set([i for i in self.client.get_all_members() if not i.bot]))}/{len(self.client.users)}'
         embed = generate_embed(title, '')
         for n, i in enumerate(d):
-            embed.description += f"> {n+1}. {d[i]} | {i} [{i.id}]\n"
+            embed.description += f"> {n + 1}. {d[i]} | {i} [{i.id}]\n"
             if len(embed.description) >= 4000:
                 embeds.append(embed)
                 embed = generate_embed(title, '')
         embeds.append(embed)
-        await Utils.pagination(inter, 'en', embeds=embeds)
+        await DisUtils.pagination(inter, 'en', embeds=embeds)
 
 
 async def setup(client):

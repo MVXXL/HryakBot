@@ -1,5 +1,7 @@
-from ...core import *
 from ...utils import *
+from ...utils.discord_utils import generate_embed
+from ...core import *
+
 
 
 def basic_help(inter, lang) -> discord.Embed:

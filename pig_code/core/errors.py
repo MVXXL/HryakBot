@@ -6,6 +6,7 @@ class UserInBlackList(CommandError):
         self.user = user
         super().__init__(f"User {user} is in black list")
 
+
 class NotBotOwner(CommandError):
     def __init__(self, user):
         self.user = user

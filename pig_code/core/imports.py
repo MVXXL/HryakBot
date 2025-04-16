@@ -17,12 +17,9 @@ import random
 import re
 import logging
 import aiofiles
-import win32api
 from pympler import asizeof
 import inspect
 import copy
-import win32con
-import win32process
 import concurrent.futures
 import mysql.connector
 import string
@@ -36,3 +33,12 @@ from PIL import Image, ImageDraw
 import asyncio
 from aiocache import Cache
 from cachetools import cached, TTLCache
+import hryak
+from hryak.db_api import *
+
+try:
+    import win32api
+    import win32con
+    import win32process
+except ImportError:
+    pass

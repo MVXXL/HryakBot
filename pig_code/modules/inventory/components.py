@@ -2,6 +2,7 @@ import discord.ui
 
 from ...core.items.item_components.item_components import item_components
 from ...utils import *
+from ...core import *
 
 
 def inventory_item_selected(user_id, item_id, lang, _type, category: str = None, page: int = 1) -> list:

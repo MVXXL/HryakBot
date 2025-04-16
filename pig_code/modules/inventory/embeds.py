@@ -1,5 +1,6 @@
-from ...core import *
 from ...utils import *
+from ...utils.discord_utils import generate_embed
+from ...core import *
 
 
 async def inventory_item_selected(inter, item_id, lang,
@@ -20,8 +21,8 @@ async def inventory_item_selected(inter, item_id, lang,
                           f'{translate(Locales.Global.type, lang)}: **{Item.get_type(item_id, lang)}**\n' \
                           f'{translate(Locales.Global.rarity, lang)}: **{Item.get_rarity(item_id, lang)}**\n' \
                           f'{translate(Locales.Global.cost_per_item, lang)}: **{Item.get_sell_price(item_id)}** 🪙'
-        if await Item.get_image_path(item_id) is not None:
-            thumbnail_url = await Item.get_image_path(item_id)
+        if await Item.get_image_path(item_id, config.TEMP_FOLDER_PATH) is not None:
+            thumbnail_url = await Item.get_image_path(item_id, config.TEMP_FOLDER_PATH)
     elif inventory_type == 'wardrobe' or (
             inventory_type == 'shop' and Item.get_type(item_id).startswith('skin')):
         skin_type = Item.get_skin_type(item_id)
@@ -31,8 +32,8 @@ async def inventory_item_selected(inter, item_id, lang,
             description = f'{translate(Locales.Global.amount, lang)}: **{Item.get_amount(item_id, inter.user.id)}**\n' \
                           f'{translate(Locales.Global.type, lang)}: **{Item.get_type(item_id, lang)}**\n' \
                           f'{translate(Locales.Global.rarity, lang)}: **{Item.get_rarity(item_id, lang)}**'
-        thumbnail_url = await Utils.build_pig(tuple(preview_options.items()),
-                                               tuple(utils_config.default_pig['genetic'].items()))
+        thumbnail_url = await hryak.GameFunc.build_pig(tuple(preview_options.items()),
+                                              tuple(utils_config.default_pig['genetic'].items()))
     if inventory_type == 'shop':
         description = f'{translate(Locales.Global.price, lang)}: **{Item.get_market_price(item_id)}** 🪙\n' \
                       f'{translate(Locales.Global.type, lang)}: **{Item.get_type(item_id, lang)}**\n' \
@@ -60,7 +61,7 @@ async def wardrobe_item_choose_layers_to_wear(inter, item_id, lang) -> discord.E
         description=translate(Locales.WardrobeItemChooseLayerToWear.desc, lang),
         prefix=Func.generate_prefix('🟣'),
         inter=inter,
-        # thumbnail_url=await BotUtils.generate_user_pig(inter.user.id),
+        # thumbnail_url=await BotDisUtils.generate_user_pig(inter.user.id),
     )
     return embed
 
@@ -74,7 +75,7 @@ async def wardrobe_item_wear(inter, item_id, lang) -> discord.Embed:
         description=translate(Locales.WardrobeItemWear.desc_list, lang, {'item': Item.get_name(item_id, lang)}),
         prefix=Func.generate_prefix('scd'),
         inter=inter,
-        thumbnail_url=await Utils.generate_user_pig(inter.user.id),
+        thumbnail_url=await DisUtils.generate_user_pig(inter.user.id),
     )
     return embed
 
@@ -85,6 +86,6 @@ async def wardrobe_item_remove(inter, item_id, lang) -> discord.Embed:
         description=translate(Locales.WardrobeItemRemove.desc, lang, {'item': Item.get_name(item_id, lang)}),
         prefix=Func.generate_prefix('scd'),
         inter=inter,
-        thumbnail_url=await Utils.generate_user_pig(inter.user.id),
+        thumbnail_url=await DisUtils.generate_user_pig(inter.user.id),
     )
     return embed

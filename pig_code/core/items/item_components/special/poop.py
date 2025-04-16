@@ -1,7 +1,6 @@
-import random
-
-from .....core import *
 from .....utils import *
+from .....utils.discord_utils import send_callback, generate_embed
+from .....core import *
 
 
 async def eat(inter, item_id, update):
@@ -56,6 +55,7 @@ async def eat(inter, item_id, update):
             inter=inter,
         ), ephemeral=True, edit_original_response=False)
         await update(edit_followup=True)
+
 
 def eaten_and_poisoned(inter, lang) -> discord.Embed:
     embed = generate_embed(

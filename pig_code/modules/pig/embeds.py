@@ -1,5 +1,7 @@
-from ...core import *
 from ...utils import *
+from ...utils.discord_utils import generate_embed
+from ...core import *
+
 
 
 async def feed(inter, lang, weight_changed: float, pooped_amount: int, vomit: bool) -> discord.Embed:
@@ -18,7 +20,7 @@ async def feed(inter, lang, weight_changed: float, pooped_amount: int, vomit: bo
         title=translate(Locales.Feed.feed_scd_title, lang),
         description=description,
         prefix=Func.generate_prefix('🐷'),
-        thumbnail_url=await Utils.generate_user_pig(inter.user.id, eye_emotion=eye_emotion),
+        thumbnail_url=await DisUtils.generate_user_pig(inter.user.id, eye_emotion=eye_emotion),
         inter=inter,
         footer=Func.generate_footer(inter, second_part=f'{Stats.get_streak(inter.user.id)} 🔥')
     )
@@ -32,7 +34,7 @@ async def butcher(inter, lang, lard_add: int, weight_lost: float) -> discord.Emb
                     f'- {translate(Locales.Butcher.weight_lost_desc_list, lang, {"pig": Pig.get_name(inter.user.id), "weight_lost": weight_lost})}\n\n'
                     f'*{translate(Locales.Butcher.total_pig_weight, lang, {"weight": Pig.get_weight(inter.user.id)})}*',
         prefix=Func.generate_prefix('🐷'),
-        thumbnail_url=await Utils.generate_user_pig(inter.user.id),
+        thumbnail_url=await DisUtils.generate_user_pig(inter.user.id),
         inter=inter,
     )
     return embed

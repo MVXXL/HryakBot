@@ -1,9 +1,11 @@
-from ...core import *
 from ...utils import *
+from ...utils.discord_utils import generate_embed
+from ...core import *
+
 
 
 def promo_code_used(inter, lang, prise) -> discord.Embed:
-    items_received = Utils.get_items_in_str_list(prise, lang)
+    items_received = DisUtils.get_items_in_str_list(prise, lang)
     embed = generate_embed(title=translate(Locales.PromoCode.promo_code_used_title, lang),
                            description=f'## {translate(Locales.PromoCode.you_got_desc, lang)}\n'
                                        f'```{items_received}```',
@@ -122,6 +124,8 @@ async def wardrobe_item_preview(inter, item_id, lang) -> discord.Embed:
         description=translate(Locales.WardrobeItemPreview.desc, lang, {'item': Item.get_name(item_id, lang)}),
         prefix=Func.generate_prefix('👁️'),
         inter=inter,
-        thumbnail_url=await Utils.generate_user_pig(inter.user.id, preview_items={k: v for k, v in preview_options.items() if k not in user_skins or user_skins[k] != v}),
+        thumbnail_url=await DisUtils.generate_user_pig(inter.user.id,
+                                                    preview_items={k: v for k, v in preview_options.items() if
+                                                                   k not in user_skins or user_skins[k] != v}),
     )
     return embed

@@ -8,7 +8,6 @@ class Tasks(commands.Cog):
         self.client = client
         self.daily_shop_update.start()
         self.process_streaks.start()
-        self.check_aaio_orders_status.start()
         self.process_orders.start()
         if not config.TEST:
             self.monitoring_data_update.start()
@@ -21,9 +20,9 @@ class Tasks(commands.Cog):
     @tasks.loop(seconds=60)
     async def process_streaks(self):
         await self.client.wait_until_ready()
-        users = Tech.get_all_users(include_where=f"JSON_EXTRACT(stats, '$.streak') > 0")
+        users = Tech.get_all_users(where=f"JSON_EXTRACT(stats, '$.streak') > 0")
         for user_id in users:
-            if Utils.calculate_missed_streak_days(user_id) > 1:
+            if hryak.GameFunc.calculate_missed_streak_days(user_id) > 1:
                 Stats.set_streak(user_id, 0)
             await asyncio.sleep(1)
 
@@ -47,17 +46,10 @@ class Tasks(commands.Cog):
                 User.register_user_if_not_exists(user_id)
                 User.set_item_amount(user_id, item_id, 1)
                 await asyncio.sleep(.1)
-            for user_id in Tech.get_all_users(include_where=f"JSON_EXTRACT(inventory, '$.{item_id}.amount') > 0",
+            for user_id in Tech.get_all_users(where=f"JSON_EXTRACT(inventory, '$.{item_id}.amount') > 0",
                                               exclude_users=allowed_users):
                 User.set_item_amount(user_id, item_id, 0)
                 await asyncio.sleep(.1)
-
-    @tasks.loop(seconds=5)
-    async def check_aaio_orders_status(self):
-        for order_id in Order.get_all_orders():
-            if Order.get_platform(order_id) == 'aaio':
-                Order.set_status(order_id, await Order.get_aaio_status(order_id))
-            await asyncio.sleep(.3)
 
     @tasks.loop(seconds=5)
     async def process_orders(self):
@@ -65,14 +57,18 @@ class Tasks(commands.Cog):
             user_id = Order.get_user(order_id)
             lang = User.get_language(user_id)
             if Order.get_status(order_id) in ['success', 'hold']:
-                await Utils.send_notification(await User.get_user(self.client, user_id), title=translate(Locales.PremiumShop.item_give_notification_title, lang),
-                                                 description=translate(Locales.PremiumShop.item_give_notification_desc, lang, {'items': Utils.get_items_in_str_list(Order.get_items(order_id),
-                                                                                            User.get_language(user_id))}),
-                                                 prefix_emoji='💎')
+                await DisUtils.send_notification(await User.get_user(self.client, user_id),
+                                              title=translate(Locales.PremiumShop.item_give_notification_title, lang),
+                                              description=translate(Locales.PremiumShop.item_give_notification_desc,
+                                                                    lang, {'items': DisUtils.get_items_in_str_list(
+                                                      Order.get_items(order_id),
+                                                      User.get_language(user_id))}),
+                                              prefix_emoji='💎')
                 for item_id, amount in Order.get_items(order_id).items():
                     User.add_item(user_id, item_id, amount)
                 Stats.add_successful_orders(user_id, 1)
-                Stats.add_dollars_donated(user_id, round(Order.get_amount(order_id) / utils_config.currency_to_usd[Order.get_currency(order_id)], 2))
+                Stats.add_dollars_donated(user_id, round(
+                    Order.get_amount(order_id) / utils_config.currency_to_usd[Order.get_currency(order_id)], 2))
                 Order.delete(order_id)
             await asyncio.sleep(.3)
 

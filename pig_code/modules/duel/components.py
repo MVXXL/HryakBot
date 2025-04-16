@@ -1,5 +1,6 @@
 from ...core import *
 from ...utils import *
+from ...core import *
 
 
 def invite_components(lang) -> list:
@@ -16,5 +17,3 @@ def invite_components(lang) -> list:
         )
     ]
     return components
-
-

@@ -10,7 +10,8 @@ class SetupCommands(commands.Cog):
     @discord.app_commands.command(description=locale_str("language-desc"))
     @discord.app_commands.rename(language=locale_str("language-language-name"))
     @discord.app_commands.describe(language=locale_str("language-language-desc"))
-    @discord.app_commands.choices(language=[discord.app_commands.Choice(name=bot_locale.full_names[i], value=i) for i in bot_locale.valid_discord_locales])
+    @discord.app_commands.choices(language=[discord.app_commands.Choice(name=bot_locale.full_names[i], value=i) for i in
+                                            bot_locale.valid_discord_locales])
     @discord.app_commands.user_install()
     @discord.app_commands.guild_install()
     async def language(self, inter, language: str):
@@ -22,9 +23,9 @@ class SetupCommands(commands.Cog):
     @discord.app_commands.rename(allow=locale_str("settings-say-allow-name"))
     @discord.app_commands.describe(allow=locale_str("settings-say-allow-desc"))
     @discord.app_commands.choices(allow=[
-            discord.app_commands.Choice(name=locale_str('choice-true'), value='true'),
-            discord.app_commands.Choice(name=locale_str('choice-false'), value='false')
-        ])
+        discord.app_commands.Choice(name=locale_str('choice-true'), value='true'),
+        discord.app_commands.Choice(name=locale_str('choice-false'), value='false')
+    ])
     @discord.app_commands.checks.has_permissions(administrator=True)
     @discord.app_commands.guild_install()
     @commands.guild_only()
@@ -34,4 +35,3 @@ class SetupCommands(commands.Cog):
 
 async def setup(client):
     await client.add_cog(SetupCommands(client))
-
