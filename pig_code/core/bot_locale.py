@@ -424,6 +424,7 @@ class Locales:
         scd_content = {'en': '*Settings for the `/say` command have been changed and set to `{value}`*',
                     'ru': '*Настройки для команды `/say` изменены и выставлены на `{value}`*'}
 
+
     class SettingsTop:
         scd_content = {'en': '*Participation settings for the `/top` command have been changed and set to `{value}`*',
                     'ru': '*Настройки участия для команды `/top` изменены и выставлены на `{value}`*'}
