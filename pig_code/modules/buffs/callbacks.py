@@ -13,24 +13,24 @@ async def buffs(inter, _global: bool = False):
     lang = User.get_language(inter.user.id)
     await DisUtils.pagination(inter, lang,
                            embeds={
-                               translate(Locale.Buffs.main_page_title, lang): {
+                               translate(Locales.Buffs.main_page_title, lang): {
                                    'embed': await embeds.generate_basic_buffs_embed(inter, lang,
                                                                                     thumbnail_url=await hryak.Func.get_image_temp_path_from_path_or_link(
                                                                                         config.image_links[
                                                                                             'buffs']))},
-                               translate(Locale.Buffs.weight_buffs_title, lang): {
+                               translate(Locales.Buffs.weight_buffs_title, lang): {
                                    'embed': await embeds.generate_buffs_multipliers_embed(inter, lang,
                                                                                           buff_type='weight',
                                                                                           thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
                                                                                               config.image_links[
                                                                                                   'buffs']))},
-                               translate(Locale.Buffs.pooping_buffs_title, lang): {
+                               translate(Locales.Buffs.pooping_buffs_title, lang): {
                                    'embed': await embeds.generate_buffs_multipliers_embed(inter, lang,
                                                                                           buff_type='pooping',
                                                                                           thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
                                                                                               config.image_links[
                                                                                                   'buffs']))},
-                               translate(Locale.Buffs.vomit_chance_buffs_title, lang): {
+                               translate(Locales.Buffs.vomit_chance_buffs_title, lang): {
                                    'embed': await embeds.generate_buffs_multipliers_embed(inter, lang,
                                                                                           buff_type='vomit_chance',
                                                                                           thumbnail_url=await Func.get_image_temp_path_from_path_or_link(

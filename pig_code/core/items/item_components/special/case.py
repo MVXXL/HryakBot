@@ -12,7 +12,7 @@ async def case_used(inter, item_id, update):
     for item, amount in items_dropped.items():
         User.add_item(inter.user.id, item, amount)
     await send_callback(inter, embed=generate_embed(
-        title=translate(Locale.ItemUsed.case_title, lang),
+        title=translate(Locales.ItemUsed.case_title, lang),
         description=f"```{DisUtils.get_items_in_str_list(items_dropped, lang)}```",
         prefix=Func.generate_prefix('🎁'),
         # color=utils_config.rarity_colors[str(BotUtils.get_rarest_item(items_received))],

@@ -38,13 +38,13 @@ async def cook(inter, item_id, update):
     lang = User.get_language(inter.user.id)
     if Item.get_amount('grill', inter.user.id) <= 0:
         await error_callbacks.no_item(inter, 'grill',
-                                      description=translate(Locale.ErrorCallbacks.no_mangal_to_cook, inter.user.id),
+                                      description=translate(Locales.ErrorCallbacks.no_mangal_to_cook, inter.user.id),
                                       thumbnail_url=await Item.get_image_path('grill', config.TEMP_FOLDER_PATH), edit_original_response=False,
                                       ephemeral=True)
         return
     modal_interaction, amount = await modals.get_item_amount(inter,
-                                                             translate(Locale.InventoryItemCookModal.title, lang),
-                                                             translate(Locale.InventoryItemCookModal.label, lang),
+                                                             translate(Locales.InventoryItemCookModal.title, lang),
+                                                             translate(Locales.InventoryItemCookModal.label, lang),
                                                              max_amount=Item.get_amount(item_id, inter.user.id))
     if amount is False:
         return
@@ -55,9 +55,9 @@ async def cook(inter, item_id, update):
     User.add_item(inter.user.id, Item.get_cooked_item_id(item_id), amount)
     await send_callback(modal_interaction, ephemeral=True,
                         embed=generate_embed(
-                            title=translate(Locale.InventoryItemCooked.title, lang,
+                            title=translate(Locales.InventoryItemCooked.title, lang,
                                             {'item': Item.get_name(item_id, lang)}),
-                            description=f"- {translate(Locale.InventoryItemCooked.desc, lang, {'item': Item.get_name(item_id, lang), 'amount': amount})}",
+                            description=f"- {translate(Locales.InventoryItemCooked.desc, lang, {'item': Item.get_name(item_id, lang), 'amount': amount})}",
                             prefix=Func.generate_prefix('scd'),
                             inter=modal_interaction), edit_original_response=False)
     await update()
@@ -66,8 +66,8 @@ async def cook(inter, item_id, update):
 async def sell(inter, item_id, update):
     lang = User.get_language(inter.user.id)
     modal_interaction, amount = await modals.get_item_amount(inter,
-                                                             translate(Locale.InventoryItemSellModal.title, lang),
-                                                             translate(Locale.InventoryItemSellModal.label, lang),
+                                                             translate(Locales.InventoryItemSellModal.title, lang),
+                                                             translate(Locales.InventoryItemSellModal.label, lang),
                                                              max_amount=Item.get_amount(item_id, inter.user.id))
     User.clear_get_inventory_cache(inter.user.id)
     if amount is False:
@@ -83,9 +83,9 @@ async def sell(inter, item_id, update):
     User.add_item(inter.user.id, 'coins', money_received)
     await send_callback(modal_interaction, ephemeral=True,
                         embed=generate_embed(
-                            title=translate(Locale.InventoryItemSold.title, lang,
+                            title=translate(Locales.InventoryItemSold.title, lang,
                                             {'item': Item.get_name(item_id, lang)}),
-                            description=f"- {translate(Locale.InventoryItemSold.desc, lang, {'item': Item.get_name(item_id, lang), 'amount': amount, 'money': money_received})}",
+                            description=f"- {translate(Locales.InventoryItemSold.desc, lang, {'item': Item.get_name(item_id, lang), 'amount': amount, 'money': money_received})}",
                             prefix=Func.generate_prefix('scd'),
                             inter=modal_interaction), edit_original_response=False)
     await update()

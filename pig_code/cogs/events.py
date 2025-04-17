@@ -41,6 +41,8 @@ class Events(commands.Cog):
         print('> Stats structures are fixed')
         History.fix_history_structure_for_all_users()
         print('> History structures are fixed')
+        User.fix_settings_structure_for_all_users()
+        print('> User settings structures are fixed')
         for guild_id in [*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS]:
             try:
                 await self.client.tree.sync(guild=discord.Object(id=guild_id))
@@ -104,10 +106,10 @@ class Events(commands.Cog):
                         if action_object in ['coins', 'hollars']:
                             modal_interaction, amount = await modals.get_item_amount(interaction,
                                                                                      translate(
-                                                                                         Locale.Trade.add_item_modal_title,
+                                                                                         Locales.Trade.add_item_modal_title,
                                                                                          lang),
                                                                                      translate(
-                                                                                         Locale.Trade.add_item_with_tax_modal_label,
+                                                                                         Locales.Trade.add_item_with_tax_modal_label,
                                                                                          lang, {
                                                                                              'tax': hryak.GameFunc.get_user_tax_percent(
                                                                                                  interaction.user.id,
@@ -155,8 +157,8 @@ class Events(commands.Cog):
                                                                 pre_command_check=False)
                         elif custom_id_params[1] == 'cancel':
                             await error_callbacks.default_error_callback(interaction,
-                                                                         translate(Locale.Trade.cancel_title, lang),
-                                                                         translate(Locale.Trade.cancel_desc,
+                                                                         translate(Locales.Trade.cancel_title, lang),
+                                                                         translate(Locales.Trade.cancel_desc,
                                                                                    lang).format(
                                                                              user=interaction.user.display_name),
                                                                          thumbnail_url=await hryak.Func.get_image_path_from_link(
@@ -175,10 +177,10 @@ class Events(commands.Cog):
                             action_object = interaction_values[0].split(';')[0]
                             modal_interaction, amount = await modals.get_item_amount(interaction,
                                                                                      translate(
-                                                                                         Locale.Trade.add_item_modal_title,
+                                                                                         Locales.Trade.add_item_modal_title,
                                                                                          lang),
                                                                                      translate(
-                                                                                         Locale.Trade.add_item_modal_label,
+                                                                                         Locales.Trade.add_item_modal_label,
                                                                                          lang, {'item': Item.get_name(
                                                                                              action_object, lang)}),
                                                                                      max_amount=Item.get_amount(

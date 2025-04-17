@@ -1,5 +1,5 @@
 from ...core import *
-from ...core import Locale
+from ...core import Locales
 from ...utils import *
 from ...utils import Func
 from ...utils.discord_utils import generate_embed
@@ -13,12 +13,12 @@ async def trade_embed(inter, trade_id, lang):
     user1_items_list = DisUtils.get_items_in_str_list(user1_data["items"], lang)
     user2_items_list = DisUtils.get_items_in_str_list(user2_data["items"], lang)
     return generate_embed(
-        translate(Locale.Global.trade, lang),
+        translate(Locales.Global.trade, lang),
         fields=[{'name': user1.display_name,
-                 'value': f'```{translate(Locale.Global.no_items, lang) if not user1_items_list else user1_items_list}```',
+                 'value': f'```{translate(Locales.Global.no_items, lang) if not user1_items_list else user1_items_list}```',
                  'inline': True},
                 {'name': user2.display_name,
-                 'value': f'```{translate(Locale.Global.no_items, lang) if not user2_items_list else user2_items_list}```',
+                 'value': f'```{translate(Locales.Global.no_items, lang) if not user2_items_list else user2_items_list}```',
                  'inline': True}],
         prefix=Func.generate_prefix("💰"),
         thumbnail_url=await hryak.Func.get_image_path_from_link(config.image_links['trade']),

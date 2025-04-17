@@ -11,15 +11,15 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
         await DisUtils.pre_command_check(inter)
         if user1.id == user2.id:
             await error_callbacks.default_error_callback(inter, translate(
-                Locale.ErrorCallbacks.cant_trade_with_yourself_title, lang),
-                                                         translate(Locale.ErrorCallbacks.cant_trade_with_yourself_desc,
+                Locales.ErrorCallbacks.cant_trade_with_yourself_title, lang),
+                                                         translate(Locales.ErrorCallbacks.cant_trade_with_yourself_desc,
                                                                    lang))
             return
         if user2.bot:
             await error_callbacks.default_error_callback(inter,
-                                                         translate(Locale.ErrorCallbacks.bot_as_trade_user_title,
+                                                         translate(Locales.ErrorCallbacks.bot_as_trade_user_title,
                                                                    lang),
-                                                         translate(Locale.ErrorCallbacks.bot_as_trade_user_desc, lang))
+                                                         translate(Locales.ErrorCallbacks.bot_as_trade_user_desc, lang))
             return
     if response.get('status') == '400;no_trade_id':
         m = await send_callback(inter, '🔃')
@@ -27,11 +27,11 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
         Trade.create(trade_id, user1.id, user2.id, m)
         response = hryak.requests.trade_requests.trade(user1.id, user2.id, trade_id)
         await DisUtils.send_notification(user2, inter,
-                                         translate(Locale.Trade.trade_invitation_title, User.get_language(user2.id)),
-                                         translate(Locale.Trade.trade_invitation_desc, User.get_language(user2.id),
+                                         translate(Locales.Trade.trade_invitation_title, User.get_language(user2.id)),
+                                         translate(Locales.Trade.trade_invitation_desc, User.get_language(user2.id),
                                                    format_options={'user': user1.display_name}),
                                          prefix_emoji='💰',
-                                         url_label=translate(Locale.Global.message, User.get_language(user2.id)),
+                                         url_label=translate(Locales.Global.message, User.get_language(user2.id)),
                                          url=m.jump_url, send_to_dm=True, create_command_notification=False,
                                          guild=inter.guild)
     if Trade.get_message(trade_id) is None:
@@ -42,7 +42,7 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
             await inter.response.defer()
         except discord.InteractionResponded:
             pass
-        add_item_component = discord.ui.Select(placeholder=translate(Locale.Trade.add_item_placeholder, lang),
+        add_item_component = discord.ui.Select(placeholder=translate(Locales.Trade.add_item_placeholder, lang),
                                                custom_id='trade;add',
                                                options=[
                                                    discord.SelectOption(label=Item.get_name('coins', lang),
@@ -52,11 +52,11 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
                                                                         value=f'hollars;{trade_id}',
                                                                         emoji=Item.get_emoji('hollars')),
                                                    discord.SelectOption(
-                                                       label=translate(Locale.Global.inventory, lang),
+                                                       label=translate(Locales.Global.inventory, lang),
                                                        value=f'inventory;{trade_id}',
                                                        emoji='📦'),
                                                    discord.SelectOption(
-                                                       label=translate(Locale.Global.wardrobe, lang),
+                                                       label=translate(Locales.Global.wardrobe, lang),
                                                        value=f'wardrobe;{trade_id}',
                                                        emoji='🎭')
                                                ],
@@ -69,7 +69,7 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
                                              emoji='✖️', custom_id=f'trade;cancel;{trade_id}',
                                              row=1)
         clear_component = discord.ui.Button(style=discord.ButtonStyle.blurple,
-                                            label=translate(Locale.Global.clear, lang),
+                                            label=translate(Locales.Global.clear, lang),
                                             custom_id=f'trade;clear;{trade_id}',
                                             row=1)
         await send_callback(Trade.get_message(trade_id),
@@ -80,10 +80,10 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
     elif response.get('trade_status') == 'tax_processing':
         response = hryak.requests.trade_requests.trade(user1.id, user2.id, trade_id)
         if response.get('trade_status') == 'tax_processing':
-            description = f'{translate(Locale.Trade.tax_splitting_process_desc, lang)}\n'
+            description = f'{translate(Locales.Trade.tax_splitting_process_desc, lang)}\n'
             for currency, amount in hryak.GameFunc.get_trade_total_tax(trade_id).items():
                 description += f'\n> {Item.get_emoji(currency)}・{Item.get_name(currency, lang)} x{amount}'
-            description += f'\n\n{translate(Locale.Trade.tax_splitting_process_who_pays_desc, lang)}'
+            description += f'\n\n{translate(Locales.Trade.tax_splitting_process_who_pays_desc, lang)}'
             components = [
                 discord.ui.Button(style=discord.ButtonStyle.blurple,
                                   label=f'{f"1/2 " if Trade.get_total_tax_splitting_votes(trade_id, 'tax_split_1') == 1 else ""}@{user1}',
@@ -99,7 +99,7 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
                                   row=1)
             ]
             await send_callback(Trade.get_message(trade_id),
-                                embed=generate_embed(translate(Locale.Trade.tax_splitting_process_title, lang),
+                                embed=generate_embed(translate(Locales.Trade.tax_splitting_process_title, lang),
                                                      description=description,
                                                      prefix=Func.generate_prefix("💸"),
                                                      thumbnail_url=await hryak.Func.get_image_path_from_link(
@@ -112,9 +112,9 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
     if response.get('trade_status') == 'tax_processing_success':
         response = hryak.requests.trade_requests.trade(user1.id, user2.id, trade_id)
     if response.get('trade_status') == 'success':
-        await send_callback(Trade.get_message(trade_id), embed=generate_embed(translate(Locale.Trade.scd_title, lang),
+        await send_callback(Trade.get_message(trade_id), embed=generate_embed(translate(Locales.Trade.scd_title, lang),
                                                                               description=translate(
-                                                                                  Locale.Trade.scd_desc, lang,
+                                                                                  Locales.Trade.scd_desc, lang,
                                                                                   {'user1': user1.display_name,
                                                                                    'user2': user2.display_name}),
                                                                               prefix=Func.generate_prefix("scd"),

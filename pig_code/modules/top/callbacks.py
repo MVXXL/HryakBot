@@ -13,80 +13,75 @@ async def top(inter, _global: bool = False):
         return
 
     guild = None if _global else inter.guild
-    exclude_users = utils_config.ignore_users_in_top
+    exclude_users = config.ignore_users_in_top
 
-    weight_top_response = hryak.requests.top_requests.top_weight_users(inter.user.id, lang, exclude_users=exclude_users,
-                                                                       guild=guild)
-    coins_top_response = hryak.requests.top_requests.top_amount_of_items_users(inter.user.id, 'coins',
-                                                                               exclude_users=exclude_users,
-                                                                               guild=guild)
-    hollars_top_response = hryak.requests.top_requests.top_amount_of_items_users(inter.user.id, 'hollars',
-                                                                                 exclude_users=exclude_users,
-                                                                                 guild=guild)
-    streak_top_response = hryak.requests.top_requests.top_streak_users(inter.user.id, exclude_users=exclude_users,
-                                                                       guild=guild)
+    weight_top_response = hryak.requests.top_requests.top_weight_users(inter.user.id, lang, guild=guild)
+    coins_top_response = hryak.requests.top_requests.top_amount_of_items_users(inter.user.id, 'coins', guild=guild)
+    hollars_top_response = hryak.requests.top_requests.top_amount_of_items_users(inter.user.id, 'hollars', guild=guild)
+    streak_top_response = hryak.requests.top_requests.top_streak_users(inter.user.id, guild=guild)
+    print(weight_top_response)
     await DisUtils.pagination(inter, lang,
                            embeds={
-                               translate(Locale.Top.weight_top_title, lang): {
+                               translate(Locales.Top.weight_top_title, lang): {
                                    'embed': await embeds.generate_top_embed(inter, lang,
-                                                                            translate(Locale.Top.weight_top_title,
+                                                                            translate(Locales.Top.weight_top_title,
                                                                                       lang),
                                                                             translate(
-                                                                                Locale.Top.weight_top_desc,
+                                                                                Locales.Top.weight_top_desc,
                                                                                 lang),
                                                                             weight_top_response.get('users'),
                                                                             prefix_emoji='🐖',
                                                                             user_position=weight_top_response.get(
                                                                                 'user_position'),
-                                                                            thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
+                                                                            thumbnail_url=await hryak.Func.get_image_temp_path_from_path_or_link(
                                                                                 config.image_links['top'])),
                                    'components': [await components.choose_user(inter, lang, [i[0] for i in
                                                                                              weight_top_response.get(
                                                                                                  'users')])]},
-                               translate(Locale.Top.coins_top_title, lang): {
+                               translate(Locales.Top.coins_top_title, lang): {
                                    'embed': await embeds.generate_top_embed(inter, lang,
-                                                                            translate(Locale.Top.coins_top_title,
+                                                                            translate(Locales.Top.coins_top_title,
                                                                                       lang),
                                                                             translate(
-                                                                                Locale.Top.coins_top_desc,
+                                                                                Locales.Top.coins_top_desc,
                                                                                 lang),
                                                                             coins_top_response.get('users'),
                                                                             prefix_emoji='💰',
                                                                             user_position=coins_top_response.get(
                                                                                 'user_position'),
-                                                                            thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
+                                                                            thumbnail_url=await hryak.Func.get_image_temp_path_from_path_or_link(
                                                                                 config.image_links['top'])),
                                    'components': [await components.choose_user(inter, lang, [i[0] for i in
                                                                                              coins_top_response.get(
                                                                                                  'users')])]},
-                               translate(Locale.Top.hollars_top_title, lang): {
+                               translate(Locales.Top.hollars_top_title, lang): {
                                    'embed': await embeds.generate_top_embed(inter, lang,
-                                                                            translate(Locale.Top.hollars_top_title,
+                                                                            translate(Locales.Top.hollars_top_title,
                                                                                       lang),
                                                                             translate(
-                                                                                Locale.Top.hollars_top_desc,
+                                                                                Locales.Top.hollars_top_desc,
                                                                                 lang),
                                                                             hollars_top_response.get('users'),
                                                                             prefix_emoji='💸',
                                                                             user_position=hollars_top_response.get(
                                                                                 'user_position'),
-                                                                            thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
+                                                                            thumbnail_url=await hryak.Func.get_image_temp_path_from_path_or_link(
                                                                                 config.image_links['top'])),
                                    'components': [await components.choose_user(inter, lang, [i[0] for i in
                                                                                              hollars_top_response.get(
                                                                                                  'users')])]},
-                               translate(Locale.Top.streak_top_title, lang): {
+                               translate(Locales.Top.streak_top_title, lang): {
                                    'embed': await embeds.generate_top_embed(inter, lang,
-                                                                            translate(Locale.Top.streak_top_title,
+                                                                            translate(Locales.Top.streak_top_title,
                                                                                       lang),
                                                                             translate(
-                                                                                Locale.Top.streak_top_desc,
+                                                                                Locales.Top.streak_top_desc,
                                                                                 lang),
                                                                             streak_top_response.get('users'),
                                                                             prefix_emoji='🔥',
                                                                             user_position=streak_top_response.get(
                                                                                 'user_position'),
-                                                                            thumbnail_url=await Func.get_image_temp_path_from_path_or_link(
+                                                                            thumbnail_url=await hryak.Func.get_image_temp_path_from_path_or_link(
                                                                                 config.image_links['top'])),
                                    'components': [await components.choose_user(inter, lang, [i[0] for i in
                                                                                              streak_top_response.get(

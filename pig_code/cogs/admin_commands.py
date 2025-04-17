@@ -128,13 +128,13 @@ class AdminCommands(commands.Cog):
         except:
             await send_callback(inter,
                                 embed=generate_embed(title=f'*Bad json*',
-                                                     color=utils_config.error_color))
+                                                     color=config.error_color))
             return
         for item in prise:
             if not Item.exists(item):
                 await send_callback(inter,
                                     embed=generate_embed(title=f'*Item **"{item}"** doesn\'t exist*',
-                                                         color=utils_config.error_color))
+                                                         color=config.error_color))
                 return
         if PromoCode.exists(name):
             PromoCode.delete(name)

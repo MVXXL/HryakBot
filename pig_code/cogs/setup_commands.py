@@ -32,6 +32,18 @@ class SetupCommands(commands.Cog):
     async def say(self, inter, allow: str):
         await modules.other.callbacks.settings_say(inter, Func.str_to_bool(allow))
 
+    @settings.command(description=locale_str("settings-top-desc"))
+    @discord.app_commands.rename(participate=locale_str("settings-top-participate-name"))
+    @discord.app_commands.describe(participate=locale_str("settings-top-participate-desc"))
+    @discord.app_commands.choices(participate=[
+        discord.app_commands.Choice(name=locale_str('choice-true'), value='true'),
+        discord.app_commands.Choice(name=locale_str('choice-false'), value='false')
+    ])
+    @discord.app_commands.guild_install()
+    @discord.app_commands.guild_install()
+    async def top(self, inter, participate: str):
+        await modules.other.callbacks.settings_top(inter, Func.str_to_bool(participate))
+
 
 async def setup(client):
     await client.add_cog(SetupCommands(client))

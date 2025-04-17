@@ -15,22 +15,22 @@ async def wardrobe(inter, message=None, select_item_component_id: str = 'item_se
     _items = Tech.get_all_items((('inventory_type', 'wardrobe'),), user_id=inter.user.id)
     items_by_cats = {}
     embed_thumbnail_url = await DisUtils.generate_user_pig(inter.user.id)
-    empty_desc = translate(Locale.Wardrobe.wardrobe_empty_desc, lang)
+    empty_desc = translate(Locales.Wardrobe.wardrobe_empty_desc, lang)
     item_types = set()
     for item in _items:
         item_types.add(Item.get_skin_type(item))
     item_types = sorted(item_types)
     for i, item_type in enumerate(['all'] + item_types):
         items_by_cats[
-            translate(Locale.SkinTypes[item_type], lang) if item_type != 'all' else translate(
-                Locale.Global.everything, lang)] = \
+            translate(hryak.locale.Locale.SkinTypes[item_type], lang) if item_type != 'all' else translate(
+                Locales.Global.everything, lang)] = \
             Tech.get_all_items((('skin_config', 'type', item_type),)) if item_type != 'all' else _items
     await DisUtils.pagination(inter, lang, message=message,
                            embeds=await Embeds.generate_items_list_embeds(inter, items_by_cats, lang, empty_desc,
                                                                          list_type='wardrobe',
                                                                          select_item_component_id=select_item_component_id,
                                                                          title=translate(
-                                                                             Locale.Wardrobe.wardrobe_title,
+                                                                             Locales.Wardrobe.wardrobe_title,
                                                                              lang),
                                                                          tradable_items_only=tradable_items_only),
                            embed_thumbnail_url=embed_thumbnail_url, ephemeral=ephemeral,
@@ -47,13 +47,13 @@ async def inventory(inter, message=None, select_item_component_id: str = 'item_s
         await DisUtils.pre_command_check(inter)
     lang = User.get_language(inter.user.id)
     _items = Tech.get_all_items((('inventory_type', 'inventory'),), user_id=inter.user.id)
-    empty_desc = translate(Locale.Inventory.inventory_empty_desc, lang)
-    items_by_cats = {translate(Locale.Inventory.inventory_title, lang): _items}
+    empty_desc = translate(Locales.Inventory.inventory_empty_desc, lang)
+    items_by_cats = {translate(Locales.Inventory.inventory_title, lang): _items}
     await DisUtils.pagination(inter, lang, message=message,
                            embeds=await Embeds.generate_items_list_embeds(inter, items_by_cats, lang, empty_desc,
                                                                          select_item_component_id=select_item_component_id,
                                                                          title=translate(
-                                                                             Locale.Inventory.inventory_title,
+                                                                             Locales.Inventory.inventory_title,
                                                                              lang),
                                                                          tradable_items_only=tradable_items_only),
                            embed_thumbnail_url=await hryak.Func.get_image_path_from_link(

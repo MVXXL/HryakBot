@@ -26,7 +26,7 @@ async def send_callback(inter,
     components = components or []
     if isinstance(inter,
                   discord.interactions.Interaction) and inter.is_user_integration() and not inter.is_guild_integration():
-        content = translate(Locale.user_install_content, User.get_language(inter.user.id)) + '\n' + content
+        content = translate(Locales.user_install_content, User.get_language(inter.user.id)) + '\n' + content
     for component in components:
         view.add_item(component)
     if attachments is None:
@@ -126,7 +126,7 @@ async def send_callback(inter,
 
 def generate_embed(title: str = None,
                    description: str = None,
-                   color=utils_config.main_color,
+                   color=config.main_color,
                    prefix: str = None,
                    image_url: str = None,
                    thumbnail_url: str = None,
@@ -316,7 +316,7 @@ class DisUtils:
                 options = [discord.SelectOption(label=i, value=str(i), emoji='➡️' if current_cat == i else None) for i
                            in embeds]
             return discord.ui.Select(custom_id='in;choose_category',
-                                     placeholder=translate(Locale.Global.choose_category, lang),
+                                     placeholder=translate(Locales.Global.choose_category, lang),
                                      options=options,
                                      row=3)
 
@@ -349,11 +349,11 @@ class DisUtils:
                     if len(embeds[i]['embeds']) > 1:
                         for j, embed in enumerate(embeds[i]['embeds']):
                             embed['embed'].set_footer(
-                                text=f'📚 {translate(Locale.Global.page, lang)}: {j + 1}')
+                                text=f'📚 {translate(Locales.Global.page, lang)}: {j + 1}')
             elif len(embeds[list(embeds)[0]]['embeds']) > 1:
                 for i, embed in enumerate(embeds[list(embeds)[0]]['embeds']):
                     embed['components'] += arrows_components()
-                    embed['embed'].set_footer(text=f'📚 {translate(Locale.Global.page, lang)}: {i + 1}')
+                    embed['embed'].set_footer(text=f'📚 {translate(Locales.Global.page, lang)}: {i + 1}')
 
 
         else:
@@ -381,7 +381,7 @@ class DisUtils:
             for i, element in enumerate(embeds.values()):
                 if arrows and len(embeds) > 1:
                     element['embed'].set_footer(
-                        text=f'📚 {translate(Locale.Global.page, lang)}: {i + 1}',
+                        text=f'📚 {translate(Locales.Global.page, lang)}: {i + 1}',
                         icon_url=Func.generate_footer_url('user_avatar', inter.user))
         if is_categorised_pages():
             if len(embeds[current_cat]['embeds']) < current_page:
@@ -416,10 +416,10 @@ class DisUtils:
                         await send_callback(interaction,
                                             embed=generate_embed(
                                                 prefix=Func.generate_prefix('❌'),
-                                                color=utils_config.error_color,
-                                                title=Locale.Pagination.wrong_user_title[
+                                                color=config.error_color,
+                                                title=Locales.Pagination.wrong_user_title[
                                                     User.get_language(interaction.user.id)],
-                                                description=Locale.Pagination.wrong_user_desc[
+                                                description=Locales.Pagination.wrong_user_desc[
                                                     User.get_language(interaction.user.id)],
                                                 inter=inter),
                                             edit_original_response=False,
@@ -496,7 +496,7 @@ class DisUtils:
     async def confirm_message(inter, lang, description: str = '', image_url=None, ctx_message=False,
                               ephemeral: bool = False):
         message = await send_callback(inter, embed=generate_embed(
-            title=translate(Locale.Global.are_you_sure, lang),
+            title=translate(Locales.Global.are_you_sure, lang),
             description=description,
             prefix=Func.generate_prefix('❓'),
             image_url=image_url,
@@ -505,13 +505,13 @@ class DisUtils:
                                       ephemeral=ephemeral,
                                       components=[
                                           discord.ui.Button(
-                                              label=translate(Locale.Global.yes, lang),
+                                              label=translate(Locales.Global.yes, lang),
                                               custom_id='in;yes',
                                               # emoji='✅',
                                               style=discord.ButtonStyle.green
                                           ),
                                           discord.ui.Button(
-                                              label=translate(Locale.Global.no, lang),
+                                              label=translate(Locales.Global.no, lang),
                                               custom_id='in;no',
                                               # emoji='❌',
                                               style=discord.ButtonStyle.red
@@ -588,7 +588,7 @@ class DisUtils:
                 custom_id='in;ok',
                 style=discord.ButtonStyle.green,
                 # emoji='✅',
-                label=translate(Locale.Global.got_it_btn, lang),
+                label=translate(Locales.Global.got_it_btn, lang),
                 disabled=True
             )]
         message = await send_callback(inter, embed=embed, components=components)

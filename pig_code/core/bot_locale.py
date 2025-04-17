@@ -7,19 +7,10 @@ full_names = {'en': 'English',
               'ru': 'Russian | Pусский',
               'uk': 'Ukrainian | Українська'}
 
-big_texts = {
-
-}
-
-description = {'en': 'Players top',
-               'ru': 'Топ игроков'}
-server_var_name = {'en': 'global',
-                   'ru': 'глобальный'}
-server_var_desc = {'en': 'Display the global user leaderboard',
-                   'ru': 'Показать глобальный топ пользователей'}
+big_texts = {}
 
 
-class Locale:
+class Locales:
     app_commands_locales = {
         'choice-true': {'en': '✅ True',
                         'ru': '✅ Да'},
@@ -146,7 +137,13 @@ class Locale:
         'settings-say-allow-name': {'en': 'allow',
                                     'ru': 'включить'},
         'settings-say-allow-desc': {'en': 'Just choose yes or no',
-                                    'ru': 'Просто выбери да или нет'}
+                                    'ru': 'Просто выбери да или нет'},
+        'settings-top-desc': {'en': 'Configuring the leaderboard command',
+                                      'ru': 'Настройка ко��анды /leaderboard'},
+        'settings-top-participate-name': {'en': 'participate',
+                                             'ru': 'участвовать'},
+        'settings-top-participate-desc': {'en': 'Just choose yes or no',
+                                                  'ru': 'Просто выбери да или нет'},
     }
 
     user_install_content = {
@@ -424,10 +421,12 @@ class Locale:
             'ru': '*Команда `/say` отключена на этом сервере. Попросите администрацию включить её при помощи `/settings say`*'}
 
     class SettingsSay:
-        scd_title = {'en': 'Great',
-                     'ru': 'Отлично'}
-        scd_desc = {'en': '*`/say` command settings updated*',
-                    'ru': '*Настройки для команды `/say` изменены*'}
+        scd_content = {'en': '*Settings for the `/say` command have been changed and set to `{value}`*',
+                    'ru': '*Настройки для команды `/say` изменены и выставлены на `{value}`*'}
+
+    class SettingsTop:
+        scd_content = {'en': '*Participation settings for the `/top` command have been changed and set to `{value}`*',
+                    'ru': '*Настройки участия для команды `/top` изменены и выставлены на `{value}`*'}
 
     class Report:
         title = {
@@ -513,29 +512,6 @@ class Locale:
                      'ru': 'Позже'}
         support_btn = {'en': 'Support',
                        'ru': 'Оценить'}
-
-    SkinLayers = {
-        'left_eye': {'en': 'Left eye',
-                     'ru': 'Левый глаз'},
-        'right_eye': {'en': 'Right eye',
-                      'ru': 'Правый глаз'},
-        'left_pupil': {'en': 'Left pupil',
-                       'ru': 'Левый зрачок'},
-        'right_pupil': {'en': 'Right pupil',
-                        'ru': 'Правый зрачок'},
-        'left_ear': {'en': 'Left ear',
-                     'ru': 'Левое ухо'},
-        'right_ear': {'en': 'Right ear',
-                      'ru': 'Правое ухо'},
-        'body': {'en': 'Body',
-                 'ru': 'Тело'},
-        'nose': {'en': 'Nose',
-                 'ru': 'Нос'},
-        'tail': {'en': 'Tail',
-                 'ru': 'Хвост'},
-        'middle_ear': {'en': 'Middle ear',
-                       'ru': 'Среднее ухо'}
-    }
 
     class Global:
         balance = {'en': 'Balance',
@@ -814,7 +790,7 @@ class Locale:
                       'ru': 'Показать всё'}
         got_it_btn = {'en': 'Got it',
                       'ru': 'Хорошо'}
-        choose_category = {'en': 'Choose category',
+        choose_category = {'en': 'Select category',
                            'ru': 'Выберите категорию'}
         none = {'en': 'No',
                 'ru': 'Нету'}
@@ -970,116 +946,6 @@ class Locale:
         cannot_use_command_in_this_channel_desc = {
             'en': "*This command cannot be used in this channel*",
             'ru': '*Эту команду нельзя использовать в этом канале*'}
-
-    ItemTypes = {
-        'resource': {'en': 'Resource',
-                     'ru': 'Ресурс'},
-        'consumable': {'en': 'Consumable',
-                       'ru': 'Расходник'},
-        'tool': {'en': 'Tool',
-                 'ru': 'Инструмент'},
-        'device': {'en': 'Device',
-                   'ru': 'Устройство'},
-        'skin': {'en': 'Skin',
-                 'ru': 'Скин'},
-        'case': {'en': 'Case',
-                 'ru': 'Кейс'},
-        'money': {'en': 'Money',
-                  'ru': 'Деньги'},
-        'weight': {'en': 'Weight',
-                   'ru': 'Вес'},
-    }
-
-    SkinTypes = {
-        'hat': {'en': 'Headdress',
-                'ru': 'Головной убор'},
-        'glasses': {'en': 'Glasses',
-                    'ru': 'Очки'},
-        'tie': {'en': 'Tie',
-                'ru': 'Галстук'},
-        'body': {'en': 'Skin color',
-                 'ru': 'Цвет кожи'},
-        'pupils': {'en': 'Pupils',
-                   'ru': 'Зрачки'},
-        'tattoo': {'en': 'Tattoo',
-                   'ru': 'Тату'},
-        'legs': {'en': 'Legs',
-                 'ru': 'Ноги'},
-        'nose': {'en': 'Nose',
-                 'ru': 'Нос'},
-        '_nose': {'en': 'Nose',
-                  'ru': 'Нос'},
-        'eyes': {'en': 'Eyes',
-                 'ru': 'Глаза'},
-        'suit': {'en': 'Suit',
-                 'ru': 'Костюм'},
-        'makeup': {'en': 'Makeup',
-                   'ru': 'Макияж'},
-        'face': {'en': 'Face',
-                 'ru': 'Лицо'},
-        'piercing_nose': {'en': 'Piercing - nose',
-                          'ru': 'Пирсинг - нос'},
-        'piercing_ear': {'en': 'Accessory - ear',
-                         'ru': 'Аксессуар - ухо'},
-        'eye_emotion': {'en': 'Eyes emotion',
-                        'ru': 'Эмоция глаз'},
-        'mouth': {'en': 'Accessory - Mouth',
-                  'ru': 'Аксессуар - Рот'},
-        'back': {'en': 'Back',
-                 'ru': 'Спина'},
-    }
-
-    ItemRarities = {
-        '1': {'en': 'Common',
-              'ru': 'Обычный'},
-        '2': {'en': 'Uncommon',
-              'ru': 'Необычный'},
-        '3': {'en': 'Rare',
-              'ru': 'Редкий'},
-        '4': {'en': 'Epic',
-              'ru': 'Эпический'},
-        '5': {'en': 'Mythic',
-              'ru': 'Мифическое'},
-        '6': {'en': 'Legendary',
-              'ru': 'Легендарный'},
-        'custom': {'en': 'Custom',
-                   'ru': 'Кастомный'},
-        'star': {'en': 'Star',
-                 'ru': 'Звёздный'},
-        'exclusive': {'en': 'Exclusive',
-                      'ru': 'Эксклюзив'}
-    }
-
-    FamilyRoles = {
-        'owner': {'en': 'Owner',
-                  'ru': 'Глава'},
-        'member': {'en': 'Member',
-                   'ru': 'Участник'},
-    }
-
-    PigAges = {
-        '1': {'en': 'Mini-pig',
-              'ru': 'Мини-пиг'},
-        '2': {'en': 'Teenager',
-              'ru': 'Подросток'},
-        '3': {'en': 'Mature',
-              'ru': 'Зрелый'},
-        '4': {'en': 'Adult',
-              'ru': 'Взрослый'},
-        '5': {'en': 'Elder',
-              'ru': 'Старец'},
-        '6': {'en': 'Veteran',
-              'ru': 'Ветеран'},
-        '7': {'en': 'Ancient',
-              'ru': 'Вечный'},
-    }
-
-    BuffsNames = {
-        'support_server': {'en': 'Support server',
-                           'ru': 'Нахождение на сервере поддержки'},
-        'pig_weight': {'en': 'Pig Weight',
-                       'ru': 'Вес Хряка'}
-    }
 
     Permissions = {'add_reactions': {'en': 'Add reactions', 'ru': 'Добавлять реакции'},
                    'administrator': {'en': 'Administrator', 'ru': 'Администратор'},

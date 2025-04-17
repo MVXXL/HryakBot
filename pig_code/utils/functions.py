@@ -19,13 +19,13 @@ class Translator(discord.app_commands.Translator):
                                 discord.app_commands.TranslationContextLocation.parameter_name,
                                 discord.app_commands.TranslationContextLocation.parameter_description,
                                 discord.app_commands.TranslationContextLocation.choice_name]:
-            if string.message not in Locale.app_commands_locales:
+            if string.message not in Locales.app_commands_locales:
                 return string.message
             if locale in [discord.Locale.russian, discord.Locale.ukrainian]:
-                return translate(Locale.app_commands_locales[string.message], 'ru')
+                return translate(Locales.app_commands_locales[string.message], 'ru')
             elif locale in [discord.Locale.american_english, discord.Locale.british_english]:
-                return translate(Locale.app_commands_locales[string.message], 'en')
-            return translate(Locale.app_commands_locales[string.message], 'en')
+                return translate(Locales.app_commands_locales[string.message], 'en')
+            return translate(Locales.app_commands_locales[string.message], 'en')
         return None
 
 
@@ -59,7 +59,7 @@ class Func:
 
     @staticmethod
     def generate_random_pig_name(language):
-        return f'{translate(utils_config.pig_names[0], language)} {translate(utils_config.pig_names[1], language)}'
+        return f'{translate(config.pig_names[0], language)} {translate(config.pig_names[1], language)}'
 
     @staticmethod
     def get_command_name_and_options(ctx):
@@ -140,8 +140,8 @@ class Func:
     def translate_permissions(perms: list, lang: str):
         missing_perms = []
         for perm in perms:
-            if perm in Locale.Permissions:
-                missing_perms.append(translate(Locale.Permissions[perm], lang))
+            if perm in Locales.Permissions:
+                missing_perms.append(translate(Locales.Permissions[perm], lang))
             else:
                 missing_perms.append(perm.replace('_', ' ').capitalize())
         return missing_perms
