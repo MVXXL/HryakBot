@@ -8,7 +8,7 @@ class Tasks(commands.Cog):
         self.client = client
         self.daily_shop_update.start()
         self.process_streaks.start()
-        self.process_orders.start()
+        # self.process_orders.start()
         if not config.TEST:
             self.monitoring_data_update.start()
 
@@ -21,7 +21,6 @@ class Tasks(commands.Cog):
     async def process_streaks(self):
         await self.client.wait_until_ready()
         users = Tech.get_all_users(where=f"JSON_EXTRACT(stats, '$.streak') > 0")
-        print(users)
         for user_id in users:
             if hryak.GameFunc.calculate_missed_streak_days(user_id) > 1:
                 Stats.set_streak(user_id, 0)
