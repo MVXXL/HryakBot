@@ -84,7 +84,7 @@ async def inventory_item_selected(inter, item_id, message: discord.Message = Non
 
 async def wardrobe_item_wear(inter, item_id, message: discord.Message = None, category: str = None, page: int = 1):
     lang = User.get_language(inter.user.id)
-    response = await hryak.requests.post_requests.wear_skin(inter.user.id, item_id)
+    response = hryak.requests.post_requests.wear_skin(inter.user.id, item_id)
     choose_parts = False
     if response.get('status') == 'pending;choose_parts':
         choose_parts = True

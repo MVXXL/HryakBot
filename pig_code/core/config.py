@@ -16,7 +16,7 @@ def get_env(key, value_type=None):
 
 TOKEN = get_env('TOKEN')
 TEST_TOKEN = get_env('TEST_TOKEN')
-TEST = False
+TEST = True
 HOSTING_TYPE = 'pc' if not TEST else None
 ADMIN_GUILDS = get_env('ADMIN_GUILDS', list)
 TEST_GUILDS = get_env('TEST_GUILDS', list)

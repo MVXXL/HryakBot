@@ -16,6 +16,7 @@ async def profile(inter, user: discord.User = None, pre_command_check: bool = Tr
     if user is None:
         user = inter.user
     User.register_user_if_not_exists(user.id)
+    print(User.get_rate_number(user.id, inter.user.id))
     if _components is None:
         _components = []
         _components += [discord.ui.Button(

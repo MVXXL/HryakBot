@@ -213,6 +213,7 @@ class Events(commands.Cog):
                                                                 trade_id=trade_id,
                                                                 pre_command_check=False)
                 if custom_id_params[0] in ['like', 'dislike']:
+                    print(1234)
                     if custom_id_params[0] == 'like':
                         User.append_rate(custom_id_params[1], interaction.user.id, 1)
                     elif custom_id_params[0] == 'dislike':
