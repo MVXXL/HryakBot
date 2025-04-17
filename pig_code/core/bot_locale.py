@@ -304,9 +304,9 @@ class Locales:
         profile_title = {'en': 'Profile of {user}',
                          'ru': 'Профиль {user}'}
         user_profile_desc = {'en': '> Balance: **{coins}** 🪙 **{hollars}** 💵\n'
-                                   '> Reputation: **{likes}** {rating_status}',
+                                   '> Reputation: **{likes}** {rating_status} **|** {pos_amount} - {neg_amount}',
                              'ru': '> Баланс: **{coins}** 🪙 **{hollars}** 💵\n'
-                                   '> Репутация: **{likes}** {rating_status}\n'}
+                                   '> Репутация: **{likes}** {rating_status} **|** {pos_amount} - {neg_amount}\n'}
         pig_profile_desc = {'en': '> Pig name: **{pig_name}**\n'
                                   '> Age: **{age}**\n'
                                   '> Weight: **{weight}** kg',

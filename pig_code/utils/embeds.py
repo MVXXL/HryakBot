@@ -22,7 +22,9 @@ class Embeds:
                                      format_options={'coins': Item.get_amount('coins', user.id),
                                                      'hollars': Item.get_amount('hollars', user.id),
                                                      'likes': rating_number,
-                                                     'rating_status': rating_status}) + '\n\n'
+                                                     'rating_status': rating_status,
+                                                     'pos_amount': User.get_amount_of_positive_ratings(user.id),
+                                                     'neg_amount': User.get_amount_of_negative_ratings(user.id)}) + '\n\n'
         if 'pig' in info:
             description += translate(Locales.Profile.pig_profile_desc, lang,
                                      format_options={'pig_name': Pig.get_name(user.id),
