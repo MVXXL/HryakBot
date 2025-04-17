@@ -15,7 +15,6 @@ def get_env(key, value_type=None):
         return value_type(value)
     return value
 
-
 TOKEN = get_env('TOKEN')
 TEST_TOKEN = get_env('TEST_TOKEN')
 TEST = get_env('TEST', bool)
