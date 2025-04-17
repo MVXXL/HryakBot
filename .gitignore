@@ -6,3 +6,4 @@ __pycache__/
 /pig_code/core/.env
 /logs/
 /temp/
+*.pyc
