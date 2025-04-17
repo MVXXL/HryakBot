@@ -10,13 +10,16 @@ def get_env(key, value_type=None):
     if value_type:
         if value_type == list:
             return eval(value)
+        elif value_type == bool:
+            return value.lower() in ['true']
         return value_type(value)
     return value
 
 
 TOKEN = get_env('TOKEN')
 TEST_TOKEN = get_env('TEST_TOKEN')
-TEST = True
+TEST = get_env('TEST', bool)
+print(TEST)
 HOSTING_TYPE = 'pc' if not TEST else None
 ADMIN_GUILDS = get_env('ADMIN_GUILDS', list)
 TEST_GUILDS = get_env('TEST_GUILDS', list)
