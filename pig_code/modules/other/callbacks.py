@@ -30,6 +30,7 @@ async def profile(inter, user: discord.User = None, pre_command_check: bool = Tr
                 disabled=True if User.get_rate_number(user.id, inter.user.id) == -1 else False
             )
         ]
+
     await send_callback(inter, embed=await Embeds.profile_embed(inter, lang, user, info,
                                                                await DisUtils.generate_user_pig(user.id)),
                         ephemeral=ephemeral,
