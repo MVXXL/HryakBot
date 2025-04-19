@@ -273,6 +273,8 @@ class Locales:
                                       'ru': '*Вам нужно заплатить некоторое количество налогов, чтобы осуществить трейд*'}
         tax_splitting_process_who_pays_desc = {'en': '*You need to decide who will pay the tax*',
                                                'ru': '*Вам нужно решить, кто заплатит налог*'}
+        split_equally = {'en': 'Split equally',
+                            'ru': 'Пополам'}
 
     class SendMoney:
         scd_title = {'en': 'Transaction was successful',
@@ -513,6 +515,20 @@ class Locales:
                      'ru': 'Позже'}
         support_btn = {'en': 'Support',
                        'ru': 'Оценить'}
+
+    class Pagination:
+        page = {'en': 'Page',
+                'ru': 'Страница'}
+        next = {'en': 'Next',
+                'ru': 'Следующая'}
+        previous = {'en': 'Previous',
+                    'ru': 'Предыдущая'}
+        select_category = {'en': 'Select category',
+                            'ru': 'Выберите категорию'}
+        wrong_user_title = {'en': 'Hey, it\'s not your message',
+                            'ru': 'Эй, это не твоё сообщение'}
+        wrong_user_desc = {'en': "*You cannot simply flip through other people's pages*",
+                           'ru': '*Ты не можешь просто взять и листать чужие страницы*'}
 
     class Global:
         balance = {'en': 'Balance',
@@ -1299,8 +1315,3 @@ class Locales:
         scd_title = {'en': 'Join message reset',
                      'ru': 'Приветственное сообщение сброшено'}
 
-    class Pagination:
-        wrong_user_title = {'en': 'Hey, it\'s not your message',
-                            'ru': 'Эй, это не твоё сообщение'}
-        wrong_user_desc = {'en': "*You cannot simply flip through other people's pages*",
-                           'ru': '*Ты не можешь просто взять и листать чужие страницы*'}

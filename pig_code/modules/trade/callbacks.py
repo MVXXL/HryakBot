@@ -94,7 +94,7 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
                                   custom_id=f'trade;tax_split_2;{trade_id}',
                                   row=1),
                 discord.ui.Button(style=discord.ButtonStyle.blurple,
-                                  label=f'{f"{await Trade.get_total_tax_splitting_votes(trade_id, 'tax_split_equal')}/2 " if await Trade.get_total_tax_splitting_votes(trade_id, 'tax_split_equal') > 0 else ""}Пополам',
+                                  label=f'{f"{await Trade.get_total_tax_splitting_votes(trade_id, 'tax_split_equal')}/2 " if await Trade.get_total_tax_splitting_votes(trade_id, 'tax_split_equal') > 0 else ""}{translate(Locales.Trade.split_equally, lang)}',
                                   custom_id=f'trade;tax_split_equal;{trade_id}',
                                   row=1)
             ]

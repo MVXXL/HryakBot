@@ -1,3 +1,23 @@
+import asyncio
+import ssl
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+def loop_exception_handler(loop, context):
+    exc = context.get("exception")
+    if isinstance(exc, ssl.SSLError) and "bad record mac" in str(exc).lower():
+        logging.warning("[SSL] bad record mac caught: %s", exc)
+        # you can schedule a retry or pool reset here, e.g.:
+        # asyncio.create_task(reset_pool())
+        return  # swallow it
+    # fallback for everything else
+    loop.default_exception_handler(context)
+
+# install this **before** you start your bot
+loop = asyncio.get_event_loop()
+loop.set_exception_handler(loop_exception_handler)
+
 from pig_code.core import *
 from pig_code.utils.functions import Translator
 from pig_code.utils import error_callbacks

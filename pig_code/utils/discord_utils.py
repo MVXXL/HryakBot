@@ -310,20 +310,22 @@ class DisUtils:
             if is_categorised_pages():
                 options = [discord.SelectOption(label=i, value=str(i), emoji='➡️' if current_cat == i else None) for i
                            in embeds]
-            return discord.ui.Select(custom_id='in;choose_category',
-                                     placeholder=translate(Locales.Global.choose_category, lang),
+            return discord.ui.Select(custom_id='in;select_category',
+                                     placeholder=translate(Locales.Pagination.select_category, lang),
                                      options=options,
                                      row=3)
 
         def arrows_components():
             return [discord.ui.Button(
                 style=discord.ButtonStyle.primary,
+                label=translate(Locales.Pagination.previous, lang),
                 emoji='◀',
                 custom_id='in;previous',
                 row=4
             ),
                 discord.ui.Button(
                     style=discord.ButtonStyle.primary,
+                    label=translate(Locales.Pagination.next, lang),
                     emoji='▶',
                     custom_id='in;next',
                     row=4
@@ -344,11 +346,11 @@ class DisUtils:
                     if len(embeds[i]['embeds']) > 1:
                         for j, embed in enumerate(embeds[i]['embeds']):
                             embed['embed'].set_footer(
-                                text=f'📚 {translate(Locales.Global.page, lang)}: {j + 1}')
+                                text=f'📚 {translate(Locales.Pagination.page, lang)}: {j + 1}')
             elif len(embeds[list(embeds)[0]]['embeds']) > 1:
                 for i, embed in enumerate(embeds[list(embeds)[0]]['embeds']):
                     embed['components'] += arrows_components()
-                    embed['embed'].set_footer(text=f'📚 {translate(Locales.Global.page, lang)}: {i + 1}')
+                    embed['embed'].set_footer(text=f'📚 {translate(Locales.Pagination.page, lang)}: {i + 1}')
 
 
         else:
@@ -376,7 +378,7 @@ class DisUtils:
             for i, element in enumerate(embeds.values()):
                 if arrows and len(embeds) > 1:
                     element['embed'].set_footer(
-                        text=f'📚 {translate(Locales.Global.page, lang)}: {i + 1}',
+                        text=f'📚 {translate(Locales.Pagination.page, lang)}: {i + 1}',
                         icon_url=Func.generate_footer_url('user_avatar', inter.user))
         if is_categorised_pages():
             if len(embeds[current_cat]['embeds']) < current_page:
@@ -431,7 +433,7 @@ class DisUtils:
                 return
             if type(interaction) != discord.interactions.Interaction:
                 continue
-            if interaction.data.get('custom_id') in ['in;next', 'in;previous', 'hide', 'in;choose_category']:
+            if interaction.data.get('custom_id') in ['in;next', 'in;previous', 'hide', 'in;select_category']:
                 try:
                     if not ephemeral:
                         await interaction.response.defer(ephemeral=True)
@@ -447,7 +449,7 @@ class DisUtils:
                 if is_categorised_pages():
                     embeds_num = len(embeds[current_cat]['embeds'])
                 current_page = Func.get_changed_page_number(embeds_num, current_page, -1)
-            elif interaction.data.get('custom_id') == 'in;choose_category':
+            elif interaction.data.get('custom_id') == 'in;select_category':
                 if not is_categorised_pages():
                     current_page = int(interaction.data.get('values')[0]) + 1
                 else:
@@ -463,7 +465,7 @@ class DisUtils:
             components = get_current_embed()['components']
             for i in range(len(components)):
                 try:
-                    if components[i].custom_id == 'in;choose_category':
+                    if components[i].custom_id == 'in;select_category':
                         components[i] = category_components()
                 except TypeError as e:
                     continue
