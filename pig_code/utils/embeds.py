@@ -13,29 +13,29 @@ class Embeds:
         description = ''
         if 'user' in info:
             rating_status = ''
-            rating_number = User.get_rating_total_number(user.id)
+            rating_number = await User.get_rating_total_number(user.id)
             if rating_number > 0:
                 rating_status = '💚'
             elif rating_number < 0:
                 rating_status = '⚠️'
             description += translate(Locales.Profile.user_profile_desc, lang,
-                                     format_options={'coins': Item.get_amount('coins', user.id),
-                                                     'hollars': Item.get_amount('hollars', user.id),
+                                     format_options={'coins': await Item.get_amount('coins', user.id),
+                                                     'hollars': await Item.get_amount('hollars', user.id),
                                                      'likes': rating_number,
                                                      'rating_status': rating_status,
-                                                     'pos_amount': User.get_amount_of_positive_ratings(user.id),
-                                                     'neg_amount': User.get_amount_of_negative_ratings(user.id)}) + '\n\n'
+                                                     'pos_amount': await User.get_amount_of_positive_ratings(user.id),
+                                                     'neg_amount': await User.get_amount_of_negative_ratings(user.id)}) + '\n\n'
         if 'pig' in info:
             description += translate(Locales.Profile.pig_profile_desc, lang,
-                                     format_options={'pig_name': Pig.get_name(user.id),
-                                                     'weight': Pig.get_weight(user.id),
-                                                     'age': Pig.age(user.id, lang)}) + '\n\n'
+                                     format_options={'pig_name': await Pig.get_name(user.id),
+                                                     'weight': await Pig.get_weight(user.id),
+                                                     'age': await Pig.age(user.id, lang)}) + '\n\n'
         embed = generate_embed(
             title=translate(Locales.Profile.profile_title, lang, {'user': user.display_name}),
             description=description,
             prefix=Func.generate_prefix('🐽'),
             thumbnail_url=thumbnail_url,
-            footer=Func.generate_footer(inter, second_part=f'{Stats.get_streak(user.id)} 🔥'),
+            footer=Func.generate_footer(inter, second_part=f'{await Stats.get_streak(user.id)} 🔥'),
             inter=inter,
         )
         return embed
@@ -45,29 +45,29 @@ class Embeds:
         footer = Func.generate_footer(inter)
         footer_url = Func.generate_footer_url('user_avatar', inter.user)
         basic_info_desc = ''
-        title = Item.get_name(item_id, lang)
-        item_description = Item.get_description(item_id, lang)
-        prefix = Func.generate_prefix(Item.get_emoji(item_id))
-        embed_color = hryak.config.rarity_colors[Item.get_rarity(item_id)]
+        title = await Item.get_name(item_id, lang)
+        item_description = await Item.get_description(item_id, lang)
+        prefix = Func.generate_prefix(await Item.get_emoji(item_id))
+        embed_color = hryak.config.rarity_colors[await Item.get_rarity(item_id)]
         thumbnail_url = None
-        if Item.get_type(item_id) == 'skin':
+        if await Item.get_type(item_id) == 'skin':
             preview_options = hryak.config.default_pig['skins'].copy()
-            preview_options = Pig.set_skin_to_options(preview_options, item_id.split('.')[0])
+            preview_options = await Pig.set_skin_to_options(preview_options, item_id.split('.')[0])
             thumbnail_url = await hryak.GameFunc.build_pig(tuple(preview_options.items()))
         elif await Item.get_image_path(item_id, config.TEMP_FOLDER_PATH) is not None:
             thumbnail_url = await Item.get_image_path(item_id, config.TEMP_FOLDER_PATH)
         if _type in ['inventory', 'wardrobe']:
-            basic_info_desc += f'{translate(Locales.Global.amount, lang)}: **{Item.get_amount(item_id, inter.user.id)}**\n'
-            basic_info_desc += f'{translate(Locales.Global.type, lang)}: **{Item.get_skin_type(item_id, lang) if Item.get_type(item_id) == "skin" else Item.get_type(item_id, lang)}**\n'
-            basic_info_desc += f'{translate(Locales.Global.rarity, lang)}: **{Item.get_rarity(item_id, lang)}**'
-            if Item.is_salable(item_id):
-                basic_info_desc += f'\n{translate(Locales.Global.cost_per_item, lang)}: **{Item.get_sell_price(item_id)} {Item.get_emoji(Item.get_sell_price_currency(item_id))}**'
+            basic_info_desc += f'{translate(Locales.Global.amount, lang)}: **{await Item.get_amount(item_id, inter.user.id)}**\n'
+            basic_info_desc += f'{translate(Locales.Global.type, lang)}: **{await Item.get_skin_type(item_id, lang) if await Item.get_type(item_id) == "skin" else await Item.get_type(item_id, lang)}**\n'
+            basic_info_desc += f'{translate(Locales.Global.rarity, lang)}: **{await Item.get_rarity(item_id, lang)}**'
+            if await Item.is_salable(item_id):
+                basic_info_desc += f'\n{translate(Locales.Global.cost_per_item, lang)}: **{await Item.get_sell_price(item_id)} {await Item.get_emoji(await Item.get_sell_price_currency(item_id))}**'
         elif _type == 'shop':
-            if Item.get_amount(item_id) > 1:
-                basic_info_desc += f'{translate(Locales.Global.amount, lang)}: **{Item.get_amount(item_id)}**\n'
-            basic_info_desc += f'{translate(Locales.Global.price, lang)}: **{Item.get_market_price(item_id)} {Item.get_emoji(Item.get_market_price_currency(item_id))}**\n'
-            basic_info_desc += f'{translate(Locales.Global.type, lang)}: **{Item.get_skin_type(item_id, lang) if Item.get_type(item_id) == "skin" else Item.get_type(item_id, lang)}**\n'
-            basic_info_desc += f'{translate(Locales.Global.rarity, lang)}: **{Item.get_rarity(item_id, lang)}**'
+            if await Item.get_amount(item_id) > 1:
+                basic_info_desc += f'{translate(Locales.Global.amount, lang)}: **{await Item.get_amount(item_id)}**\n'
+            basic_info_desc += f'{translate(Locales.Global.price, lang)}: **{await Item.get_market_price(item_id)} {await Item.get_emoji(await Item.get_market_price_currency(item_id))}**\n'
+            basic_info_desc += f'{translate(Locales.Global.type, lang)}: **{await Item.get_skin_type(item_id, lang) if await Item.get_type(item_id) == "skin" else await Item.get_type(item_id, lang)}**\n'
+            basic_info_desc += f'{translate(Locales.Global.rarity, lang)}: **{await Item.get_rarity(item_id, lang)}**'
         embed = generate_embed(
             title=title,
             description=basic_info_desc,
@@ -93,14 +93,16 @@ class Embeds:
             sorted_items = {}
             for cat in _items:
                 if list_type == 'inventory':
-                    sorted_items[cat] = sorted(_items[cat], key=lambda x: Item.get_type(x))
+                    types = await asyncio.gather(*(Item.get_type(x) for x in _items[cat]))
+                    sorted_items[cat] = [x for _, x in sorted(zip(types, _items[cat]), key=lambda pair: pair[0])]
                 elif list_type == 'wardrobe':
-                    sorted_items[cat] = sorted(_items[cat], key=lambda x: Item.get_skin_type(x))
+                    skin_types = await asyncio.gather(*(Item.get_skin_type(x) for x in _items[cat]))
+                    sorted_items[cat] = [x for _, x in sorted(zip(skin_types, _items[cat]), key=lambda pair: pair[0])]
             if sorted_items:
                 _items = sorted_items.copy()
             # elif list_type == 'shop':
             #     for cat in _items:
-            #         sorted_items[cat] = sorted(_items[cat], key=lambda x: Item.get_market_price(x))
+            #         sorted_items[cat] = sorted(_items[cat], key=lambda x: await Item.get_market_price(x))
             #     _items = sorted_items.copy()
         if client is None:
             client = inter.client
@@ -117,34 +119,34 @@ class Embeds:
                 field_value = '----'
                 after_prefix = ''
                 if list_type in ['inventory', 'wardrobe']:
-                    if tradable_items_only and not Item.is_tradable(item):
+                    if tradable_items_only and not await Item.is_tradable(item):
                         continue
-                    if Item.exists(item):
+                    if await Item.exists(item):
                         field_value = ''
-                        if Item.get_amount(item, inter.user.id) == 0:
+                        if await Item.get_amount(item, inter.user.id) == 0:
                             continue
                         if list_type == 'inventory':
-                            field_value += f'{translate(Locales.Global.rarity, lang)}: {Item.get_rarity(item, lang)}\n'
-                            if Item.is_salable(item):
-                                field_value += f'{translate(Locales.Global.cost_per_item, lang)}: {Item.get_sell_price(item)} {Item.get_emoji(Item.get_sell_price_currency(item))}'
+                            field_value += f'{translate(Locales.Global.rarity, lang)}: {await Item.get_rarity(item, lang)}\n'
+                            if await Item.is_salable(item):
+                                field_value += f'{translate(Locales.Global.cost_per_item, lang)}: {await Item.get_sell_price(item)} {await Item.get_emoji(await Item.get_sell_price_currency(item))}'
                             else:
-                                field_value += f'{translate(Locales.Global.type, lang)}: {Item.get_type(item, lang)}'
+                                field_value += f'{translate(Locales.Global.type, lang)}: {await Item.get_type(item, lang)}'
                         elif list_type == 'wardrobe':
-                            field_value += f'{translate(Locales.Global.type, lang)}: {Item.get_skin_type(item, lang)}\n' \
-                                           f'{translate(Locales.Global.rarity, lang)}: {Item.get_rarity(item, lang)}'
+                            field_value += f'{translate(Locales.Global.type, lang)}: {await Item.get_skin_type(item, lang)}\n' \
+                                           f'{translate(Locales.Global.rarity, lang)}: {await Item.get_rarity(item, lang)}'
                         field_value = f'```{field_value}```'
-                        after_prefix = f" x{Item.get_amount(item, inter.user.id)}"
-                        item_label_without_prefix = f'{Item.get_name(item, lang)}'
-                        emoji = Item.get_emoji(item)
-                        option_desc = Func.cut_text(Item.get_description(item, lang), 100)
+                        after_prefix = f" x{await Item.get_amount(item, inter.user.id)}"
+                        item_label_without_prefix = f'{await Item.get_name(item, lang)}'
+                        emoji = await Item.get_emoji(item)
+                        option_desc = Func.cut_text(await Item.get_description(item, lang), 100)
                 elif list_type == 'shop':
-                    field_value = f'```{translate(Locales.Global.price, lang)}: {Item.get_market_price(item)} {Item.get_emoji(Item.get_market_price_currency(item))}\n' \
-                                  f'{translate(Locales.Global.rarity, lang)}: {Item.get_rarity(item, lang)}```'
-                    after_prefix = f" x{Item.get_amount(item)}" if Item.get_amount(item) > 1 else ""
-                    item_label_without_prefix = f'{Item.get_name(item, lang)}'
-                    emoji = Item.get_emoji(item)
-                    option_desc = Func.cut_text(Item.get_description(item, lang), 100)
-                    footer_first_part = f'{translate(Locales.Global.balance, lang)}: {Item.get_amount('coins', inter.user.id)} 🪙'
+                    field_value = f'```{translate(Locales.Global.price, lang)}: {await Item.get_market_price(item)} {await Item.get_emoji(await Item.get_market_price_currency(item))}\n' \
+                                  f'{translate(Locales.Global.rarity, lang)}: {await Item.get_rarity(item, lang)}```'
+                    after_prefix = f" x{await Item.get_amount(item)}" if await Item.get_amount(item) > 1 else ""
+                    item_label_without_prefix = f'{await Item.get_name(item, lang)}'
+                    emoji = await Item.get_emoji(item)
+                    option_desc = Func.cut_text(await Item.get_description(item, lang), 100)
+                    footer_first_part = f'{translate(Locales.Global.balance, lang)}: {await Item.get_amount('coins', inter.user.id)} 🪙'
                 item_fields.append(
                     {
                         'name': f'{Func.generate_prefix(emoji, backticks=False)}{item_label_without_prefix}',

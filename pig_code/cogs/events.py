@@ -1,4 +1,4 @@
-from ..core.items.item_components.item_components import item_components
+from ..core.items.item_components import item_components
 from ..utils import *
 from .. import modules
 from ..core import *
@@ -25,23 +25,27 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f'Bot is ready: {self.client.user}')
+        await hryak.db_api.connection.pool.create_pool()
+        print('> Pool is created')
         if not os.path.exists(config.TEMP_FOLDER_PATH):
             os.makedirs(config.TEMP_FOLDER_PATH)
         print('> Temp folder is created')
-        Setup.create_user_table()
-        Setup.create_shop_table()
-        Setup.create_promo_code_table()
-        Setup.create_guild_table()
+        await item_components.build_item_components()
+        print('> Item components are built')
+        await Setup.create_guild_table()
+        await Setup.create_user_table()
+        await Setup.create_shop_table()
+        await Setup.create_promo_code_table()
         print('> Tables are created')
-        Guild.register([guild.id for guild in self.client.guilds])
+        await Guild.register([guild.id for guild in self.client.guilds])
         print('> Guilds are registered')
-        Pig.fix_pig_structure_for_all_users()
+        await Pig.fix_pig_structure_for_all_users()
         print('> Pig structures are fixed')
-        Stats.fix_stats_structure_for_all_users()
+        await Stats.fix_stats_structure_for_all_users()
         print('> Stats structures are fixed')
-        History.fix_history_structure_for_all_users()
+        await History.fix_history_structure_for_all_users()
         print('> History structures are fixed')
-        User.fix_settings_structure_for_all_users()
+        await User.fix_settings_structure_for_all_users()
         print('> User settings structures are fixed')
         for guild_id in [*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS]:
             try:
@@ -59,11 +63,11 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
-        User.register_user_if_not_exists(interaction.user.id)
+        await User.register_user_if_not_exists(interaction.user.id)
         if interaction.type == discord.InteractionType.application_command:
             command_name, options = Func.get_command_name_and_options(interaction)
             is_dm = True if interaction.guild is None else False
-            Func.add_log('command_used',
+            await hryak.Func.add_log('command_used',
                          user_name=str(interaction.user),
                          user_id=interaction.user.id,
                          guild_name=str(interaction.guild) if not is_dm else None,
@@ -79,7 +83,7 @@ class Events(commands.Cog):
             if custom_id_params and custom_id_params[0] == 'in':
                 return
             allowed_users = []
-            lang = User.get_language(interaction.user.id)
+            lang = await User.get_language(interaction.user.id)
             if custom_id_params and custom_id_params[0] == 'trade':
                 trade_id = None
                 if custom_id_params[1] == 'add':
@@ -111,21 +115,21 @@ class Events(commands.Cog):
                                                                                      translate(
                                                                                          Locales.Trade.add_item_with_tax_modal_label,
                                                                                          lang, {
-                                                                                             'tax': hryak.GameFunc.get_user_tax_percent(
+                                                                                             'tax': await hryak.GameFunc.get_user_tax_percent(
                                                                                                  interaction.user.id,
                                                                                                  action_object),
-                                                                                             'item_name': Item.get_name(
+                                                                                             'item_name': await Item.get_name(
                                                                                                  action_object, lang)}),
-                                                                                     max_amount=Item.get_amount(
+                                                                                     max_amount=await Item.get_amount(
                                                                                          action_object,
-                                                                                         interaction.user.id) - Trade.get_item_amount(
+                                                                                         interaction.user.id) - await Trade.get_item_amount(
                                                                                          trade_id, interaction.user.id,
                                                                                          action_object),
                                                                                      delete_response=True
                                                                                      )
                             if amount is False:
                                 return
-                            Trade.add_item(trade_id, modal_interaction.user.id, action_object, amount)
+                            await Trade.add_item(trade_id, modal_interaction.user.id, action_object, amount)
                             await modules.trade.callbacks.trade(modal_interaction,
                                                                 user1,
                                                                 user2,
@@ -148,8 +152,8 @@ class Events(commands.Cog):
                         user2_id = await Trade.get_user(interaction.client, trade_id, 1, fetch=False)
                         if custom_id_params[1] == 'agree':
                             await interaction.response.defer()
-                            Trade.set_agree(trade_id, interaction.user.id,
-                                            True if not Trade.is_agree(trade_id, interaction.user.id) else False)
+                            await Trade.set_agree(trade_id, interaction.user.id,
+                                            True if not await Trade.is_agree(trade_id, interaction.user.id) else False)
                             await modules.trade.callbacks.trade(interaction,
                                                                 await Trade.get_user(interaction.client, trade_id, 0),
                                                                 await Trade.get_user(interaction.client, trade_id, 1),
@@ -165,9 +169,9 @@ class Events(commands.Cog):
                                                                              config.image_links['trade']))
                         elif custom_id_params[1] == 'clear':
                             await interaction.response.defer()
-                            Trade.set_agree(trade_id, user1_id, False)
-                            Trade.set_agree(trade_id, user2_id, False)
-                            Trade.clear_items(trade_id, interaction.user.id)
+                            await Trade.set_agree(trade_id, user1_id, False)
+                            await Trade.set_agree(trade_id, user2_id, False)
+                            await Trade.clear_items(trade_id, interaction.user.id)
                             await modules.trade.callbacks.trade(interaction,
                                                                 await Trade.get_user(interaction.client, trade_id, 0),
                                                                 await Trade.get_user(interaction.client, trade_id, 1),
@@ -181,11 +185,11 @@ class Events(commands.Cog):
                                                                                          lang),
                                                                                      translate(
                                                                                          Locales.Trade.add_item_modal_label,
-                                                                                         lang, {'item': Item.get_name(
+                                                                                         lang, {'item': await Item.get_name(
                                                                                              action_object, lang)}),
-                                                                                     max_amount=Item.get_amount(
+                                                                                     max_amount=await Item.get_amount(
                                                                                          action_object,
-                                                                                         interaction.user.id) - Trade.get_item_amount(
+                                                                                         interaction.user.id) - await Trade.get_item_amount(
                                                                                          trade_id, interaction.user.id,
                                                                                          action_object),
                                                                                      delete_response=True
@@ -193,9 +197,9 @@ class Events(commands.Cog):
                             if amount is False:
                                 return
                             await interaction.delete_original_response()
-                            Trade.add_item(trade_id, modal_interaction.user.id, action_object, amount)
-                            Trade.set_agree(trade_id, user1_id, False)
-                            Trade.set_agree(trade_id, user2_id, False)
+                            await Trade.add_item(trade_id, modal_interaction.user.id, action_object, amount)
+                            await Trade.set_agree(trade_id, user1_id, False)
+                            await Trade.set_agree(trade_id, user2_id, False)
                             await modules.trade.callbacks.trade(interaction,
                                                                 await Trade.get_user(modal_interaction.client, trade_id,
                                                                                      0),
@@ -206,7 +210,7 @@ class Events(commands.Cog):
 
                         elif custom_id_params[1] in ['tax_split_1', 'tax_split_2', 'tax_split_equal']:
                             await interaction.response.defer()
-                            Trade.set_tax_splitting_vote(trade_id, interaction.user.id, custom_id_params[1])
+                            await Trade.set_tax_splitting_vote(trade_id, interaction.user.id, custom_id_params[1])
                             await modules.trade.callbacks.trade(interaction,
                                                                 await Trade.get_user(interaction.client, trade_id, 0),
                                                                 await Trade.get_user(interaction.client, trade_id, 1),
@@ -215,9 +219,9 @@ class Events(commands.Cog):
                 if custom_id_params[0] in ['like', 'dislike']:
                     print(1234)
                     if custom_id_params[0] == 'like':
-                        User.append_rate(custom_id_params[1], interaction.user.id, 1)
+                        await User.append_rate(custom_id_params[1], interaction.user.id, 1)
                     elif custom_id_params[0] == 'dislike':
-                        User.append_rate(custom_id_params[1], interaction.user.id, -1)
+                        await User.append_rate(custom_id_params[1], interaction.user.id, -1)
                     await modules.other.callbacks.profile(interaction,
                                                           await User.get_user(interaction.client, custom_id_params[1]),
                                                           pre_command_check=False)
@@ -268,15 +272,15 @@ class Events(commands.Cog):
                     await modules.inventory.callbacks.wardrobe_item_remove(interaction, custom_id_params[1],
                                                                            category=custom_id_params[2],
                                                                            page=int(custom_id_params[3]))
-                elif len(custom_id_params) > 1 and custom_id_params[1] in item_components and custom_id_params[0] in \
-                        item_components[custom_id_params[1]]:
+                elif len(custom_id_params) > 1 and custom_id_params[1] in item_components.item_components and custom_id_params[0] in \
+                        item_components.item_components[custom_id_params[1]]:
                     async def update_inventory(edit_followup: bool = False):
-                        if Item.get_amount(custom_id_params[1], interaction.user.id) == 0:
-                            if Item.get_inventory_type(custom_id_params[1]) == 'wardrobe':
+                        if await Item.get_amount(custom_id_params[1], interaction.user.id) == 0:
+                            if await Item.get_inventory_type(custom_id_params[1]) == 'wardrobe':
                                 await modules.inventory.callbacks.wardrobe(interaction, edit_followup=edit_followup,
                                                                            init_category=custom_id_params[2],
                                                                            init_page=int(custom_id_params[3]))
-                            elif Item.get_inventory_type(custom_id_params[1]) == 'inventory':
+                            elif await Item.get_inventory_type(custom_id_params[1]) == 'inventory':
                                 await modules.inventory.callbacks.inventory(interaction, edit_followup=edit_followup,
                                                                             init_category=custom_id_params[2],
                                                                             init_page=int(custom_id_params[3]))
@@ -284,7 +288,7 @@ class Events(commands.Cog):
                             await modules.inventory.callbacks.inventory_item_selected(interaction, custom_id_params[1],
                                                                                       edit_followup=edit_followup)
 
-                    if Item.get_amount(custom_id_params[1], interaction.user.id) <= 0:
+                    if await Item.get_amount(custom_id_params[1], interaction.user.id) <= 0:
                         await error_callbacks.no_item(interaction, custom_id_params[1], edit_original_response=False,
                                                       ephemeral=True,
                                                       thumbnail_url=await Item.get_image_path(custom_id_params[1], config.TEMP_FOLDER_PATH))
@@ -328,28 +332,28 @@ class Events(commands.Cog):
                 if datetime.datetime.now().day in [1, 2, 3]:
                     amount *= 2
                 message = await self.client.get_channel(payload.channel_id).fetch_message(payload.message_id)
-                User.add_item(message.author.id, reward_item_id, amount)
+                await User.add_item(message.author.id, reward_item_id, amount)
                 await message.reply(
-                    f'{Item.get_emoji(reward_item_id)}・*Выдана награда: **{Item.get_name(reward_item_id, 'ru')}** x{amount}*')
+                    f'{await Item.get_emoji(reward_item_id)}・*Выдана награда: **{await Item.get_name(reward_item_id, 'ru')}** x{amount}*')
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         if member.guild.id in config.BOT_GUILDS:
             if member.guild.id == config.BOT_GUILDS[config.EN_BOT_GUILD_ID]:
-                if User.get_language(member.id) in ['ru']:
+                if await User.get_language(member.id) in ['ru']:
                     await member.kick(reason='Russian')
             if 'not_verified_role' in config.BOT_GUILDS[member.guild.id]:
-                User.register_user_if_not_exists(member.id)
-                if (Pig.get_weight(member.id) < 1.5 and User.get_age(member.id) < 3600) or \
+                await User.register_user_if_not_exists(member.id)
+                if (await Pig.get_weight(member.id) < 1.5 and await User.get_age(member.id) < 3600) or \
                         (hryak.Func.generate_current_timestamp() - member.created_at.timestamp() < 30 * 24 * 3600):
                     await member.add_roles(
                         member.guild.get_role(config.BOT_GUILDS[member.guild.id]['not_verified_role']))
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        Guild.register_guild_if_not_exists(guild.id)
+        await Guild.register_guild_if_not_exists(guild.id)
         await guild.chunk()
-        Func.add_log('guild_join',
+        await hryak.Func.add_log('guild_join',
                      owner_id=guild.owner_id,
                      guild_name=str(guild),
                      guild_id=guild.id,
@@ -357,7 +361,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
-        Func.add_log('guild_remove',
+        await hryak.Func.add_log('guild_remove',
                      owner_id=guild.owner_id,
                      guild_name=str(guild),
                      guild_id=guild.id,

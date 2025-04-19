@@ -36,17 +36,20 @@ class AdminCommands(commands.Cog):
     @discord.app_commands.command(description='test')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     @commands.is_owner()
-    async def test(self, inter):
-        await DisUtils.pre_command_check(inter, owner_only=True)
+    async def test(self, inter, i: int):
+        print(i)
+        await User.register(i)
+        # await DisUtils.pre_command_check(inter, owner_only=True)
+        await send_callback(inter, f'*{i} is registered*')
 
     @discord.app_commands.command(description='Block user from using the bot')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS])
     @commands.is_owner()
     async def block(self, inter, user: discord.User, reason: str = None):
         await DisUtils.pre_command_check(inter, owner_only=True)
-        User.register_user_if_not_exists(user.id)
-        User.set_block(user.id, True)
-        User.set_block_reason(user.id, reason)
+        await User.register_user_if_not_exists(user.id)
+        await User.set_block(user.id, True)
+        await User.set_block_reason(user.id, reason)
         await send_callback(inter, f'*User **{user}** has been blocked*')
 
     @discord.app_commands.command(description='Unblock user from using the bot')
@@ -54,32 +57,32 @@ class AdminCommands(commands.Cog):
     @commands.is_owner()
     async def unblock(self, inter, user: discord.User):
         await DisUtils.pre_command_check(inter, owner_only=True)
-        User.register_user_if_not_exists(user.id)
-        User.set_block(user.id, False)
-        User.set_block_reason(user.id, '')
+        await User.register_user_if_not_exists(user.id)
+        await User.set_block(user.id, False)
+        await User.set_block_reason(user.id, '')
         await send_callback(inter, f'*User **{user}** has been unblocked*')
 
     @discord.app_commands.command(description='Add item to user\'s inventory')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS])
     async def add_item(self, inter, user: discord.User, item_id: str, amount: int = 1):
         await DisUtils.pre_command_check(inter, owner_only=True)
-        User.register_user_if_not_exists(user.id)
-        if not Item.exists(item_id):
+        await User.register_user_if_not_exists(user.id)
+        if not await Item.exists(item_id):
             await send_callback(inter, "*Item doesn't exist*")
         else:
-            User.add_item(user.id, item_id, amount)
+            await User.add_item(user.id, item_id, amount)
             await send_callback(inter, f'*User **{user}** received **{item_id} x{amount}***')
 
     @add_item.autocomplete('item_id')
     async def autocomplete_item_id(self, interaction, current: str):
         return [discord.app_commands.Choice(name=i, value=i) for i in
-                difflib.get_close_matches(current, Tech.get_all_items(), n=25, cutoff=0.1)]
+                difflib.get_close_matches(current, await Tech.get_all_items(), n=25, cutoff=0.1)]
 
     @discord.app_commands.command(description='Add weight to user')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS])
     async def add_weight(self, inter, user: discord.User, amount: int = 1):
         await DisUtils.pre_command_check(inter, owner_only=True)
-        Pig.add_weight(user.id, amount)
+        await Pig.add_weight(user.id, amount)
         await send_callback(inter, f'*User **{user}** received **{amount} kg***')
 
     # @commands.slash_command(guild_ids=config.ADMIN_GUILDS,
@@ -89,7 +92,7 @@ class AdminCommands(commands.Cog):
     #                                choices=['success', 'in_process', 'expired'])
     #                            ):
     #     await DisUtils.pre_command_check(inter)
-    #     Order.set_status(order_id, status)
+    #     await Order.set_status(order_id, status)
     #     await send_callback(inter, f'*Order **{order_id}** status has been set to **{status}***')
 
     @discord.app_commands.command(description='Add all available skins to user')
@@ -99,16 +102,16 @@ class AdminCommands(commands.Cog):
         await DisUtils.pre_command_check(inter, owner_only=True)
         if user is None:
             user = inter.user
-        User.register_user_if_not_exists(user.id)
-        for item in Tech.get_all_items((('type', 'skin'),)):
-            User.set_item_amount(user.id, item, 1)
+        await User.register_user_if_not_exists(user.id)
+        for item in await Tech.get_all_items((('type', 'skin'),)):
+            await User.set_item_amount(user.id, item, 1)
         await send_callback(inter, f'*User **{user}** received all available skins*')
 
     @discord.app_commands.command(description='Update shop')
     @discord.app_commands.guilds(*[*config.ADMIN_GUILDS, *config.TEST_GUILDS, *config.PUBLIC_TEST_GUILDS])
     async def update_shop(self, inter):
         await DisUtils.pre_command_check(inter, owner_only=True)
-        Shop.add_shop_state()
+        await Shop.add_shop_state()
         await send_callback(inter, f'*Shop updated*')
 
     @discord.app_commands.command(description='Create a promo code')
@@ -131,14 +134,14 @@ class AdminCommands(commands.Cog):
                                                      color=config.error_color))
             return
         for item in prise:
-            if not Item.exists(item):
+            if not await Item.exists(item):
                 await send_callback(inter,
                                     embed=generate_embed(title=f'*Item **"{item}"** doesn\'t exist*',
                                                          color=config.error_color))
                 return
-        if PromoCode.exists(name):
-            PromoCode.delete(name)
-        promo_code_code = PromoCode.create(max_uses, prise, lifespan=lifespan * 60,
+        if await PromoCode.exists(name):
+            await PromoCode.delete(name)
+        promo_code_code = await PromoCode.create(max_uses, prise, lifespan=lifespan * 60,
                                            code=name)
         await send_callback(inter,
                             embed=generate_embed(title=f'*Promo code `{promo_code_code}` created*'))

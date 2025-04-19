@@ -7,8 +7,8 @@ from ...core import *
 
 async def duel(inter, opponent, bet):
     await DisUtils.pre_command_check(inter)
-    lang = User.get_language(inter.user.id)
-    User.register_user_if_not_exists(opponent.id)
+    lang = await User.get_language(inter.user.id)
+    await User.register_user_if_not_exists(opponent.id)
     if opponent == inter.user:
         await error_callbacks.default_error_callback(inter, translate(
             Locales.ErrorCallbacks.cant_play_with_yourself_duel_title, lang),
@@ -31,11 +31,11 @@ async def duel(inter, opponent, bet):
                                   ),
                                   components=components.invite_components(lang))
     await DisUtils.send_notification(opponent, inter,
-                                     translate(Locales.Duel.invite_title, User.get_language(opponent.id)),
-                                     translate(Locales.Duel.personal_invite_dm_desc, User.get_language(opponent.id),
+                                     translate(Locales.Duel.invite_title, await User.get_language(opponent.id)),
+                                     translate(Locales.Duel.personal_invite_dm_desc, await User.get_language(opponent.id),
                                                format_options={'user': inter.user.display_name, 'bet': bet}),
                                      prefix_emoji='⚔️',
-                                     url_label=translate(Locales.Global.message, User.get_language(opponent.id)),
+                                     url_label=translate(Locales.Global.message, await User.get_language(opponent.id)),
                                      url=message.jump_url if message is not None else None, send_to_dm=True,
                                      create_command_notification=False,
                                      guild=inter.guild)
@@ -54,7 +54,7 @@ async def duel(inter, opponent, bet):
         return
     if interaction.data.get('custom_id') == 'in;accept':
         await interaction.response.defer(ephemeral=True)
-        response = hryak.requests.duel_requests.duel(inter.user.id, opponent.id, bet)
+        response = await hryak.requests.duel_requests.duel(inter.user.id, opponent.id, bet)
         if response.get('status') == '400;no_money':
             broke_user = await User.get_user(inter.client, response.get('user_id'))
             await error_callbacks.default_error_callback(inter, translate(Locales.Duel.duel_canceled_title, lang),
@@ -62,13 +62,13 @@ async def duel(inter, opponent, bet):
                                                                    format_options={'user': broke_user.display_name}))
             return
         for i in range(10):
-            await send_callback(interaction, embed=embeds.fight_is_starting(inter, lang, inter.user.id, opponent.id, 10 - i,
+            await send_callback(interaction, embed=await embeds.fight_is_starting(inter, lang, inter.user.id, opponent.id, 10 - i,
                                                                             list(response.get('chances').values())))
             await asyncio.sleep(1)
-        await send_callback(interaction, embed=embeds.fight_is_going(inter, lang, inter.user.id, opponent.id,
+        await send_callback(interaction, embed=await embeds.fight_is_going(inter, lang, inter.user.id, opponent.id,
                                                                      random.choice(hryak.config.fight_gifs)))
         await asyncio.sleep(11)
-        await send_callback(interaction, embed=embeds.user_won(inter, lang, response.get('winner_id'), response.get('money_earned'),
+        await send_callback(interaction, embed=await embeds.user_won(inter, lang, response.get('winner_id'), response.get('money_earned'),
                                                                random.choice(hryak.config.win_gifs)))
     elif interaction.data.get('custom_id') == 'in;reject':
         await error_callbacks.default_error_callback(inter, translate(Locales.Duel.duel_canceled_title, lang),

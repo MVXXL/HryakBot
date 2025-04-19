@@ -196,32 +196,6 @@ class Func:
         return fields
 
     @staticmethod
-    def add_log(log_type, **kwargs):
-        current_time = datetime.datetime.now().isoformat()
-        log_entry = {
-            'timestamp': current_time,
-            'type': log_type,
-        }
-        log_entry.update({k: v for k, v in kwargs.items() if isinstance(v, (str, int, float, bool, list, dict, set))})
-        log_file_path = config.LOGS_PATH
-        if os.path.exists(log_file_path) and os.path.getsize(log_file_path) > 0:
-            with open(log_file_path, "rb+") as log_file:
-                log_file.seek(-1, os.SEEK_END)
-                last_char = log_file.read(1)
-                if last_char == b']':
-                    log_file.seek(-1, os.SEEK_END)
-                    log_file.truncate()
-                    log_file.write(b',\n')
-            with open(log_file_path, "a", encoding="utf-8") as log_file:
-                log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
-                log_file.write("\n]")
-        else:
-            with open(log_file_path, "w", encoding="utf-8") as log_file:
-                log_file.write("[\n")
-                log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
-                log_file.write("\n]")
-
-    @staticmethod
     async def send_data_to_stats_channel(client, servers):
         for i in config.BOT_GUILDS:
             if 'guild_count_channel' in config.BOT_GUILDS[i]:

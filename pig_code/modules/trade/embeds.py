@@ -8,10 +8,10 @@ from ...utils.discord_utils import generate_embed
 async def trade_embed(inter, trade_id, lang):
     user1 = await Trade.get_user(inter.client, trade_id, 0)
     user2 = await Trade.get_user(inter.client, trade_id, 1)
-    user1_data = Trade.get_user_data(trade_id, user1.id)
-    user2_data = Trade.get_user_data(trade_id, user2.id)
-    user1_items_list = DisUtils.get_items_in_str_list(user1_data["items"], lang)
-    user2_items_list = DisUtils.get_items_in_str_list(user2_data["items"], lang)
+    user1_data = await Trade.get_user_data(trade_id, user1.id)
+    user2_data = await Trade.get_user_data(trade_id, user2.id)
+    user1_items_list = await DisUtils.get_items_in_str_list(user1_data["items"], lang)
+    user2_items_list = await DisUtils.get_items_in_str_list(user2_data["items"], lang)
     return generate_embed(
         translate(Locales.Global.trade, lang),
         fields=[{'name': user1.display_name,

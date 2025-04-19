@@ -6,7 +6,7 @@ from . import components
 
 async def top(inter, _global: bool = False):
     await DisUtils.pre_command_check(inter)
-    lang = User.get_language(inter.user.id)
+    lang = await User.get_language(inter.user.id)
 
     if not _global and not inter.guild.chunked:
         await error_callbacks.bot_is_restarting(inter)
@@ -15,10 +15,10 @@ async def top(inter, _global: bool = False):
     guild = None if _global else inter.guild
     exclude_users = config.ignore_users_in_top
 
-    weight_top_response = hryak.requests.top_requests.top_weight_users(inter.user.id, lang, guild=guild)
-    coins_top_response = hryak.requests.top_requests.top_amount_of_items_users(inter.user.id, 'coins', guild=guild)
-    hollars_top_response = hryak.requests.top_requests.top_amount_of_items_users(inter.user.id, 'hollars', guild=guild)
-    streak_top_response = hryak.requests.top_requests.top_streak_users(inter.user.id, guild=guild)
+    weight_top_response = await hryak.requests.top_requests.top_weight_users(inter.user.id, lang, guild=guild)
+    coins_top_response = await hryak.requests.top_requests.top_amount_of_items_users(inter.user.id, 'coins', guild=guild)
+    hollars_top_response = await hryak.requests.top_requests.top_amount_of_items_users(inter.user.id, 'hollars', guild=guild)
+    streak_top_response = await hryak.requests.top_requests.top_streak_users(inter.user.id, guild=guild)
     print(weight_top_response)
     await DisUtils.pagination(inter, lang,
                            embeds={

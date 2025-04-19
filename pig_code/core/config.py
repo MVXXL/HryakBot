@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from .imports import *
+from asgiref.sync import async_to_sync
 
 load_dotenv()
 
@@ -84,13 +85,9 @@ else:
 
 from hryak import setters
 
-hryak.db_api.pool.create_pool(
-    host=mysql_info['host'],
-    port=mysql_info['port'],
-    user=mysql_info['user'],
-    password=mysql_info['password'],
-    database=mysql_info['database']
-)
+# async_to_sync(hryak.db_api.connection.pool.create_pool)(**mysql_info)
+hryak.db_api.connection.pool.set_config(**mysql_info)
+
 setters.set_logs_path(LOGS_PATH)
 setters.set_test_mode(TEST)
 setters.set_bot_guilds(BOT_GUILDS)
@@ -114,7 +111,7 @@ image_links = {'inventory': 'https://thumbsnap.com/i/4EBKi23j.png',
                'top': 'https://thumbsnap.com/i/2QLNAtCR.png',
                'coins_ru_ruble_prices': 'https://i.postimg.cc/yxCJCCcB/IMG-7540.png',
                'image_is_blocked': 'https://thumbsnap.com/i/EQ1EaKmW.png',
-               'buffs': 'https://i.ibb.co/5Kq79Sp/26a1.webp',
+               'buffs': 'https://thumbsnap.com/i/ajKoAv44.png',
                'quests': 'https://i.ibb.co/Htmxmxj/Quest-Main-Available-Icon-001.png'}
 
 pig_names = [

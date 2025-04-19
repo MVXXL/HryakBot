@@ -6,7 +6,7 @@ from ...core import *
 from ...utils import *
 
 
-async def choose_user(inter, lang, users) -> discord.Embed:
+async def choose_user(inter, lang, users):
     options = []
     for user_id in users:
         options.append(discord.SelectOption(

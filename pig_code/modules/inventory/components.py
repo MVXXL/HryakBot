@@ -5,7 +5,7 @@ from ...utils import *
 from ...core import *
 
 
-def inventory_item_selected(user_id, item_id, lang, _type, category: str = None, page: int = 1) -> list:
+async def inventory_item_selected(user_id, item_id, lang, _type, category: str = None, page: int = 1) -> list:
     components = []
     if item_id in item_components:
         for component_id, component in item_components[item_id].items():
@@ -17,12 +17,12 @@ def inventory_item_selected(user_id, item_id, lang, _type, category: str = None,
 
     if _type == 'wardrobe':
         wear = False
-        if Item.get_skin_type(item_id) in ['eyes', 'pupils', 'body']:
-            for layer in Item.get_skin_layers(item_id):
-                if Pig.get_skin(user_id, layer) == item_id:
+        if await Item.get_skin_type(item_id) in ['eyes', 'pupils', 'body']:
+            for layer in await Item.get_skin_layers(item_id):
+                if await Pig.get_skin(user_id, layer) == item_id:
                     wear = True
                     break
-        elif Pig.get_skin(user_id, Item.get_skin_type(item_id)) == item_id:
+        elif await Pig.get_skin(user_id, await Item.get_skin_type(item_id)) == item_id:
             wear = True
         if not wear:
             components.append(discord.ui.Button(
@@ -49,12 +49,12 @@ def inventory_item_selected(user_id, item_id, lang, _type, category: str = None,
     return components
 
 
-def choose_parts_to_wear(item_id, lang, custom_id) -> list:
+async def choose_parts_to_wear(item_id, lang, custom_id) -> list:
     components = []
     options = []
     options.append(
         discord.SelectOption(label=translate(Locales.WardrobeItemChooseLayerToWear.wear_all_option, lang), value='all'))
-    for i in Item.get_skin_layers(item_id):
+    for i in await Item.get_skin_layers(item_id):
         options.append(discord.SelectOption(label=translate(hryak.locale.Locale.SkinLayers[i], lang), value=i))
     components.append(
         discord.ui.Select(custom_id=custom_id,
@@ -68,11 +68,11 @@ def choose_parts_to_wear(item_id, lang, custom_id) -> list:
 #     components = []
 #     generated_options = []
 #
-#     inventory = User.get_inventory(user_id)
+#     inventory = await User.get_inventory(user_id)
 #     inventory = Func.get_items_by_types(inventory, ['skin'])
 #     types = set()
 #     for item_id in inventory:
-#         types.add(Item.get_type(item_id))
+#         types.add(await Item.get_type(item_id))
 #     generated_options.append(discord.SelectOption(
 #         label=Locales.Global.all_skins[lang],
 #         value='skin:all',

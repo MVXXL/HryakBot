@@ -1,14 +1,9 @@
-import asyncio
-
 import aiohttp.client_exceptions
 import discord.errors
 import discord.interactions
 import discord.ui
-import discord_webhook
-import requests
 
 from .functions import Func
-from .functions import translate
 from ..core import *
 
 async def send_callback(inter,
@@ -26,7 +21,7 @@ async def send_callback(inter,
     components = components or []
     if isinstance(inter,
                   discord.interactions.Interaction) and inter.is_user_integration() and not inter.is_guild_integration():
-        content = translate(Locales.user_install_content, User.get_language(inter.user.id)) + '\n' + content
+        content = translate(Locales.user_install_content, await User.get_language(inter.user.id)) + '\n' + content
     for component in components:
         view.add_item(component)
     if attachments is None:
@@ -193,15 +188,15 @@ class DisUtils:
 
     @staticmethod
     async def generate_user_pig(user_id: int, eye_emotion: str = None, preview_items: dict = None):
-        user_skin = Pig.get_skin(user_id, 'all')
+        user_skin = await Pig.get_skin(user_id, 'all')
         for k, v in user_skin.items():
-            if Item.get_amount(v, user_id) <= 0:
+            if await Item.get_amount(v, user_id) <= 0:
                 user_skin[k] = None
         if preview_items is not None:
             for item_id in preview_items.values():
-                user_skin = Pig.set_skin_to_options(user_skin, item_id)
+                user_skin = await Pig.set_skin_to_options(user_skin, item_id)
         final_pig = await hryak.GameFunc.build_pig(tuple(user_skin.items()),
-                                          tuple(Pig.get_genetic(user_id, 'all').items()),
+                                          tuple((await Pig.get_genetic(user_id, 'all')).items()),
                                           eye_emotion=eye_emotion)
         return final_pig
 
@@ -242,7 +237,7 @@ class DisUtils:
         :param guild:
             The notification will not be sent if both users are not in the specified guild
         """
-        lang = User.get_language(user.id)
+        lang = await User.get_language(user.id)
         embed = generate_embed(
             title=title,
             description=description,
@@ -264,7 +259,7 @@ class DisUtils:
                 dm_message = await send_callback(None, embed=embed, components=components, send_to_dm=user)
         if create_command_notification:
             if dm_message is None:
-                Events.add(user.id, title=title,
+                 await Events.add(user.id, title=title,
                            description=description, expires_in=100 * 3600,
                            event_id=notification_id)
         return
@@ -418,9 +413,9 @@ class DisUtils:
                                                 prefix=Func.generate_prefix('❌'),
                                                 color=config.error_color,
                                                 title=Locales.Pagination.wrong_user_title[
-                                                    User.get_language(interaction.user.id)],
+                                                    await User.get_language(interaction.user.id)],
                                                 description=Locales.Pagination.wrong_user_desc[
-                                                    User.get_language(interaction.user.id)],
+                                                    await User.get_language(interaction.user.id)],
                                                 inter=inter),
                                             edit_original_response=False,
                                             ephemeral=True)
@@ -479,17 +474,17 @@ class DisUtils:
                                 )
 
     @staticmethod
-    def get_items_in_str_list(items_to_convert: dict, lang, add_prefixes: bool = True):
+    async def get_items_in_str_list(items_to_convert: dict, lang, add_prefixes: bool = True):
         list_res = []
         for item_id in items_to_convert:
             if type(items_to_convert[item_id]) == dict:
                 if items_to_convert[item_id]["amount"] > 0:
                     list_res.append(
-                        f'{Func.generate_prefix(Item.get_emoji(item_id)) if add_prefixes else ""}{Item.get_name(item_id, lang)} x{items_to_convert[item_id]["amount"]}')
+                        f'{Func.generate_prefix(await Item.get_emoji(item_id)) if add_prefixes else ""}{await Item.get_name(item_id, lang)} x{items_to_convert[item_id]["amount"]}')
             else:
                 if items_to_convert[item_id] > 0:
                     list_res.append(
-                        f'{Func.generate_prefix(Item.get_emoji(item_id)) if add_prefixes else ""}{Item.get_name(item_id, lang)} x{items_to_convert[item_id]}')
+                        f'{Func.generate_prefix(await Item.get_emoji(item_id)) if add_prefixes else ""}{await Item.get_name(item_id, lang)} x{items_to_convert[item_id]}')
         return '\n'.join(list_res)
 
     @staticmethod
@@ -537,36 +532,36 @@ class DisUtils:
     @staticmethod
     async def pre_command_check(inter, ephemeral=False, defer=True, language_check: bool = True,
                                 owner_only: bool = False, allowed_users: list = None):
-        User.register_user_if_not_exists(inter.user.id)
         if defer:
             try:
                 await inter.response.defer(ephemeral=ephemeral)
             except:
                 pass
+        await User.register_user_if_not_exists(inter.user.id)
         if inter.is_guild_integration() and inter.guild is not None and not inter.guild.chunked:
             try:
                 await asyncio.wait_for(inter.guild.chunk(), timeout=5)
             except asyncio.TimeoutError:
                 print("> Chunking took too long and was stopped")
         if inter.guild is not None:
-            Guild.register_guild_if_not_exists(inter.guild.id)
-        if not Stats.get_language_changed(inter.user.id) and language_check:
+            await Guild.register_guild_if_not_exists(inter.guild.id)
+        if not await Stats.get_language_changed(inter.user.id) and language_check:
             lang = str(inter.locale)
             if lang in ['ru', 'uk']:
                 lang = 'ru'
             else:
                 lang = 'en'
-            User.set_language(inter.user.id, lang)
-            Stats.set_language_changed(inter.user.id, True)
-            Pig.rename(inter.user.id, Func.generate_random_pig_name(User.get_language(inter.user.id)))
-        if User.is_blocked(inter.user.id):
+            await User.set_language(inter.user.id, lang)
+            await Stats.set_language_changed(inter.user.id, True)
+            await Pig.rename(inter.user.id, Func.generate_random_pig_name(await User.get_language(inter.user.id)))
+        if await User.is_blocked(inter.user.id):
             raise UserInBlackList(inter.user)
         if owner_only and not await inter.client.is_owner(inter.user):
             raise NotBotOwner(inter.user)
         if allowed_users is not None and inter.user.id not in allowed_users:
             raise NotBotOwner(inter.user)
-        for event_id, event_data in Events.get_events(inter.user.id).copy().items():
-            Events.remove(inter.user.id, event_id)
+        for event_id, event_data in (await Events.get_events(inter.user.id)).copy().items():
+            await Events.remove(inter.user.id, event_id)
             wait_for_btn = .7
             if event_data['expires_in'] is None or event_data['expires_in'] + event_data[
                 'created'] > hryak.Func.generate_current_timestamp():
@@ -575,7 +570,7 @@ class DisUtils:
 
     @staticmethod
     async def event_callback(inter, event, wait_for_btn: float = .7):
-        lang = User.get_language(inter.user.id)
+        lang = await User.get_language(inter.user.id)
         title = event['title'] if type(event['title']) != dict else translate(event['title'], lang)
         description = event['description'] if type(event['description']) != dict else translate(event['description'],
                                                                                                 lang)
@@ -616,30 +611,30 @@ class DisUtils:
     #     members_count = len([i for i in guild.members if not i.bot])
     #     promocodes = []
     #     if members_count >= 30:
-    #         promocodes.append(PromoCode.create(5, {'coins': 30}))
+    #         promocodes.append(await PromoCode.create(5, {'coins': 30}))
     #     elif members_count >= 100:
-    #         promocodes.append(PromoCode.create(3, {'rare_case': 2}))
-    #         promocodes.append(PromoCode.create(5, {'coins': 100}))
-    #         promocodes.append(PromoCode.create(members_count // 5, {'coins': 30}))
+    #         promocodes.append(await PromoCode.create(3, {'rare_case': 2}))
+    #         promocodes.append(await PromoCode.create(5, {'coins': 100}))
+    #         promocodes.append(await PromoCode.create(members_count // 5, {'coins': 30}))
     #     elif members_count > 500:
-    #         promocodes.append(PromoCode.create(1, {'gold_body': 1}))
-    #         promocodes.append(PromoCode.create(5, {'rare_case': 2}))
-    #         promocodes.append(PromoCode.create(5, {'common_case': 3}))
-    #         promocodes.append(PromoCode.create(members_count // 50, {'coins': 100}))
-    #         promocodes.append(PromoCode.create(members_count // 10, {'coins': 50}))
+    #         promocodes.append(await PromoCode.create(1, {'gold_body': 1}))
+    #         promocodes.append(await PromoCode.create(5, {'rare_case': 2}))
+    #         promocodes.append(await PromoCode.create(5, {'common_case': 3}))
+    #         promocodes.append(await PromoCode.create(members_count // 50, {'coins': 100}))
+    #         promocodes.append(await PromoCode.create(members_count // 10, {'coins': 50}))
     #     elif members_count > 1000:
-    #         promocodes.append(PromoCode.create(1, {'gold_body': 1}))
-    #         promocodes.append(PromoCode.create(1, {'gold_pupils': 1}))
-    #         promocodes.append(PromoCode.create(5, {'rare_case': 2}))
-    #         promocodes.append(PromoCode.create(5, {'common_case': 3}))
-    #         promocodes.append(PromoCode.create(members_count // 50, {'coins': 100}))
-    #         promocodes.append(PromoCode.create(members_count // 10, {'coins': 50}))
-    #         promocodes.append(PromoCode.create(3, {'hollars': 20}))
+    #         promocodes.append(await PromoCode.create(1, {'gold_body': 1}))
+    #         promocodes.append(await PromoCode.create(1, {'gold_pupils': 1}))
+    #         promocodes.append(await PromoCode.create(5, {'rare_case': 2}))
+    #         promocodes.append(await PromoCode.create(5, {'common_case': 3}))
+    #         promocodes.append(await PromoCode.create(members_count // 50, {'coins': 100}))
+    #         promocodes.append(await PromoCode.create(members_count // 10, {'coins': 50}))
+    #         promocodes.append(await PromoCode.create(3, {'hollars': 20}))
     #     promocodes_text = ''
     #     for promocode in promocodes:
     #         promocodes_text += f'- {promocode}\n' \
-    #                            f' > Содержимое: **{DisUtils.get_items_in_str_list(PromoCode.get_prise(promocode), "ru", add_prefixes=False)}**\n' \
-    #                            f' > Макс. использований: **{PromoCode.max_uses(promocode)}**\n'
+    #                            f' > Содержимое: **{DisUtils.get_items_in_str_list(await PromoCode.get_prise(promocode), "ru", add_prefixes=False)}**\n' \
+    #                            f' > Макс. использований: **{await PromoCode.max_uses(promocode)}**\n'
     #     await DisUtils.send_notification(guild.owner, title='Привет', prefix_emoji='🍖',
     #                                      description=f'*Вижу у вас неплохой сервер. В честь этого мы дарим вам промокоды для розыгрыша между участниками. Думаю это поможет поднять актив на сервере*\n\n'
     #                                                  f'**Вот промокоды:**\n'

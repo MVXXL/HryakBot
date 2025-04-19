@@ -8,13 +8,13 @@ from ...core import *
 
 async def shop(inter, message=None, init_category: str = None, init_page: int = 1):
     await DisUtils.pre_command_check(inter)
-    lang = User.get_language(inter.user.id)
-    shops = {'consumables_shop': Shop.get_consumables_shop,
-             'tools_shop': Shop.get_tools_shop,
-             'daily_shop': Shop.get_daily_shop,
-             'case_shop': Shop.get_case_shop,
-             'premium_skins_shop': Shop.get_premium_skins_shop,
-             'coins_shop': Shop.get_coins_shop,
+    lang = await User.get_language(inter.user.id)
+    shops = {'consumables_shop':Shop.get_consumables_shop,
+             'tools_shop':Shop.get_tools_shop,
+             'daily_shop':Shop.get_daily_shop,
+             'case_shop':Shop.get_case_shop,
+             'premium_skins_shop':Shop.get_premium_skins_shop,
+             'coins_shop':Shop.get_coins_shop,
              # 'donation_shop': None
              }
     if init_category is None:
@@ -38,9 +38,9 @@ async def shop(inter, message=None, init_category: str = None, init_page: int = 
         return
     items_by_cats = {}
     for shop_ in shops:
-        if shops[shop_] is None:
+        if await shops[shop_] is None:
             continue
-        items_by_cats[f'{translate(Locales.Shop.titles[shop_], lang)}'] = shops[shop_]()
+        items_by_cats[f'{translate(Locales.Shop.titles[shop_], lang)}'] = await shops[shop_]()
     embeds = await Embeds.generate_items_list_embeds(inter, items_by_cats, lang, sort=False,
                                                     list_type='shop',
                                                     prefix_emoji='🛍️',
@@ -91,30 +91,29 @@ async def shop(inter, message=None, init_category: str = None, init_page: int = 
 
 
 async def shop_item_buy(inter, item_id):
-    lang = User.get_language(inter.user.id)
-    if not Shop.is_item_in_shop(item_id):
+    lang = await User.get_language(inter.user.id)
+    if not await Shop.is_item_in_shop(item_id):
         await error_callbacks.item_is_not_in_shop(inter)
         return
-    if Shop.is_item_in_cooldown(inter.user.id, item_id):
+    if await Shop.is_item_in_cooldown(inter.user.id, item_id):
         await error_callbacks.default_error_callback(inter,
                                                      translate(Locales.ErrorCallbacks.shop_buy_cooldown_title, lang),
                                                      translate(Locales.ErrorCallbacks.shop_buy_cooldown_desc, lang,
-                                                               {'item': Item.get_name(item_id, lang),
-                                                                'timestamp': Shop.get_timestamp_of_cooldown_pass(
+                                                               {'item': await Item.get_name(item_id, lang),
+                                                                'timestamp':await Shop.get_timestamp_of_cooldown_pass(
                                                                     inter.user.id, item_id)}),
                                                      edit_original_response=False, ephemeral=True, )
         return
-    if Item.get_amount(Item.get_market_price_currency(item_id), inter.user.id) < Item.get_market_price(item_id):
+    if await Item.get_amount(await Item.get_market_price_currency(item_id), inter.user.id) < await Item.get_market_price(item_id):
         await error_callbacks.not_enough_money(inter)
         return
-    User.remove_item(inter.user.id, Item.get_market_price_currency(item_id), Item.get_market_price(item_id))
-    User.add_item(inter.user.id, Item.clean_id(item_id), Item.get_amount(item_id))
-    History.append_shop_history(inter.user.id, Item.clean_id(item_id), amount=Item.get_amount(item_id))
+    await User.remove_item(inter.user.id, await Item.get_market_price_currency(item_id), await Item.get_market_price(item_id))
+    await User.add_item(inter.user.id, await Item.clean_id(item_id), await Item.get_amount(item_id))
+    await History.append_shop_history(inter.user.id, await Item.clean_id(item_id), amount=await Item.get_amount(item_id))
     await send_callback(inter, edit_original_response=False, ephemeral=True,
                         embed=generate_embed(
                             title=translate(Locales.ShopItemBought.title, lang,
-                                            {'item': Item.get_name(item_id,
-                                                                   lang).lower()}) + f' x{Item.get_amount(item_id)}',
+                                            {'item': (await Item.get_name(item_id, lang)).lower()}) + f' x{await Item.get_amount(item_id)}',
                             description=translate(Locales.ShopItemBought.desc, lang),
                             prefix=Func.generate_prefix('scd'),
                             inter=inter,
@@ -122,17 +121,17 @@ async def shop_item_buy(inter, item_id):
 
 
 async def shop_item_selected(inter, item_id, message: discord.Message = None, category: str = None, page: int = 1):
-    lang = User.get_language(inter.user.id)
-    if not Shop.is_item_in_shop(item_id):
+    lang = await User.get_language(inter.user.id)
+    if not await Shop.is_item_in_shop(item_id):
         await error_callbacks.item_is_not_in_shop(inter)
         return
     await send_callback(inter if message is None else message,
                         embed=await Embeds.item_selected_embed(inter, lang, item_id=item_id, _type='shop'),
-                        components=components.shop_item_selected(item_id, lang, category=category, page=page))
+                        components=await components.shop_item_selected(item_id, lang, category=category, page=page))
 
 
 async def donation_page_selected(inter, category):
-    lang = User.get_language(inter.user.id)
+    lang = await User.get_language(inter.user.id)
     currency = 'RUB'
     if lang in ['en']:
         currency = 'USD'
@@ -208,7 +207,7 @@ async def donation_page_selected(inter, category):
 
 
 async def choose_payment_method(inter, category, amount, price, currency):
-    lang = User.get_language(inter.user.id)
+    lang = await User.get_language(inter.user.id)
     options = []
     for i in config.payment_methods_for_languages[lang]:
         if i == 'donatello':

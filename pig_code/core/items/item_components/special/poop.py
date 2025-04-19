@@ -4,8 +4,8 @@ from .....core import *
 
 
 async def eat(inter, item_id, update):
-    lang = User.get_language(inter.user.id)
-    User.remove_item(inter.user.id, item_id)
+    lang = await User.get_language(inter.user.id)
+    await User.remove_item(inter.user.id, item_id)
     scenario = random.randrange(4)
     if scenario == 0:
         await send_callback(inter, embed=eaten_and_poisoned(inter, lang),
@@ -27,7 +27,7 @@ async def eat(inter, item_id, update):
             await inter.edit_original_response(embed=ran_away_from_doctor(inter, lang), view=None)
         elif interaction.data.get('custom_id') == 'in;pay':
             await interaction.response.defer()
-            if Item.get_amount('coins', interaction.user.id) >= 5:
+            if await Item.get_amount('coins', interaction.user.id) >= 5:
                 await inter.edit_original_response(embed=payed_the_doctor(inter, lang), view=None)
             else:
                 await inter.edit_original_response(embed=not_enough_money_for_doctor(inter, lang), view=None)

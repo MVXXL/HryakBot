@@ -6,7 +6,7 @@ from pig_code.utils.functions import translate
 
 
 async def get_item_amount(inter, title, label, max_amount: int = None, delete_response: bool = False):
-    lang = User.get_language(user_id=inter.user.id)
+    lang = await User.get_language(user_id=inter.user.id)
     custom_id = f'modal;get_item_amount{random.randrange(1000)}'
     modal = discord.ui.Modal(title=title, custom_id=custom_id)
     modal.add_item(discord.ui.TextInput(
@@ -36,7 +36,7 @@ async def get_item_amount(inter, title, label, max_amount: int = None, delete_re
 
 
 async def get_amount_of_hollars_to_donate(inter, delete_response: bool = False):
-    lang = User.get_language(user_id=inter.user.id)
+    lang = await User.get_language(user_id=inter.user.id)
     modal = discord.ui.Modal(title=translate(Locales.PremiumShop.get_amount_of_hollars_modal_title, lang),
                              custom_id='get_amount_of_hollars_to_donate')
     modal.add_item(discord.ui.TextInput(

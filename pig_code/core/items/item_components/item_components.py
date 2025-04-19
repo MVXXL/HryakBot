@@ -6,37 +6,37 @@ from ....core import *
 
 
 async def item_remove(inter, item_id, update):
-    User.remove_item(inter.user.id, item_id)
+    await User.remove_item(inter.user.id, item_id)
     # await update()
 
 
 async def use_laxative(inter, item_id, update):
-    User.remove_item(inter.user.id, item_id)
-    Pig.add_buff(inter.user.id, 'laxative', 1)
-    return {'pig': Pig.get_name(inter.user.id), 'step': Pig.get_buff_amount(inter.user.id, 'laxative')}
+    await User.remove_item(inter.user.id, item_id)
+    await Pig.add_buff(inter.user.id, 'laxative', 1)
+    return {'pig': await Pig.get_name(inter.user.id), 'step': await Pig.get_buff_amount(inter.user.id, 'laxative')}
 
 
 async def use_compound_feed(inter, item_id, update):
-    User.remove_item(inter.user.id, item_id)
-    Pig.add_buff(inter.user.id, 'compound_feed', 1)
-    return {'pig': Pig.get_name(inter.user.id), 'step': Pig.get_buff_amount(inter.user.id, 'compound_feed')}
+    await User.remove_item(inter.user.id, item_id)
+    await Pig.add_buff(inter.user.id, 'compound_feed', 1)
+    return {'pig': await Pig.get_name(inter.user.id), 'step': await Pig.get_buff_amount(inter.user.id, 'compound_feed')}
 
 
 async def use_activated_charcoal(inter, item_id, update):
-    User.remove_item(inter.user.id, item_id)
-    Pig.add_buff(inter.user.id, 'activated_charcoal', 1)
+    await User.remove_item(inter.user.id, item_id)
+    await Pig.add_buff(inter.user.id, 'activated_charcoal', 1)
     return {}
 
 
 async def use_milk(inter, item_id, update):
-    User.remove_item(inter.user.id, item_id)
-    Pig.set_buffs(inter.user.id, {})
+    await User.remove_item(inter.user.id, item_id)
+    await Pig.set_buffs(inter.user.id, {})
     return {}
 
 
 async def cook(inter, item_id, update):
-    lang = User.get_language(inter.user.id)
-    if Item.get_amount('grill', inter.user.id) <= 0:
+    lang = await User.get_language(inter.user.id)
+    if await Item.get_amount('grill', inter.user.id) <= 0:
         await error_callbacks.no_item(inter, 'grill',
                                       description=translate(Locales.ErrorCallbacks.no_mangal_to_cook, inter.user.id),
                                       thumbnail_url=await Item.get_image_path('grill', config.TEMP_FOLDER_PATH), edit_original_response=False,
@@ -45,47 +45,47 @@ async def cook(inter, item_id, update):
     modal_interaction, amount = await modals.get_item_amount(inter,
                                                              translate(Locales.InventoryItemCookModal.title, lang),
                                                              translate(Locales.InventoryItemCookModal.label, lang),
-                                                             max_amount=Item.get_amount(item_id, inter.user.id))
+                                                             max_amount=await Item.get_amount(item_id, inter.user.id))
     if amount is False:
         return
-    if Item.get_amount(item_id, inter.user.id) <= 0:
+    if await Item.get_amount(item_id, inter.user.id) <= 0:
         await error_callbacks.not_enough_items(inter, item_id, thumbnail_url=await Item.get_image_path(item_id, config.TEMP_FOLDER_PATH))
         return
-    User.remove_item(inter.user.id, item_id, amount)
-    User.add_item(inter.user.id, Item.get_cooked_item_id(item_id), amount)
+    await User.remove_item(inter.user.id, item_id, amount)
+    await User.add_item(inter.user.id, await Item.get_cooked_item_id(item_id), amount)
     await send_callback(modal_interaction, ephemeral=True,
                         embed=generate_embed(
                             title=translate(Locales.InventoryItemCooked.title, lang,
-                                            {'item': Item.get_name(item_id, lang)}),
-                            description=f"- {translate(Locales.InventoryItemCooked.desc, lang, {'item': Item.get_name(item_id, lang), 'amount': amount})}",
+                                            {'item': await Item.get_name(item_id, lang)}),
+                            description=f"- {translate(Locales.InventoryItemCooked.desc, lang, {'item': await Item.get_name(item_id, lang), 'amount': amount})}",
                             prefix=Func.generate_prefix('scd'),
                             inter=modal_interaction), edit_original_response=False)
     await update()
 
 
 async def sell(inter, item_id, update):
-    lang = User.get_language(inter.user.id)
+    lang = await User.get_language(inter.user.id)
     modal_interaction, amount = await modals.get_item_amount(inter,
                                                              translate(Locales.InventoryItemSellModal.title, lang),
                                                              translate(Locales.InventoryItemSellModal.label, lang),
-                                                             max_amount=Item.get_amount(item_id, inter.user.id))
-    User.clear_get_inventory_cache(inter.user.id)
+                                                             max_amount=await Item.get_amount(item_id, inter.user.id))
+    await User.clear_get_inventory_cache(inter.user.id)
     if amount is False:
         return
-    if Item.get_amount(item_id, inter.user.id) < amount:
+    if await Item.get_amount(item_id, inter.user.id) < amount:
         await error_callbacks.not_enough_items(modal_interaction, item_id,
                                                thumbnail_url=await Item.get_image_path(item_id, config.TEMP_FOLDER_PATH))
         return
-    money_received = Item.get_sell_price(item_id) * amount
-    Stats.add_money_earned(inter.user.id, money_received)
-    Stats.add_items_sold(inter.user.id, item_id, amount)
-    User.remove_item(inter.user.id, item_id, amount)
-    User.add_item(inter.user.id, 'coins', money_received)
+    money_received = await Item.get_sell_price(item_id) * amount
+    await Stats.add_money_earned(inter.user.id, money_received)
+    await Stats.add_items_sold(inter.user.id, item_id, amount)
+    await User.remove_item(inter.user.id, item_id, amount)
+    await User.add_item(inter.user.id, 'coins', money_received)
     await send_callback(modal_interaction, ephemeral=True,
                         embed=generate_embed(
                             title=translate(Locales.InventoryItemSold.title, lang,
-                                            {'item': Item.get_name(item_id, lang)}),
-                            description=f"- {translate(Locales.InventoryItemSold.desc, lang, {'item': Item.get_name(item_id, lang), 'amount': amount, 'money': money_received})}",
+                                            {'item': await Item.get_name(item_id, lang)}),
+                            description=f"- {translate(Locales.InventoryItemSold.desc, lang, {'item': await Item.get_name(item_id, lang), 'amount': amount, 'money': money_received})}",
                             prefix=Func.generate_prefix('scd'),
                             inter=modal_interaction), edit_original_response=False)
     await update()
@@ -225,11 +225,13 @@ item_components = {
     # 'rare_case': {'open': case_comp()}
 }
 
-for item in Tech.get_all_items():
-    if item not in item_components:
-        item_components[item] = {}
-        if Item.get_type(item) == 'case':
-            item_components[item] = {'open': case_comp()}
-            continue
-    if Item.is_salable(item):
-        item_components[item]['sell'] = sell_comp()
+async def build_item_components():
+    for item in await Tech.get_all_items():
+        if item not in item_components:
+            item_components[item] = {}
+            if await Item.get_type(item) == 'case':
+                item_components[item] = {'open': case_comp()}
+                continue
+        if await Item.is_salable(item):
+            item_components[item]['sell'] = sell_comp()
+    return item_components
