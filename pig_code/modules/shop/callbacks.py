@@ -38,7 +38,7 @@ async def shop(inter, message=None, init_category: str = None, init_page: int = 
         return
     items_by_cats = {}
     for shop_ in shops:
-        if await shops[shop_] is None:
+        if await shops[shop_]() is None:
             continue
         items_by_cats[f'{translate(Locales.Shop.titles[shop_], lang)}'] = await shops[shop_]()
     embeds = await Embeds.generate_items_list_embeds(inter, items_by_cats, lang, sort=False,
