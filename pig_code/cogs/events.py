@@ -294,23 +294,23 @@ class Events(commands.Cog):
                                                       thumbnail_url=await Item.get_image_path(custom_id_params[1], config.TEMP_FOLDER_PATH))
                         await update_inventory()
                         return
-                    result = await item_components[custom_id_params[1]][custom_id_params[0]]['func'](interaction,
+                    result = await item_components.item_components[custom_id_params[1]][custom_id_params[0]]['func'](interaction,
                                                                                                      custom_id_params[
                                                                                                          1],
                                                                                                      update_inventory)
                     if result is None:
                         result = {}
-                    if 'callback' in item_components[custom_id_params[1]][custom_id_params[0]]:
+                    if 'callback' in item_components.item_components[custom_id_params[1]][custom_id_params[0]]:
                         embed = generate_embed(
                             title=translate(
-                                item_components[custom_id_params[1]][custom_id_params[0]]['callback']['title'],
+                                item_components.item_components[custom_id_params[1]][custom_id_params[0]]['callback']['title'],
                                 lang),
                             description=translate(
-                                item_components[custom_id_params[1]][custom_id_params[0]]['callback']['description'],
+                                item_components.item_components[custom_id_params[1]][custom_id_params[0]]['callback']['description'],
                                 lang,
                                 format_options=result),
                             prefix=Func.generate_prefix(
-                                item_components[custom_id_params[1]][custom_id_params[0]]['callback']['prefix']),
+                                item_components.item_components[custom_id_params[1]][custom_id_params[0]]['callback']['prefix']),
                             inter=interaction,
                         )
                         await send_callback(interaction, embed=embed,

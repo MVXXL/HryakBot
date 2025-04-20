@@ -81,7 +81,7 @@ async def trade(inter, user1, user2, trade_id: str = None, pre_command_check: bo
         response = await hryak.requests.trade_requests.trade(user1.id, user2.id, trade_id)
         if response.get('trade_status') == 'tax_processing':
             description = f'{translate(Locales.Trade.tax_splitting_process_desc, lang)}\n'
-            for currency, amount in (await hryak.GameFunc.get_trade_total_tax(trade_id)).items():
+            for currency, amount in response['total_tax'].items():
                 description += f'\n> {await Item.get_emoji(currency)}・{await Item.get_name(currency, lang)} x{amount}'
             description += f'\n\n{translate(Locales.Trade.tax_splitting_process_who_pays_desc, lang)}'
             components = [
