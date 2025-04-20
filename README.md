@@ -59,5 +59,5 @@ You can see screenshots of the bot working below
 4. Run main.py to start the bot
 5. Test to ensure everything is working correctly
 
-<b>⚠️ Notice that the bot is heavily dependent on external hryak-core package. Don't forget to install it from requirements.txt or by running `pip install https://github.com/Brevn0o/hryak-core.git` </b>
+<b>⚠️ Notice that the bot is heavily dependent on external hryak-core package. Don't forget to install it from requirements.txt or by running `pip install git+https://github.com/Brevn0o/hryak-core.git` </b>
 
