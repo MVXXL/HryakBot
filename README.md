@@ -10,25 +10,24 @@
 </h1>
 
 
-# HryakBot
+# HryakBot — исправленная, полностью рабочая версия
 
-Hryak is an entertaining Discord bot created by @brevnoo in May 2023. The bot has gained popularity and is currently in use on 5,500 Discord servers with 800 daily active users.
+Это поддерживаемая и исправленная сборка популярного бота Hryak. Всё готово «из коробки»: достаточно заполнить `.env` и запустить.
 
-# What is it exactly?
+Основные возможности:
 
-Hryak is a Tamagotchi-type Discord bot where you can feed and raise your own pig. The pig will grow, you will earn money, and you’ll be able to buy new items for your piggy. Players can trade items with one another, creating a user-driven economy.
+- Кормите и прокачивайте своего хряка
+- Переименовывайте и кастомизируйте внешность
+- Добывайте и готовьте мясо, продавайте и зарабатывайте
+- Покупайте буст-айтемы
+- Сражайтесь в дуэлях и торгуйте с другими игроками
 
+Что исправлено и улучшено:
 
-# Features
-
-- Feed your piggy
-- Rename your piggy
-- Dress up your piggy
-- Harvest meat from your pig (don’t worry, it doesn’t hurt)
-- Cook and sell meat
-- Buy buff items to enhance gameplay
-- Duel with your friends
-- Trade items with your friends
+- Перенос на SQLite по умолчанию (никакой MySQL не нужен) — база создаётся автоматически
+- Исправлены ошибки UI-компонентов Discord (пустые Select-меню больше не ломают формы)
+- Исправлены и усилены права и проверки команд (включая промокоды)
+- Улучшена работа с изображениями и сетевыми сессиями
 
 # Gallery
 
@@ -49,15 +48,37 @@ You can see screenshots of the bot working below
 <a><img src="https://github.com/user-attachments/assets/81195bd0-998e-43ff-97df-75f1405eb010" style="width: 25%;" alt="Hryak"></a>
 </h1>
 
-# How to run it
+# Установка и запуск
 
-*The bot is designed to run on a Windows-based PC as the hosting machine and uses MySQL as its database*
+Требования:
 
-1. Fill out the `config.py` file
-2. Set up your MySQL database
-3. Install the required dependencies. (```pip install -r requirements.txt```)
-4. Run main.py to start the bot
-5. Test to ensure everything is working correctly
+- Python 3.11–3.12
+- Windows (рекомендовано), но работает и на других ОС
 
-<b>⚠️ Notice that the bot is heavily dependent on external hryak-core package. Don't forget to install it from requirements.txt or by running `pip install git+https://github.com/Brevn0o/hryak-core.git` </b>
+1) Установите зависимости
+
+```
+pip install -r requirements.txt
+```
+
+2) Заполните `.env` (минимум):
+
+```
+DISCORD_TOKEN=your_discord_bot_token
+DB_ENGINE=sqlite
+SQLITE_PATH=data/hryak.db
+```
+
+- По умолчанию используется SQLite. Файл базы создастся автоматически при первом запуске.
+- Привилегированные интенты (Message Content) не обязательны для слэш-команд, но вы можете включить их в настройках приложения, если понадобятся.
+
+3) Запуск
+
+```
+python main.py
+```
+
+или используйте `start.bat`.
+
+После запуска бот подключится к Gateway, создаст базу и будет готов к работе.
 
