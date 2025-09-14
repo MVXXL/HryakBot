@@ -1,0 +1,131 @@
+class Locale:
+    ItemTypes = {
+        'resource': {'en': 'Resource',
+                     'ru': 'Ресурс'},
+        'consumable': {'en': 'Consumable',
+                       'ru': 'Расходник'},
+        'tool': {'en': 'Tool',
+                 'ru': 'Инструмент'},
+        'device': {'en': 'Device',
+                   'ru': 'Устройство'},
+        'skin': {'en': 'Skin',
+                 'ru': 'Скин'},
+        'case': {'en': 'Case',
+                 'ru': 'Кейс'},
+        'money': {'en': 'Money',
+                  'ru': 'Деньги'},
+        'weight': {'en': 'Weight',
+                   'ru': 'Вес'},
+    }
+
+    SkinTypes = {
+        'hat': {'en': 'Headdress',
+                'ru': 'Головной убор'},
+        'glasses': {'en': 'Glasses',
+                    'ru': 'Очки'},
+        'tie': {'en': 'Tie',
+                'ru': 'Галстук'},
+        'body': {'en': 'Skin color',
+                 'ru': 'Цвет кожи'},
+        'pupils': {'en': 'Pupils',
+                   'ru': 'Зрачки'},
+        'tattoo': {'en': 'Tattoo',
+                   'ru': 'Тату'},
+        'legs': {'en': 'Legs',
+                 'ru': 'Ноги'},
+        'nose': {'en': 'Nose',
+                 'ru': 'Нос'},
+        '_nose': {'en': 'Nose',
+                  'ru': 'Нос'},
+        'eyes': {'en': 'Eyes',
+                 'ru': 'Глаза'},
+        'suit': {'en': 'Suit',
+                 'ru': 'Костюм'},
+        'makeup': {'en': 'Makeup',
+                   'ru': 'Макияж'},
+        'face': {'en': 'Face',
+                 'ru': 'Лицо'},
+        'piercing_nose': {'en': 'Piercing - nose',
+                          'ru': 'Пирсинг - нос'},
+        'piercing_ear': {'en': 'Accessory - ear',
+                         'ru': 'Аксессуар - ухо'},
+        'eye_emotion': {'en': 'Eyes emotion',
+                        'ru': 'Эмоция глаз'},
+        'mouth': {'en': 'Accessory - Mouth',
+                  'ru': 'Аксессуар - Рот'},
+        'back': {'en': 'Back',
+                 'ru': 'Спина'},
+    }
+
+    SkinLayers = {
+        'left_eye': {'en': 'Left eye',
+                     'ru': 'Левый глаз'},
+        'right_eye': {'en': 'Right eye',
+                      'ru': 'Правый глаз'},
+        'left_pupil': {'en': 'Left pupil',
+                       'ru': 'Левый зрачок'},
+        'right_pupil': {'en': 'Right pupil',
+                        'ru': 'Правый зрачок'},
+        'left_ear': {'en': 'Left ear',
+                     'ru': 'Левое ухо'},
+        'right_ear': {'en': 'Right ear',
+                      'ru': 'Правое ухо'},
+        'body': {'en': 'Body',
+                 'ru': 'Тело'},
+        'nose': {'en': 'Nose',
+                 'ru': 'Нос'},
+        'tail': {'en': 'Tail',
+                 'ru': 'Хвост'},
+        'middle_ear': {'en': 'Middle ear',
+                       'ru': 'Среднее ухо'}
+    }
+
+    ItemRarities = {
+        '1': {'en': 'Common',
+              'ru': 'Обычный'},
+        '2': {'en': 'Uncommon',
+              'ru': 'Необычный'},
+        '3': {'en': 'Rare',
+              'ru': 'Редкий'},
+        '4': {'en': 'Epic',
+              'ru': 'Эпический'},
+        '5': {'en': 'Mythic',
+              'ru': 'Мифическое'},
+        '6': {'en': 'Legendary',
+              'ru': 'Легендарный'},
+        'custom': {'en': 'Custom',
+                   'ru': 'Кастомный'},
+        'star': {'en': 'Star',
+                 'ru': 'Звёздный'},
+        'exclusive': {'en': 'Exclusive',
+                      'ru': 'Эксклюзив'}
+    }
+
+    PigAges = {
+        '1': {'en': 'Mini-pig',
+              'ru': 'Мини-пиг'},
+        '2': {'en': 'Teenager',
+              'ru': 'Подросток'},
+        '3': {'en': 'Mature',
+              'ru': 'Зрелый'},
+        '4': {'en': 'Adult',
+              'ru': 'Взрослый'},
+        '5': {'en': 'Elder',
+              'ru': 'Старец'},
+        '6': {'en': 'Veteran',
+              'ru': 'Ветеран'},
+        '7': {'en': 'Ancient',
+              'ru': 'Вечный'},
+    }
+
+
+    BuffsNames = {
+        'support_server': {'en': 'Support server',
+                           'ru': 'Нахождение на сервере поддержки'},
+        'pig_weight': {'en': 'Pig Weight',
+                       'ru': 'Вес Хряка'}
+    }
+
+    class Global:
+        kg = {'en': 'kg',
+                'ru': 'кг'}
